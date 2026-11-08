@@ -1,0 +1,27 @@
+# Build and Publish Output
+[Bb]in/
+[Oo]bj/
+dist/
+installer_build/
+*.zip
+src/SilkThread.Installer/Payload/*.zip
+
+# Visual Studio
+.vs/
+*.user
+*.userprefs
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs & Temporary Files
+*.log
+*.tmp
+build_err.txt
+
+# OS Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

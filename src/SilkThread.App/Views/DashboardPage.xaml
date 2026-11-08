@@ -1,0 +1,1055 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SilkThread.App.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:SilkThread.App.ViewModels"
+    xmlns:controls="using:SilkThread.App.Controls"
+    Background="#0E1017"
+    Loaded="Page_Loaded"
+    SizeChanged="Page_SizeChanged"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <!-- Palette & Surface Theme Overrides for Minimal Dark UI -->
+        <SolidColorBrush x:Key="SilkPageBgBrush" Color="#0E1017" />
+        <SolidColorBrush x:Key="SilkCardBgBrush" Color="#181B25" />
+        <SolidColorBrush x:Key="SilkCardBorderBrush" Color="#2B3040" />
+        <SolidColorBrush x:Key="SilkTileBgBrush" Color="#202431" />
+        <SolidColorBrush x:Key="SilkTileBorderBrush" Color="#2B3040" />
+        <SolidColorBrush x:Key="SilkAccentPurpleBrush" Color="#806BFF" />
+        <SolidColorBrush x:Key="SilkAccentGreenBrush" Color="#22C55E" />
+        <SolidColorBrush x:Key="SilkAccentGreenBgBrush" Color="#162E22" />
+        <SolidColorBrush x:Key="SilkTextPrimaryBrush" Color="#F3F4F8" />
+        <SolidColorBrush x:Key="SilkTextSecondaryBrush" Color="#969CAB" />
+
+        <!-- Minimal Dark Card Style (Background #181B25, Border #2B3040, CornerRadius 12, Padding 22) -->
+        <Style x:Key="MinimalCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#181B25" />
+            <Setter Property="BorderBrush" Value="#2B3040" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="22" />
+        </Style>
+
+        <!-- Minimal Dark Sub-Module Tile Style (Background #202431, Border #2B3040, CornerRadius 8) -->
+        <Style x:Key="MinimalTileStyle" TargetType="Border">
+            <Setter Property="Background" Value="#202431" />
+            <Setter Property="BorderBrush" Value="#2B3040" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <!-- Primary Accent Button Style (#806BFF, Foreground White, CornerRadius 8) -->
+        <Style x:Key="MinimalPrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#806BFF" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,9" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <!-- Secondary Button Style (#181B25, Border #2B3040, Foreground #F3F4F8, CornerRadius 8) -->
+        <Style x:Key="MinimalSecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#181B25" />
+            <Setter Property="Foreground" Value="#F3F4F8" />
+            <Setter Property="BorderBrush" Value="#2B3040" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,18,24,28" Background="#0E1017">
+        <Grid HorizontalAlignment="Stretch" RowSpacing="18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ================================================================= -->
+            <!-- 0: Page Header (Title, Subtitle & Action Buttons)                 -->
+            <!-- ================================================================= -->
+            <Grid x:Name="HeaderGrid" Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="HeaderCol0" Width="*" />
+                    <ColumnDefinition x:Name="HeaderCol1" Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="HeaderRow0" Height="Auto" />
+                    <RowDefinition x:Name="HeaderRow1" Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Page Title & Subtitle -->
+                <StackPanel x:Name="HeaderTitlePanel" Grid.Row="0" Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Bind ViewModel.HeroTitle, Mode=OneWay}" 
+                               FontSize="24" FontWeight="SemiBold" Foreground="#F3F4F8" 
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind ViewModel.HeroSubtitle, Mode=OneWay}" 
+                               FontSize="13" Foreground="#969CAB" 
+                               TextWrapping="Wrap" LineHeight="18" />
+                </StackPanel>
+
+                <!-- Action Buttons: «Диагностика системы» & «Быстрая оптимизация в 1 клик» -->
+                <StackPanel x:Name="HeaderActionsPanel" Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- Кнопка 1: Диагностика системы (Subsurface #202431 с рамкой #2B3040, переход на страницу PcScannerPage) -->
+                    <Button Command="{x:Bind ViewModel.OpenScannerCommand}" 
+                            Background="#202431" BorderBrush="#2B3040" BorderThickness="1" 
+                            CornerRadius="8" Padding="14,8"
+                            ToolTipService.ToolTip="Перейти к полной аппаратной диагностике компонентов ПК (процессор, видеокарта, память, диски)">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="#806BFF" />
+                            <TextBlock Text="{x:Bind ViewModel.ScanBtnText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Кнопка 2: Быстрая оптимизация в 1 клик (Primary #806BFF, применение безопасных твиков с обратной связью) -->
+                    <Button Command="{x:Bind ViewModel.AutoOptimizeSafeCommand}" 
+                            Style="{StaticResource MinimalPrimaryButtonStyle}"
+                            ToolTipService.ToolTip="Применить пакет безопасных оптимизаций Windows 11 в один клик">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE945;" FontSize="13" Foreground="White" />
+                            <TextBlock Text="{x:Bind ViewModel.QuickOptimizeBtnText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ================================================================= -->
+            <!-- 1: Live Status & Progress Notification                            -->
+            <!-- ================================================================= -->
+            <StackPanel Grid.Row="1" Spacing="8">
+                <!-- Scanning Progress Bar -->
+                <ProgressBar IsIndeterminate="True" 
+                             Foreground="#806BFF"
+                             Visibility="{x:Bind ViewModel.IsScanning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <!-- Optimizing Status Banner -->
+                <InfoBar Severity="Success"
+                         IsOpen="{x:Bind ViewModel.IsOptimizing, Mode=OneWay}"
+                         IsClosable="False"
+                         Title="{x:Bind ViewModel.OptimizingTitle, Mode=OneWay}"
+                         Message="{x:Bind ViewModel.OptimizationStatus, Mode=OneWay}" />
+            </StackPanel>
+
+            <!-- ================================================================= -->
+            <!-- 2: Equalized Symmetrical Bento Grid Deck (3 Balanced Rows)        -->
+            <!-- ================================================================= -->
+            <Grid x:Name="BentoGrid" Grid.Row="2" ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="BentoCol0" Width="*" />
+                    <ColumnDefinition x:Name="BentoCol1" Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="BentoRow0" Height="Auto" />
+                    <RowDefinition x:Name="BentoRow1" Height="Auto" />
+                    <RowDefinition x:Name="BentoRow2" Height="Auto" />
+                    <RowDefinition x:Name="BentoRow3" Height="Auto" />
+                    <RowDefinition x:Name="BentoRow4" Height="Auto" />
+                    <RowDefinition x:Name="BentoRow5" Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- ============================================================= -->
+                <!-- ROW 0, COL 0: CARD 1 — Индекс оптимизации                     -->
+                <!-- ============================================================= -->
+                <Border x:Name="Card1Optimization" Grid.Row="0" Grid.Column="0" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="16">
+                        <!-- Header: Lightning icon, «Индекс оптимизации», Green Badge «Готов к киберспорту ✓» -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE945;" FontSize="15" Foreground="#806BFF" />
+                                <TextBlock Text="{x:Bind ViewModel.StatScoreLabel, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                            </StackPanel>
+
+                            <!-- Green Badge: «Готов к киберспорту ✓» -->
+                            <Border Grid.Column="1" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.GameReadyLabel, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#22C55E" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Dial & Description Row (Adaptive side-by-side or stacked on < 780px) -->
+                        <Grid x:Name="ScoreDialAndInfoGrid" ColumnSpacing="20" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="ScoreDialCol0" Width="Auto" />
+                                <ColumnDefinition x:Name="ScoreDialCol1" Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="ScoreDialRow0" Height="Auto" />
+                                <RowDefinition x:Name="ScoreDialRow1" Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- High-Contrast Circular Score Indicator Dial: 98% / Оптимизировано -->
+                            <Grid x:Name="ScoreDialContainer" Grid.Row="0" Grid.Column="0" Width="110" Height="110" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <!-- Subtle Outer Ring Track -->
+                                <Border Width="110" Height="110" CornerRadius="55" BorderBrush="#202431" BorderThickness="3.5" />
+
+                                <!-- Clean Accent Ring Indicator -->
+                                <Border Width="110" Height="110" CornerRadius="55" BorderBrush="#806BFF" BorderThickness="3.5" />
+
+                                <!-- Inner Container with High Contrast Numeric Display -->
+                                <Border Width="98" Height="98" CornerRadius="49" Background="#181B25" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind ViewModel.SystemScore, Mode=OneWay}"
+                                                       FontSize="34" FontWeight="Bold" Foreground="#F3F4F8" />
+                                            <TextBlock Text="%"
+                                                       FontSize="18" FontWeight="Bold" Foreground="#806BFF" Margin="2,4,0,0" VerticalAlignment="Top" />
+                                        </StackPanel>
+                                        <TextBlock Text="{x:Bind ViewModel.IndexLabel, Mode=OneWay}" FontSize="10" FontWeight="SemiBold" Foreground="#969CAB" HorizontalAlignment="Center" Margin="0,-2,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Description & 3 Stats Chips in a Row -->
+                            <StackPanel x:Name="ScoreInfoContainer" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Spacing="10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{x:Bind ViewModel.ScoreHeroTitle, Mode=OneWay}" 
+                                               FontSize="18" FontWeight="Bold" Foreground="#F3F4F8" />
+                                    <TextBlock x:Name="ScoreDescriptionText" 
+                                               Text="{x:Bind ViewModel.ScoreDescription, Mode=OneWay}" 
+                                               FontSize="13" Foreground="#969CAB" 
+                                               TextWrapping="Wrap" LineHeight="17" />
+                                </StackPanel>
+
+                                <!-- 3 Statistics Chips on #202431 -->
+                                <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="6">
+                                    <!-- Chip 1: 106 процессов в фоне -->
+                                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="9,5">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE9D9;" FontSize="11" Foreground="#806BFF" VerticalAlignment="Center" />
+                                            <TextBlock Text="{x:Bind ViewModel.RunningProcessesCount, Mode=OneWay}" FontWeight="Bold" FontSize="11" Foreground="#F3F4F8" />
+                                            <TextBlock Text="{x:Bind ViewModel.StatProcessesLabel, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Chip 2: 249 безопасных рекомендаций -->
+                                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="9,5">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE72E;" FontSize="11" Foreground="#22C55E" VerticalAlignment="Center" />
+                                            <TextBlock Text="{x:Bind ViewModel.RecommendedTweaksCount, Mode=OneWay}" FontWeight="Bold" FontSize="11" Foreground="#F3F4F8" />
+                                            <TextBlock Text="{x:Bind ViewModel.StatSafeRecsLabel, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Chip 3: 285 служб -->
+                                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="9,5">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE71D;" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                            <TextBlock Text="{x:Bind ViewModel.RunningServicesCount, Mode=OneWay}" FontWeight="Bold" FontSize="11" Foreground="#F3F4F8" />
+                                            <TextBlock Text="{x:Bind ViewModel.StatServicesLabel, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" />
+                                        </StackPanel>
+                                    </Border>
+                                </controls:WrapPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- 4 Dynamic Reactive Status Bars (2x2 Grid) -->
+                        <Grid x:Name="StatusBarsGrid" ColumnSpacing="10" RowSpacing="10" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Bar 1: Загрузка ввода и HDD -->
+                            <Border Grid.Row="0" Grid.Column="0" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,9">
+                                <StackPanel Spacing="5">
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind ViewModel.CatLatencyTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Left" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{x:Bind ViewModel.InputHddScore, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                            <TextBlock Text="%" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <ProgressBar Value="{x:Bind ViewModel.InputHddScore, Mode=OneWay}" 
+                                                 Maximum="100" Height="4" CornerRadius="2" 
+                                                 Foreground="#806BFF" Background="#181B25" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Bar 2: Графика и HAGS -->
+                            <Border Grid.Row="0" Grid.Column="1" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,9">
+                                <StackPanel Spacing="5">
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind ViewModel.CatGpuTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Left" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{x:Bind ViewModel.GraphicsHagsScore, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                            <TextBlock Text="%" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <ProgressBar Value="{x:Bind ViewModel.GraphicsHagsScore, Mode=OneWay}" 
+                                                 Maximum="100" Height="4" CornerRadius="2" 
+                                                 Foreground="#806BFF" Background="#181B25" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Bar 3: Память и MMCSS -->
+                            <Border Grid.Row="1" Grid.Column="0" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,9">
+                                <StackPanel Spacing="5">
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind ViewModel.CatRamTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Left" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{x:Bind ViewModel.MemoryMmcssScore, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                            <TextBlock Text="%" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <ProgressBar Value="{x:Bind ViewModel.MemoryMmcssScore, Mode=OneWay}" 
+                                                 Maximum="100" Height="4" CornerRadius="2" 
+                                                 Foreground="#806BFF" Background="#181B25" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Bar 4: Пинг и TCP NoDelay -->
+                            <Border Grid.Row="1" Grid.Column="1" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,9">
+                                <StackPanel Spacing="5">
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind ViewModel.CatNetworkTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Left" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{x:Bind ViewModel.PingNetworkScore, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                            <TextBlock Text="%" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <ProgressBar Value="{x:Bind ViewModel.PingNetworkScore, Mode=OneWay}" 
+                                                 Maximum="100" Height="4" CornerRadius="2" 
+                                                 Foreground="#806BFF" Background="#181B25" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Bottom 2 Buttons -->
+                        <Grid ColumnSpacing="12" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Primary Button: «Быстрая оптимизация в 1 клик» -->
+                            <Button Grid.Column="0" Command="{x:Bind ViewModel.AutoOptimizeSafeCommand}" 
+                                    Style="{StaticResource MinimalPrimaryButtonStyle}" HorizontalAlignment="Stretch"
+                                    ToolTipService.ToolTip="Применить пакет рекомендованных твиков для мгновенного прироста плавности">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <FontIcon Glyph="&#xE945;" FontSize="13" Foreground="White" />
+                                    <TextBlock Text="{x:Bind ViewModel.QuickOptimizeBtnText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Secondary Button: «Библиотека твиков >» -->
+                            <Button Grid.Column="1" Command="{x:Bind ViewModel.OpenTweaksCommand}" 
+                                    Style="{StaticResource MinimalSecondaryButtonStyle}"
+                                    ToolTipService.ToolTip="Открыть полный каталог всех доступных твиков системы">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind ViewModel.AllTweaksBtnText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" />
+                                    <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="#969CAB" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================= -->
+                <!-- ROW 0, COL 1: CARD 3 — Аппаратная платформа                   -->
+                <!-- ============================================================= -->
+                <Border x:Name="Card3Hardware" Grid.Row="0" Grid.Column="1" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="14">
+                        <!-- Header: Icon CPU, «Аппаратная платформа», Right Button «Подробная диагностика ->» -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE9D9;" FontSize="15" Foreground="#806BFF" />
+                                <TextBlock Text="{x:Bind ViewModel.HwTitle, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Command="{x:Bind ViewModel.OpenScannerCommand}" 
+                                    Style="{StaticResource MinimalSecondaryButtonStyle}" Padding="10,5"
+                                    ToolTipService.ToolTip="Перейти к полной диагностике оборудования ПК">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{x:Bind ViewModel.HwDiagBtnText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" />
+                                    <FontIcon Glyph="&#xE76C;" FontSize="9" Foreground="#969CAB" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Сетка 2x2 аппаратных плиток (#202431) -->
+                        <Grid x:Name="HwTilesGrid" ColumnSpacing="10" RowSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="HwCol0" Width="*" />
+                                <ColumnDefinition x:Name="HwCol1" Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="HwRow0" Height="Auto" />
+                                <RowDefinition x:Name="HwRow1" Height="Auto" />
+                                <RowDefinition x:Name="HwRow2" Height="Auto" />
+                                <RowDefinition x:Name="HwRow3" Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Tile 1: CPU -->
+                            <Border x:Name="TileCpu" Grid.Row="0" Grid.Column="0" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="7" Background="#182438" BorderBrush="#38BDF8" BorderThickness="1" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE9D9;" FontSize="14" Foreground="#38BDF8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.HwCpuLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind ViewModel.CpuName, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind ViewModel.CpuCoresThreads, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tile 2: GPU -->
+                            <Border x:Name="TileGpu" Grid.Row="0" Grid.Column="1" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="7" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE790;" FontSize="14" Foreground="#22C55E" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.HwGpuLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind ViewModel.GpuVram, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tile 3: RAM -->
+                            <Border x:Name="TileRam" Grid.Row="1" Grid.Column="0" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="7" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE7C5;" FontSize="14" Foreground="#22C55E" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.HwRamLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind ViewModel.RamTotalGb, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                        <TextBlock Text="{x:Bind ViewModel.RamDetails, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tile 4: Хранилище -->
+                            <Border x:Name="TileOs" Grid.Row="1" Grid.Column="1" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="7" Background="#26233E" BorderBrush="#806BFF" BorderThickness="1" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xEDA2;" FontSize="14" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.HwStorageLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind ViewModel.StorageName, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind ViewModel.StorageDetails, Mode=OneWay}" FontSize="10.5" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================= -->
+                <!-- ROW 1, COL 0: CARD 2 — IOST (Интеллектуальная оптимизация)     -->
+                <!-- ============================================================= -->
+                <Border x:Name="Card2Iost" Grid.Row="1" Grid.Column="0" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="14">
+                        <!-- Header: Icon \uE7C5, «IOST — Интеллектуальная оптимизация», Right Badge «IOST активен» -->
+                        <Grid x:Name="AiHeaderGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="AiHeaderCol0" Width="*" />
+                                <ColumnDefinition x:Name="AiHeaderCol1" Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="AiHeaderRow0" Height="Auto" />
+                                <RowDefinition x:Name="AiHeaderRow1" Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel x:Name="AiHeaderTitlePanel" Grid.Row="0" Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE7C5;" FontSize="16" Foreground="#806BFF" VerticalAlignment="Center" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiBentoTitle, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.AiBentoSubtitle, Mode=OneWay}" 
+                                           FontSize="12" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="16" />
+                            </StackPanel>
+
+                            <!-- Badge: «IOST активен» -->
+                            <Border x:Name="AiHeaderBadgesPanel" Grid.Row="0" Grid.Column="1" 
+                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="8,4" VerticalAlignment="Top">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE7C5;" FontSize="11" Foreground="#806BFF" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiBentoBadge, Mode=OneWay}" FontSize="10.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Block 1: Сценарий использования -> 4 чипса -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Bind ViewModel.AiScenarioHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.AiScenarios}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:AiSurveyOptionItem">
+                                        <Button Click="AiScenario_Click"
+                                                Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                                BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                                BorderThickness="1"
+                                                CornerRadius="8" Padding="11,6">
+                                            <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Block 2: Ключевой приоритет -> 4 чипса -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Bind ViewModel.AiPriorityHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.AiPriorities}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:AiSurveyOptionItem">
+                                        <Button Click="AiPriority_Click"
+                                                Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                                BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                                BorderThickness="1"
+                                                CornerRadius="8" Padding="11,6">
+                                            <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Телеметрический прогноз (3 чипса в ряд на подложках #202431) -->
+                        <Grid x:Name="AiForecastGrid" ColumnSpacing="8" RowSpacing="8" Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Chip 1: Прирост FPS -->
+                            <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                <StackPanel Spacing="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE74B;" FontSize="12" Foreground="#22C55E" />
+                                        <TextBlock Text="{x:Bind ViewModel.ForecastFpsLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                    </StackPanel>
+                                    <TextBlock Text="+ 14 - 32%" FontSize="13" FontWeight="Bold" Foreground="#22C55E" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Chip 2: Задержка ввода -->
+                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                <StackPanel Spacing="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE962;" FontSize="12" Foreground="#38BDF8" />
+                                        <TextBlock Text="{x:Bind ViewModel.ForecastLatencyLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                    </StackPanel>
+                                    <TextBlock Text="- 9 - 14 мс" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Chip 3: Очистка RAM -->
+                            <Border Grid.Column="2" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                <StackPanel Spacing="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE7C5;" FontSize="12" Foreground="#806BFF" />
+                                        <TextBlock Text="{x:Bind ViewModel.ForecastRamLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                    </StackPanel>
+                                    <TextBlock Text="- 0.6 - 1.2 ГБ" FontSize="13" FontWeight="Bold" Foreground="#A78BFA" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- AI Execution Progress Bar & Status Text (when generating) -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Spacing="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ProgressRing Grid.Column="0" IsActive="True" Width="14" Height="14" Foreground="#806BFF" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.AiProgressStatus, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" VerticalAlignment="Center" />
+                            </Grid>
+                            <ProgressBar IsIndeterminate="True" Height="3" CornerRadius="1.5" Foreground="#806BFF" />
+                        </StackPanel>
+
+                        <!-- Кнопка снизу: «Сгенерировать персональный пресет (IOST)» -->
+                        <Button Command="{x:Bind ViewModel.GenerateAiPresetCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                Style="{StaticResource MinimalPrimaryButtonStyle}"
+                                HorizontalAlignment="Stretch" Padding="16,11"
+                                ToolTipService.ToolTip="Запустить алгоритм IOST для генерации персонального набора оптимизаций">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE7C5;" FontSize="14" Foreground="White" />
+                                <TextBlock Text="{x:Bind ViewModel.AiGenerateBtnText, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================= -->
+                <!-- ROW 1, COL 1: CARD 4 — Игровая матрица задержек               -->
+                <!-- ============================================================= -->
+                <Border x:Name="Card4Latency" Grid.Row="1" Grid.Column="1" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="14">
+                        <!-- Header: Icon, Title + ToggleSwitch in compact group, Subtitle -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="3" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE962;" FontSize="15" Foreground="#806BFF" />
+                                    <TextBlock Text="{x:Bind ViewModel.LatencyTitle, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                    
+                                    <!-- Compact ToggleSwitch immediately next to Title -->
+                                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsMatrixActive, Mode=TwoWay}"
+                                                  OnContent="" OffContent="" 
+                                                  ToolTipService.ToolTip="Включить / отключить комплекс ультра-низких задержек"
+                                                  Margin="2,-3,0,-3"
+                                                  VerticalAlignment="Center">
+                                        <ToggleSwitch.Resources>
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#806BFF" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#9482FF" />
+                                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#6E55F5" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#806BFF" />
+                                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#9482FF" />
+                                        </ToggleSwitch.Resources>
+                                    </ToggleSwitch>
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.LatencySubtitle, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                            </StackPanel>
+
+                            <!-- Status Badge on the right -->
+                            <Border Grid.Column="1" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Top">
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#22C55E" />
+                                    <TextBlock Text="{x:Bind ViewModel.LatencyActiveBadge, Mode=OneWay}" FontSize="10.5" FontWeight="Bold" Foreground="#22C55E" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- 4 Interactive Tiles with Hover Expansion & Clickable Toggle Action -->
+                        <Grid x:Name="LatencyTilesGrid" ColumnSpacing="10" RowSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="LatencyCol0" Width="*" />
+                                <ColumnDefinition x:Name="LatencyCol1" Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="LatencyRow0" Height="86" />
+                                <RowDefinition x:Name="LatencyRow1" Height="86" />
+                                <RowDefinition x:Name="LatencyRow2" Height="86" />
+                                <RowDefinition x:Name="LatencyRow3" Height="86" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Module 1: Прямой ввод 1:1 (Raw Input) -->
+                            <Border x:Name="ModRawInput" Grid.Row="0" Grid.Column="0" 
+                                    Height="86"
+                                    BorderThickness="1" CornerRadius="8" Padding="12,8"
+                                    PointerEntered="LatencyTile_PointerEntered"
+                                    PointerExited="LatencyTile_PointerExited"
+                                    Tapped="LatencyTile_Tapped"
+                                    Tag="raw_input"
+                                    ToolTipService.ToolTip="Нажмите для переключения прямого ввода">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#202431" />
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#2B3040" />
+                                </Border.BorderBrush>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon + Status Badge -->
+                                    <Grid Grid.Row="0">
+                                        <FontIcon Glyph="&#xE962;" FontSize="13" Foreground="#38BDF8" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Border HorizontalAlignment="Right" 
+                                                Background="{x:Bind ViewModel.RawInputStatusBg, Mode=OneWay}"
+                                                BorderBrush="{x:Bind ViewModel.RawInputStatusBorder, Mode=OneWay}"
+                                                BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{x:Bind ViewModel.RawInputStatusText, Mode=OneWay}"
+                                                       FontSize="9" FontWeight="Bold" 
+                                                       Foreground="{x:Bind ViewModel.RawInputStatusFg, Mode=OneWay}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Middle Row: Title -->
+                                    <TextBlock Grid.Row="1" Text="Прямой ввод 1:1 (Raw Input)" FontSize="11.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+
+                                    <!-- Bottom Row: Pre-allocated stable slot with smooth crossfade -->
+                                    <Grid Grid.Row="2" Margin="0,2,0,0">
+                                        <TextBlock x:Name="SubRawInput" 
+                                                   Text="Отключение сглаживания курсора и акселерации" 
+                                                   FontSize="10" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="13" 
+                                                   VerticalAlignment="Center" Opacity="1" />
+                                        <StackPanel x:Name="DetailRawInput" Spacing="1" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                                            <TextBlock Text="⚡ Опрос мыши без DWM. Точный прицел." 
+                                                       FontSize="9.5" Foreground="#CBD5E1" TextWrapping="Wrap" LineHeight="13" />
+                                            <TextBlock Text="Нажмите на плитку для переключения" FontSize="9" FontWeight="SemiBold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- Module 2: Планировщик HAGS & DirectFlip -->
+                            <Border x:Name="ModHags" Grid.Row="0" Grid.Column="1" 
+                                    Height="86"
+                                    BorderThickness="1" CornerRadius="8" Padding="12,8"
+                                    PointerEntered="LatencyTile_PointerEntered"
+                                    PointerExited="LatencyTile_PointerExited"
+                                    Tapped="LatencyTile_Tapped"
+                                    Tag="hags"
+                                    ToolTipService.ToolTip="Нажмите для переключения HAGS">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#202431" />
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#2B3040" />
+                                </Border.BorderBrush>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon + Status Badge -->
+                                    <Grid Grid.Row="0">
+                                        <FontIcon Glyph="&#xE790;" FontSize="13" Foreground="#806BFF" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Border HorizontalAlignment="Right" 
+                                                Background="{x:Bind ViewModel.HagsStatusBg, Mode=OneWay}"
+                                                BorderBrush="{x:Bind ViewModel.HagsStatusBorder, Mode=OneWay}"
+                                                BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{x:Bind ViewModel.HagsStatusText, Mode=OneWay}"
+                                                       FontSize="9" FontWeight="Bold" 
+                                                       Foreground="{x:Bind ViewModel.HagsStatusFg, Mode=OneWay}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Middle Row: Title -->
+                                    <TextBlock Grid.Row="1" Text="Планировщик HAGS &amp; DirectFlip" FontSize="11.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+
+                                    <!-- Bottom Row: Pre-allocated stable slot with smooth crossfade -->
+                                    <Grid Grid.Row="2" Margin="0,2,0,0">
+                                        <TextBlock x:Name="SubHags" 
+                                                   Text="Аппаратное планирование GPU без задержек DWM" 
+                                                   FontSize="10" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="13" 
+                                                   VerticalAlignment="Center" Opacity="1" />
+                                        <StackPanel x:Name="DetailHags" Spacing="1" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                                            <TextBlock Text="⚡ Прямое управление VRAM, меньше задержек." 
+                                                       FontSize="9.5" Foreground="#CBD5E1" TextWrapping="Wrap" LineHeight="13" />
+                                            <TextBlock Text="Нажмите на плитку для переключения" FontSize="9" FontWeight="SemiBold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- Module 3: Сетевой стек TCP NoDelay -->
+                            <Border x:Name="ModTcp" Grid.Row="1" Grid.Column="0" 
+                                    Height="86"
+                                    BorderThickness="1" CornerRadius="8" Padding="12,8"
+                                    PointerEntered="LatencyTile_PointerEntered"
+                                    PointerExited="LatencyTile_PointerExited"
+                                    Tapped="LatencyTile_Tapped"
+                                    Tag="tcp_nodelay"
+                                    ToolTipService.ToolTip="Нажмите для переключения TCP NoDelay">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#202431" />
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#2B3040" />
+                                </Border.BorderBrush>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon + Status Badge -->
+                                    <Grid Grid.Row="0">
+                                        <FontIcon Glyph="&#xE774;" FontSize="13" Foreground="#22C55E" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Border HorizontalAlignment="Right" 
+                                                Background="{x:Bind ViewModel.TcpStatusBg, Mode=OneWay}"
+                                                BorderBrush="{x:Bind ViewModel.TcpStatusBorder, Mode=OneWay}"
+                                                BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{x:Bind ViewModel.TcpStatusText, Mode=OneWay}"
+                                                       FontSize="9" FontWeight="Bold" 
+                                                       Foreground="{x:Bind ViewModel.TcpStatusFg, Mode=OneWay}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Middle Row: Title -->
+                                    <TextBlock Grid.Row="1" Text="Сетевой стек TCP NoDelay" FontSize="11.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+
+                                    <!-- Bottom Row: Pre-allocated stable slot with smooth crossfade -->
+                                    <Grid Grid.Row="2" Margin="0,2,0,0">
+                                        <TextBlock x:Name="SubTcp" 
+                                                   Text="Отключение алгоритма Нагла и буферизации" 
+                                                   FontSize="10" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="13" 
+                                                   VerticalAlignment="Center" Opacity="1" />
+                                        <StackPanel x:Name="DetailTcp" Spacing="1" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                                            <TextBlock Text="⚡ Мгновенная отправка сетевых пакетов без лага." 
+                                                       FontSize="9.5" Foreground="#CBD5E1" TextWrapping="Wrap" LineHeight="13" />
+                                            <TextBlock Text="Нажмите на плитку для переключения" FontSize="9" FontWeight="SemiBold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- Module 4: Приоритет MMCSS в шедхулер -->
+                            <Border x:Name="ModMmcss" Grid.Row="1" Grid.Column="1" 
+                                    Height="86"
+                                    BorderThickness="1" CornerRadius="8" Padding="12,8"
+                                    PointerEntered="LatencyTile_PointerEntered"
+                                    PointerExited="LatencyTile_PointerExited"
+                                    Tapped="LatencyTile_Tapped"
+                                    Tag="mmcss"
+                                    ToolTipService.ToolTip="Нажмите для переключения MMCSS">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#202431" />
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#2B3040" />
+                                </Border.BorderBrush>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon + Status Badge -->
+                                    <Grid Grid.Row="0">
+                                        <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="#806BFF" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Border HorizontalAlignment="Right" 
+                                                Background="{x:Bind ViewModel.MmcssStatusBg, Mode=OneWay}"
+                                                BorderBrush="{x:Bind ViewModel.MmcssStatusBorder, Mode=OneWay}"
+                                                BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{x:Bind ViewModel.MmcssStatusText, Mode=OneWay}"
+                                                       FontSize="9" FontWeight="Bold" 
+                                                       Foreground="{x:Bind ViewModel.MmcssStatusFg, Mode=OneWay}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Middle Row: Title -->
+                                    <TextBlock Grid.Row="1" Text="Приоритет MMCSS в шедхулер" FontSize="11.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+
+                                    <!-- Bottom Row: Pre-allocated stable slot with smooth crossfade -->
+                                    <Grid Grid.Row="2" Margin="0,2,0,0">
+                                        <TextBlock x:Name="SubMmcss" 
+                                                   Text="Квантование времени и приоритет потоков для игр" 
+                                                   FontSize="10" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="13" 
+                                                   VerticalAlignment="Center" Opacity="1" />
+                                        <StackPanel x:Name="DetailMmcss" Spacing="1" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                                            <TextBlock Text="⚡ 80%+ квантов CPU в игре, без микрофризов." 
+                                                       FontSize="9.5" Foreground="#CBD5E1" TextWrapping="Wrap" LineHeight="13" />
+                                            <TextBlock Text="Нажмите на плитку для переключения" FontSize="9" FontWeight="SemiBold" Foreground="#806BFF" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================= -->
+                <!-- ROW 2, COL 0: CARD 5 — Безопасность и точки отката            -->
+                <!-- ============================================================= -->
+                <Border x:Name="Card5Security" Grid.Row="2" Grid.Column="0" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="12">
+                        <!-- Header: Shield icon, Title -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE72E;" FontSize="15" Foreground="#22C55E" />
+                            <TextBlock Text="{x:Bind ViewModel.SecurityTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                        </StackPanel>
+
+                        <!-- Green Badge: «✓ Защита системы активна» -->
+                        <Border Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="7,3" HorizontalAlignment="Left">
+                            <TextBlock Text="{x:Bind ViewModel.SecurityProtected, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#22C55E" />
+                        </Border>
+
+                        <!-- Description -->
+                        <TextBlock Text="{x:Bind ViewModel.SecurityDesc, Mode=OneWay}" 
+                                   FontSize="12" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="16" />
+
+                        <!-- Button: «Точка восстановления» -->
+                        <Button Command="{x:Bind ViewModel.OpenRestoreCommand}" 
+                                Style="{StaticResource MinimalSecondaryButtonStyle}" HorizontalAlignment="Stretch" Padding="12,8"
+                                ToolTipService.ToolTip="Перейти к управлению точками восстановления и откату изменений">
+                            <StackPanel Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE777;" FontSize="12" Foreground="#806BFF" />
+                                <TextBlock Text="{x:Bind ViewModel.SecurityBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================= -->
+                <!-- ROW 2, COL 1: CARD 6 — Быстрые сценарии и управление пресетами-->
+                <!-- ============================================================= -->
+                <Border x:Name="Card6Presets" Grid.Row="2" Grid.Column="1" 
+                        Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="10">
+                        <!-- Header: Lightning icon, Title, Right Arrow -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE945;" FontSize="15" Foreground="#806BFF" />
+                                <TextBlock Text="{x:Bind ViewModel.PresetsTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Command="{x:Bind ViewModel.OpenOptimizationCommand}" 
+                                    Background="Transparent" BorderThickness="0" Padding="4" VerticalAlignment="Center"
+                                    ToolTipService.ToolTip="Открыть мастер комплексной оптимизации">
+                                <FontIcon Glyph="&#xE76C;" FontSize="10" Foreground="#969CAB" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Two Prominent Action Buttons: «Создать пресет» & «Активировать пресет» -->
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Button 1: «Создать пресет» -->
+                            <Button Grid.Column="0" Command="{x:Bind ViewModel.CreatePresetCommand}" 
+                                    Style="{StaticResource MinimalSecondaryButtonStyle}" 
+                                    HorizontalAlignment="Stretch" Padding="10,8"
+                                    ToolTipService.ToolTip="Создать файл профиля (.silkpreset) из применённых твиков системы">
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="#806BFF" />
+                                    <TextBlock Text="{x:Bind ViewModel.CreatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Button 2: «Активировать пресет» -->
+                            <Button Grid.Column="1" Command="{x:Bind ViewModel.ActivatePresetCommand}" 
+                                    Style="{StaticResource MinimalPrimaryButtonStyle}" 
+                                    HorizontalAlignment="Stretch" Padding="10,8"
+                                    ToolTipService.ToolTip="Выбрать и применить файл профиля (.silkpreset) с интерактивным аудитом твиков">
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                    <FontIcon Glyph="&#xE8E5;" FontSize="12" Foreground="White" />
+                                    <TextBlock Text="{x:Bind ViewModel.ActivatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Scenarios List -->
+                        <!-- Row 1: Киберспорт (Ultra Latency) -->
+                        <Button Command="{x:Bind ViewModel.OpenOptimizationCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                ToolTipService.ToolTip="Перейти к киберспортивному профилю">
+                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE7FC;" FontSize="12" Foreground="#806BFF" />
+                                        <TextBlock Text="{x:Bind ViewModel.PresetEsportsTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <FontIcon Glyph="&#xE76C;" FontSize="9" Foreground="#969CAB" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Button>
+
+                        <!-- Row 2: Сбалансированный игровой профиль -->
+                        <Button Command="{x:Bind ViewModel.OpenOptimizationCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                ToolTipService.ToolTip="Перейти к сбалансированному профилю">
+                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE7EE;" FontSize="12" Foreground="#22C55E" />
+                                        <TextBlock Text="{x:Bind ViewModel.PresetBalancedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <FontIcon Glyph="&#xE76C;" FontSize="9" Foreground="#969CAB" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Button>
+
+                        <!-- Row 3: Офисная и повседневная работа -->
+                        <Button Command="{x:Bind ViewModel.OpenOptimizationCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                Background="Transparent" BorderThickness="0" Padding="0"
+                                ToolTipService.ToolTip="Перейти к офисному профилю">
+                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE802;" FontSize="12" Foreground="#38BDF8" />
+                                        <TextBlock Text="{x:Bind ViewModel.PresetOfficeTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <FontIcon Glyph="&#xE76C;" FontSize="9" Foreground="#969CAB" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:SilkThread.App.Converters">
+
+    <!-- ========================================================================= -->
+    <!-- Value Converters                                                          -->
+    <!-- ========================================================================= -->
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" Invert="True" />
+    <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+    <converters:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBoolConverter" />
+    <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <converters:RiskToColorConverter x:Key="RiskToColorConverter" />
+    <converters:RecommendationToColorConverter x:Key="RecommendationToColorConverter" />
+    <converters:StatusToColorConverter x:Key="StatusToColorConverter" />
+    <converters:StatusToBackgroundConverter x:Key="StatusToBackgroundConverter" />
+    <converters:StatusToBorderConverter x:Key="StatusToBorderConverter" />
+    <converters:StatusToIconConverter x:Key="StatusToIconConverter" />
+    <converters:LocalizedCategoryConverter x:Key="LocalizedCategoryConverter" />
+    <converters:CategoryToIconConverter x:Key="CategoryToIconConverter" />
+    <converters:LocalizedRiskConverter x:Key="LocalizedRiskConverter" />
+    <converters:LocalizedRecommendationConverter x:Key="LocalizedRecommendationConverter" />
+    <converters:LocalizedStatusConverter x:Key="LocalizedStatusConverter" />
+    <converters:ActionTextConverter x:Key="ActionTextConverter" />
+
+    <!-- ========================================================================= -->
+    <!-- Minimal Dark UI Design Tokens                                             -->
+    <!-- ========================================================================= -->
+
+    <!-- Base Colors -->
+    <!-- Основной фон: #0E1017 -->
+    <Color x:Key="SilkBackgroundDarkColor">#0E1017</Color>
+    <Color x:Key="SilkSurfaceDarkColor">#0E1017</Color>
+
+    <!-- Фон боковой панели: #11141D -->
+    <Color x:Key="SilkSidebarDarkColor">#11141D</Color>
+
+    <!-- Фон карточек: #181B25 -->
+    <Color x:Key="SilkCardDarkColor">#181B25</Color>
+    <Color x:Key="SilkCardHoverColor">#202431</Color>
+
+    <!-- Поверхности второго уровня (subsurfaces/tiles): #202431 -->
+    <Color x:Key="SilkSubsurfaceDarkColor">#202431</Color>
+    <Color x:Key="SilkSubsurfaceHoverColor">#2B3040</Color>
+
+    <!-- Границы: #2B3040 -->
+    <Color x:Key="SilkStrokeDarkColor">#2B3040</Color>
+    <Color x:Key="SilkStrokeHoverColor">#3B4259</Color>
+
+    <!-- Основной акцент: #806BFF, Hover: #9787FF, Pressed: #6D55FA -->
+    <Color x:Key="SilkBrandPrimaryColor">#806BFF</Color>
+    <Color x:Key="SilkBrandHoverColor">#9787FF</Color>
+    <Color x:Key="SilkBrandPressedColor">#6D55FA</Color>
+
+    <!-- Акцент с прозрачностью (selection/glow): #26806BFF / #1A806BFF / #22806BFF -->
+    <Color x:Key="SilkBrandGlowColor">#26806BFF</Color>
+    <Color x:Key="SilkBrandSelectionColor">#22806BFF</Color>
+    <Color x:Key="SilkBrandMutedColor">#1A806BFF</Color>
+
+    <!-- Текст: Основной #F3F4F8, Вторичный #969CAB, Приглушенный #6B7280 -->
+    <Color x:Key="SilkTextPrimaryColor">#F3F4F8</Color>
+    <Color x:Key="SilkTextSecondaryColor">#969CAB</Color>
+    <Color x:Key="SilkTextMutedColor">#6B7280</Color>
+
+    <!-- Статусы: Успех #22C55E, Ошибка #EF4444, Предупреждение #F59E0B -->
+    <Color x:Key="SilkSuccessColor">#22C55E</Color>
+    <Color x:Key="SilkSuccessBgColor">#1A22C55E</Color>
+    <Color x:Key="SilkEmeraldColor">#22C55E</Color>
+
+    <Color x:Key="SilkErrorColor">#EF4444</Color>
+    <Color x:Key="SilkErrorBgColor">#1AEF4444</Color>
+    <Color x:Key="SilkRoseColor">#EF4444</Color>
+
+    <Color x:Key="SilkWarningColor">#F59E0B</Color>
+    <Color x:Key="SilkWarningBgColor">#1AF59E0B</Color>
+    <Color x:Key="SilkAmberColor">#F59E0B</Color>
+
+    <!-- Дополнительные инфо-акценты -->
+    <Color x:Key="SilkCyanColor">#06B6D4</Color>
+    <Color x:Key="SilkSkyColor">#38BDF8</Color>
+
+    <!-- Legacy Aliases for backwards compatibility -->
+    <Color x:Key="SilkAmethystPrimaryColor">#806BFF</Color>
+    <Color x:Key="SilkAmethystHoverColor">#9787FF</Color>
+    <Color x:Key="SilkAmethystPressedColor">#6D55FA</Color>
+
+    <!-- ========================================================================= -->
+    <!-- SolidColorBrushes                                                         -->
+    <!-- ========================================================================= -->
+
+    <!-- Surfaces & Layout -->
+    <SolidColorBrush x:Key="SilkBackgroundDarkBrush" Color="{StaticResource SilkBackgroundDarkColor}" />
+    <SolidColorBrush x:Key="SilkSurfaceDarkBrush" Color="{StaticResource SilkSurfaceDarkColor}" />
+    <SolidColorBrush x:Key="SilkSidebarDarkBrush" Color="{StaticResource SilkSidebarDarkColor}" />
+    <SolidColorBrush x:Key="SilkCardDarkBrush" Color="{StaticResource SilkCardDarkColor}" />
+    <SolidColorBrush x:Key="SilkCardHoverBrush" Color="{StaticResource SilkCardHoverColor}" />
+    <SolidColorBrush x:Key="SilkSubsurfaceDarkBrush" Color="{StaticResource SilkSubsurfaceDarkColor}" />
+    <SolidColorBrush x:Key="SilkSubsurfaceHoverBrush" Color="{StaticResource SilkSubsurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SilkStrokeDarkBrush" Color="{StaticResource SilkStrokeDarkColor}" />
+    <SolidColorBrush x:Key="SilkStrokeHoverBrush" Color="{StaticResource SilkStrokeHoverColor}" />
+
+    <!-- Accent Brushes -->
+    <SolidColorBrush x:Key="SilkBrandBrush" Color="{StaticResource SilkBrandPrimaryColor}" />
+    <SolidColorBrush x:Key="SilkBrandHoverBrush" Color="{StaticResource SilkBrandHoverColor}" />
+    <SolidColorBrush x:Key="SilkBrandPressedBrush" Color="{StaticResource SilkBrandPressedColor}" />
+    <SolidColorBrush x:Key="SilkBrandGlowBrush" Color="{StaticResource SilkBrandGlowColor}" />
+    <SolidColorBrush x:Key="SilkBrandSelectionBrush" Color="{StaticResource SilkBrandSelectionColor}" />
+    <SolidColorBrush x:Key="SilkBrandMutedBrush" Color="{StaticResource SilkBrandMutedColor}" />
+
+    <!-- Typography Brushes -->
+    <SolidColorBrush x:Key="SilkTextPrimaryBrush" Color="{StaticResource SilkTextPrimaryColor}" />
+    <SolidColorBrush x:Key="SilkTextSecondaryBrush" Color="{StaticResource SilkTextSecondaryColor}" />
+    <SolidColorBrush x:Key="SilkTextMutedBrush" Color="{StaticResource SilkTextMutedColor}" />
+
+    <!-- Status Brushes -->
+    <SolidColorBrush x:Key="SilkSuccessBrush" Color="{StaticResource SilkSuccessColor}" />
+    <SolidColorBrush x:Key="SilkSuccessBgBrush" Color="{StaticResource SilkSuccessBgColor}" />
+    <SolidColorBrush x:Key="SilkEmeraldBrush" Color="{StaticResource SilkSuccessColor}" />
+    <SolidColorBrush x:Key="SilkEmeraldBgBrush" Color="{StaticResource SilkSuccessBgColor}" />
+
+    <SolidColorBrush x:Key="SilkErrorBrush" Color="{StaticResource SilkErrorColor}" />
+    <SolidColorBrush x:Key="SilkErrorBgBrush" Color="{StaticResource SilkErrorBgColor}" />
+    <SolidColorBrush x:Key="SilkRoseBrush" Color="{StaticResource SilkErrorColor}" />
+    <SolidColorBrush x:Key="SilkRoseBgBrush" Color="{StaticResource SilkErrorBgColor}" />
+
+    <SolidColorBrush x:Key="SilkWarningBrush" Color="{StaticResource SilkWarningColor}" />
+    <SolidColorBrush x:Key="SilkWarningBgBrush" Color="{StaticResource SilkWarningBgColor}" />
+    <SolidColorBrush x:Key="SilkAmberBrush" Color="{StaticResource SilkWarningColor}" />
+    <SolidColorBrush x:Key="SilkAmberBgBrush" Color="{StaticResource SilkWarningBgColor}" />
+
+    <SolidColorBrush x:Key="SilkCyanBrush" Color="{StaticResource SilkCyanColor}" />
+    <SolidColorBrush x:Key="SilkCyanBgBrush" Color="#1A06B6D4" />
+    <SolidColorBrush x:Key="SilkSkyBrush" Color="{StaticResource SilkSkyColor}" />
+    <SolidColorBrush x:Key="SilkSkyBgBrush" Color="#1A38BDF8" />
+
+    <!-- Minimal Dark UI Component Aliases -->
+    <SolidColorBrush x:Key="SilkDarkPageBgBrush" Color="{StaticResource SilkBackgroundDarkColor}" />
+    <SolidColorBrush x:Key="SilkDarkCardBgBrush" Color="{StaticResource SilkCardDarkColor}" />
+    <SolidColorBrush x:Key="SilkDarkTileBgBrush" Color="{StaticResource SilkSubsurfaceDarkColor}" />
+    <SolidColorBrush x:Key="SilkDarkBorderBrush" Color="{StaticResource SilkStrokeDarkColor}" />
+    <SolidColorBrush x:Key="SilkDarkAccentBrush" Color="{StaticResource SilkBrandPrimaryColor}" />
+    <SolidColorBrush x:Key="SilkDarkTerminalBgBrush" Color="{StaticResource SilkSidebarDarkColor}" />
+
+    <!-- Bento Tile & Gradients -->
+    <SolidColorBrush x:Key="SilkBentoGaugeTrackBrush" Color="{StaticResource SilkSubsurfaceDarkColor}" />
+    <SolidColorBrush x:Key="SilkBentoTileDarkBrush" Color="{StaticResource SilkSubsurfaceDarkColor}" />
+    <SolidColorBrush x:Key="SilkBentoGlassBorderBrush" Color="{StaticResource SilkStrokeDarkColor}" />
+
+    <LinearGradientBrush x:Key="SilkBentoActiveBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#806BFF" Offset="0.0" />
+        <GradientStop Color="#9787FF" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradient1" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#181B25" Offset="0.0" />
+        <GradientStop Color="#141720" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradient2" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#181B25" Offset="0.0" />
+        <GradientStop Color="#161923" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradientHero" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#221E36" Offset="0.0" />
+        <GradientStop Color="#151722" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradientHeroV2" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#1D202D" Offset="0.0" />
+        <GradientStop Color="#131620" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradientAi" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#201A35" Offset="0.0" />
+        <GradientStop Color="#141622" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SilkBentoCardGradientOnyx" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#181B25" Offset="0.0" />
+        <GradientStop Color="#11141D" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- ========================================================================= -->
+    <!-- ScrollBar Global System Resources & Overrides                             -->
+    <!-- Тонкие сдержанные скроллбары (8-10px, трек #11141D, бегунок #2B3040,      -->
+    <!-- hover #806BFF)                                                            -->
+    <!-- ========================================================================= -->
+    <x:Double x:Key="ScrollBarSize">10</x:Double>
+    <x:Double x:Key="ScrollBarExpandedSize">10</x:Double>
+    <CornerRadius x:Key="ScrollBarThumbCornerRadius">5,5,5,5</CornerRadius>
+    <CornerRadius x:Key="ScrollBarCornerRadius">5,5,5,5</CornerRadius>
+
+    <SolidColorBrush x:Key="ScrollBarTrackBackground" Color="#11141D" />
+    <SolidColorBrush x:Key="ScrollBarTrackBackgroundPointerOver" Color="#11141D" />
+    <SolidColorBrush x:Key="ScrollBarTrackBackgroundPressed" Color="#11141D" />
+
+    <SolidColorBrush x:Key="ScrollBarThumbBackground" Color="#2B3040" />
+    <SolidColorBrush x:Key="ScrollBarThumbBackgroundPointerOver" Color="#806BFF" />
+    <SolidColorBrush x:Key="ScrollBarThumbBackgroundPressed" Color="#9787FF" />
+    <SolidColorBrush x:Key="ScrollBarThumbBackgroundDisabled" Color="#181B25" />
+
+    <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="ScrollBarButtonBackgroundPointerOver" Color="#202431" />
+    <SolidColorBrush x:Key="ScrollBarButtonBackgroundPressed" Color="#806BFF" />
+    <SolidColorBrush x:Key="ScrollBarButtonForeground" Color="#969CAB" />
+    <SolidColorBrush x:Key="ScrollBarButtonForegroundPointerOver" Color="#F3F4F8" />
+    <SolidColorBrush x:Key="ScrollBarButtonForegroundPressed" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ScrollBarPanningMarkerBackground" Color="#806BFF" />
+
+    <Style x:Key="SilkModernScrollBarStyle" TargetType="ScrollBar">
+        <Setter Property="MinWidth" Value="10" />
+        <Setter Property="MinHeight" Value="10" />
+        <Setter Property="Background" Value="{StaticResource ScrollBarTrackBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource ScrollBarThumbBackground}" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+
+    <Style TargetType="ScrollBar" BasedOn="{StaticResource SilkModernScrollBarStyle}" />
+
+    <!-- ========================================================================= -->
+    <!-- WinUI Theme Overrides (Minimal Dark UI)                                   -->
+    <!-- ========================================================================= -->
+    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#0E1017" />
+    <SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#0E1017" />
+    <SolidColorBrush x:Key="SolidBackgroundFillColorBase" Color="#0E1017" />
+    <SolidColorBrush x:Key="SolidBackgroundFillColorSecondaryBrush" Color="#11141D" />
+    <SolidColorBrush x:Key="SolidBackgroundFillColorTertiaryBrush" Color="#181B25" />
+    <SolidColorBrush x:Key="SolidBackgroundFillColorQuarternaryBrush" Color="#202431" />
+    <SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#181B25" />
+    <SolidColorBrush x:Key="LayerFillColorAltBrush" Color="#11141D" />
+    <SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#181B25" />
+    <SolidColorBrush x:Key="CardBackgroundFillColorSecondaryBrush" Color="#202431" />
+    <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="#2B3040" />
+    <SolidColorBrush x:Key="CardStrokeColorDefault" Color="#2B3040" />
+    <SolidColorBrush x:Key="SurfaceStrokeColorDefaultBrush" Color="#2B3040" />
+    <SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="#2B3040" />
+    <SolidColorBrush x:Key="NavigationViewContentGridBackground" Color="#0E1017" />
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#11141D" />
+    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#11141D" />
+    <SolidColorBrush x:Key="ContentDialogBackground" Color="#181B25" />
+    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#2B3040" />
+
+    <!-- Button System Overrides -->
+    <SolidColorBrush x:Key="ButtonBackground" Color="#181B25" />
+    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#202431" />
+    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#2B3040" />
+    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#11141D" />
+    <SolidColorBrush x:Key="ButtonForeground" Color="#F3F4F8" />
+    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#6B7280" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#2B3040" />
+    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#3B4259" />
+    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#806BFF" />
+    <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#202431" />
+
+    <!-- Form Controls System Overrides -->
+    <SolidColorBrush x:Key="TextControlBackground" Color="#202431" />
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#252A3A" />
+    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#202431" />
+    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#2B3040" />
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#3B4259" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#806BFF" />
+    <SolidColorBrush x:Key="TextControlForeground" Color="#F3F4F8" />
+    <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#969CAB" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#969CAB" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#969CAB" />
+
+    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#806BFF" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#9787FF" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#6D55FA" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2B3040" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#202431" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#969CAB" />
+
+    <!-- Progress Bar System Resources -->
+    <CornerRadius x:Key="ProgressBarCornerRadius">2,2,2,2</CornerRadius>
+    <CornerRadius x:Key="ProgressBarTrackCornerRadius">2,2,2,2</CornerRadius>
+    <SolidColorBrush x:Key="ProgressBarForeground" Color="#806BFF" />
+    <SolidColorBrush x:Key="ProgressBarBackground" Color="#202431" />
+
+    <!-- ========================================================================= -->
+    <!-- ProgressBar Styles                                                        -->
+    <!-- Тонкие аккуратные ProgressBar (Height="4", corner radius 2, #806BFF)      -->
+    <!-- ========================================================================= -->
+    <Style x:Key="SilkProgressBarStyle" TargetType="ProgressBar">
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="MaxHeight" Value="4" />
+        <Setter Property="Foreground" Value="{StaticResource SilkBrandBrush}" />
+        <Setter Property="Background" Value="{StaticResource SilkSubsurfaceDarkBrush}" />
+        <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+    <Style TargetType="ProgressBar" BasedOn="{StaticResource SilkProgressBarStyle}" />
+
+    <!-- ========================================================================= -->
+    <!-- Card & Surface Styles                                                     -->
+    <!-- Скругление карточек: CornerRadius="12", Padding="20-24"                   -->
+    <!-- ========================================================================= -->
+    <Style x:Key="SilkCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SilkCardDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="SilkInteractiveCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SilkCardDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <Style x:Key="SilkBentoCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SilkCardDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <!-- Subsurface Tile Style (CornerRadius="8" or "10", Background="#202431") -->
+    <Style x:Key="SilkSubsurfaceTileStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SilkSubsurfaceDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <Style x:Key="SilkBentoTileStyle" TargetType="Border" BasedOn="{StaticResource SilkSubsurfaceTileStyle}" />
+
+    <!-- ========================================================================= -->
+    <!-- Typography Styles                                                         -->
+    <!-- ========================================================================= -->
+    <Style x:Key="SilkPageTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource SilkTextPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="SilkPageSubtitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource SilkTextSecondaryBrush}" />
+        <Setter Property="Margin" Value="0,2,0,16" />
+    </Style>
+
+    <Style x:Key="SilkSectionHeaderStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource SilkTextSecondaryBrush}" />
+    </Style>
+
+    <!-- ========================================================================= -->
+    <!-- Button Styles                                                             -->
+    <!-- Высота: 38px, CornerRadius: 8                                             -->
+    <!-- ========================================================================= -->
+
+    <!-- SilkPrimaryButtonStyle: фон #806BFF, hover #9787FF, pressed #6D55FA, CR 8, H 38 -->
+    <Style x:Key="SilkPrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SilkBrandBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- SilkSecondaryButtonStyle: фон #181B25, border #2B3040, hover #202431, CR 8, H 38 -->
+    <Style x:Key="SilkSecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SilkCardDarkBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SilkTextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- SilkSubsurfaceButtonStyle: фон #202431, border #2B3040, hover #2B3040, CR 8, H 38 -->
+    <Style x:Key="SilkSubsurfaceButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SilkSubsurfaceDarkBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SilkTextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkStrokeDarkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- SilkDangerButtonStyle: фон #1AEF4444, border #EF4444, CR 8, H 38 -->
+    <Style x:Key="SilkDangerButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SilkErrorBgBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SilkErrorBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SilkErrorBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- SilkDialogPrimaryButtonStyle -->
+    <Style x:Key="SilkDialogPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SilkPrimaryButtonStyle}">
+        <Setter Property="Padding" Value="24,8" />
+        <Setter Property="MinWidth" Value="120" />
+    </Style>
+
+    <!-- Minimal Style Aliases for Backward & Component Compatibility -->
+    <Style x:Key="SilkMinimalCardStyle" TargetType="Border" BasedOn="{StaticResource SilkCardStyle}" />
+    <Style x:Key="MinimalCardStyle" TargetType="Border" BasedOn="{StaticResource SilkCardStyle}" />
+    <Style x:Key="SilkMinimalTileStyle" TargetType="Border" BasedOn="{StaticResource SilkSubsurfaceTileStyle}" />
+    <Style x:Key="SilkMinimalPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SilkPrimaryButtonStyle}" />
+    <Style x:Key="MinimalPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SilkPrimaryButtonStyle}" />
+    <Style x:Key="SilkMinimalSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SilkSecondaryButtonStyle}" />
+    <Style x:Key="MinimalSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SilkSecondaryButtonStyle}" />
+
+</ResourceDictionary>

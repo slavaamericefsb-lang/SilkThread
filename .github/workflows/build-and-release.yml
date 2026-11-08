@@ -1,0 +1,88 @@
+name: Build & Release SilkThread
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          include-prerelease: true
+
+      - name: Display .NET SDK Version
+        run: dotnet --version
+
+      - name: Restore Dependencies
+        run: dotnet restore SilkThread.slnx
+
+      - name: Run Unit Tests
+        run: dotnet test tests/SilkThread.Tests/SilkThread.Tests.csproj -c Release --no-restore --verbosity normal
+
+      - name: Publish SilkThread.App (WinUI 3 Standalone)
+        run: |
+          dotnet publish src/SilkThread.App/SilkThread.App.csproj -c Release -r win-x64 --self-contained true -o ./dist/SilkThread
+
+      - name: Package Installer Payload
+        shell: pwsh
+        run: |
+          $payloadDir = "src/SilkThread.Installer/Payload"
+          if (!(Test-Path $payloadDir)) { New-Item -ItemType Directory -Path $payloadDir -Force }
+          $zipPath = "$payloadDir/installer_payload.zip"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Write-Host "Creating $zipPath from ./dist/SilkThread..."
+          [System.IO.Compression.ZipFile]::CreateFromDirectory("./dist/SilkThread", $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+          $zipSize = (Get-Item $zipPath).Length / 1MB
+          Write-Host "Payload created: [$(Get-Item $zipPath).FullName] ($("{0:N2}" -f $zipSize) MB)"
+
+      - name: Build Installer (SilkThread_Setup.exe)
+        run: |
+          dotnet publish src/SilkThread.Installer/SilkThread.Installer.csproj -c Release -r win-x64 --self-contained true -o ./dist/installer_build
+          Copy-Item ./dist/installer_build/SilkThread_Setup.exe ./dist/SilkThread_Setup.exe -Force
+
+      - name: Generate Checksums & Update Manifest
+        shell: pwsh
+        run: |
+          $setupExe = "./dist/SilkThread_Setup.exe"
+          $hash = (Get-FileHash -Path $setupExe -Algorithm SHA256).Hash
+          "$hash  SilkThread_Setup.exe" | Out-File -FilePath "./dist/SHA256SUMS.txt" -Encoding ascii
+          Write-Host "SilkThread_Setup.exe SHA256: $hash"
+          
+          # Verify version.json exists
+          if (Test-Path "./version.json") {
+              Get-Content "./version.json"
+          }
+
+      - name: Create GitHub Release & Upload Artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SilkThread ${{ github.ref_name || inputs.tag_name }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/SilkThread_Setup.exe
+            dist/SHA256SUMS.txt
+            version.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

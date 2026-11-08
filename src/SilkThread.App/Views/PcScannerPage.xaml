@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SilkThread.App.Views.PcScannerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:SilkThread.Core.Models"
+    Loaded="Page_Loaded"
+    mc:Ignorable="d">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32">
+        <StackPanel Spacing="20" HorizontalAlignment="Stretch">
+
+            <!-- 0: Page Title & Top Actions -->
+            <Grid x:Name="HeaderGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="3">
+                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" Style="{StaticResource SilkPageTitleStyle}" />
+                    <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- Secondary Button: Повторить сканирование -->
+                    <Button Command="{x:Bind ViewModel.ScanCommand}"
+                            Click="ScanButton_Click"
+                            Style="{StaticResource SilkMinimalSecondaryButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="#CBD5E1" />
+                            <TextBlock Text="{x:Bind ViewModel.ScanBtnText, Mode=OneWay}" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Primary Button: Скопировать отчёт (#806BFF) -->
+                    <Button Command="{x:Bind ViewModel.CopyReportCommand}"
+                            Click="CopyReportButton_Click"
+                            Style="{StaticResource SilkMinimalPrimaryButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                            <TextBlock Text="{x:Bind ViewModel.CopyBtnText, Mode=OneWay}" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 1: Notification & Scanning Status Indicator -->
+            <StackPanel Spacing="8">
+                <ProgressBar IsIndeterminate="True" 
+                             Height="3"
+                             CornerRadius="1.5"
+                             Foreground="#806BFF"
+                             Background="#202431"
+                             Visibility="{x:Bind ViewModel.IsScanning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <InfoBar Severity="Success"
+                         IsOpen="{x:Bind ViewModel.HasCopyMessage, Mode=OneWay}"
+                         Message="{x:Bind ViewModel.CopyReportSuccessMessage, Mode=OneWay}" />
+            </StackPanel>
+
+            <!-- 2: Minimal Dark Bento Hardware Grid -->
+            <Grid ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.15*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- ================= BENTO CARD 1: CPU VITALS ================= -->
+                <Border x:Name="CardCpu" Grid.Row="0" Grid.Column="0" Style="{StaticResource SilkMinimalCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Card Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <FontIcon Glyph="&#xE9D9;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="{x:Bind ViewModel.CardCpuTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{x:Bind ViewModel.LblCpuSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.CpuArch, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
+                            </Border>
+                        </Grid>
+
+                        <!-- CPU Model Sub-plate -->
+                        <Border Style="{StaticResource SilkMinimalTileStyle}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{x:Bind ViewModel.LblCpuModel, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="9" />
+                                <TextBlock Text="{x:Bind ViewModel.CpuName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ViewModel.CpuName, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Key Metrics Grid -->
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Max Frequency (Big 28px Metric) -->
+                            <Border Grid.Column="0" Style="{StaticResource SilkMinimalTileStyle}">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE945;" FontSize="11" Foreground="#806BFF" />
+                                        <TextBlock Text="{x:Bind ViewModel.LblMaxClock, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                    </StackPanel>
+                                    <TextBlock Text="{x:Bind ViewModel.CpuMaxClock, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="#806BFF" LineHeight="30" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Topology -->
+                            <Border Grid.Column="1" Style="{StaticResource SilkMinimalTileStyle}">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE9D9;" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Text="{x:Bind ViewModel.LblTopology, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                    </StackPanel>
+                                    <TextBlock Text="{x:Bind ViewModel.CpuCoresThreads, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- CPU Cache -->
+                            <Border Grid.Column="2" Style="{StaticResource SilkMinimalTileStyle}">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <FontIcon Glyph="&#xE8B7;" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Text="{x:Bind ViewModel.LblCpuCache, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                    </StackPanel>
+                                    <TextBlock Text="{x:Bind ViewModel.CpuCache, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F8FAFC" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- VBS Security Tile -->
+                        <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="12,8">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="#806BFF" VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind ViewModel.LblVbsSecurity, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                    <TextBlock Text="Virtualization-Based Security (VBS / HVCI)" FontSize="10" Foreground="#94A3B8" />
+                                </StackPanel>
+                                <Border Grid.Column="2" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind ViewModel.CpuVbs, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#CBD5E1" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= BENTO CARD 2: RAM MEMORY ================= -->
+                <Border x:Name="CardRam" Grid.Row="0" Grid.Column="1" Style="{StaticResource SilkMinimalCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <FontIcon Glyph="&#xE7C5;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="{x:Bind ViewModel.CardRamTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{x:Bind ViewModel.LblRamSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.RamSpeed, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Key RAM Capacity Metric Block (Big 28px Text) -->
+                        <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="14,12">
+                            <StackPanel Spacing="8">
+                                <Grid>
+                                    <TextBlock Text="{x:Bind ViewModel.LblRamTotal, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="9" HorizontalAlignment="Left" />
+                                    <TextBlock Text="{x:Bind ViewModel.RamAvailGb, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <!-- Big 28px Total RAM -->
+                                <TextBlock Text="{x:Bind ViewModel.RamTotalGb, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="#806BFF" LineHeight="30" />
+
+                                <!-- Thin readable progress bar without glow -->
+                                <ProgressBar Value="{x:Bind ViewModel.RamUsagePercent, Mode=OneWay}" Maximum="100" Height="4" CornerRadius="2">
+                                    <ProgressBar.Resources>
+                                        <SolidColorBrush x:Key="ProgressBarForeground" Color="#806BFF" />
+                                        <SolidColorBrush x:Key="ProgressBarBackground" Color="#181B25" />
+                                    </ProgressBar.Resources>
+                                </ProgressBar>
+
+                                <Grid>
+                                    <TextBlock Text="{x:Bind ViewModel.RamUsedGb, Mode=OneWay}" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Left" />
+                                    <TextBlock Text="{x:Bind ViewModel.RamTypeModules, Mode=OneWay}" FontSize="10" Foreground="#CBD5E1" HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Channel Architecture Sub-tile -->
+                        <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="12,10">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="#806BFF" VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="{x:Bind ViewModel.LblChannelMode, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                    <TextBlock Text="{x:Bind ViewModel.RamChannelMode, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= BENTO CARD 3: GPU & DISPLAYS ================= -->
+                <Border x:Name="CardGpu" Grid.Row="1" Grid.Column="0" Style="{StaticResource SilkMinimalCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <FontIcon Glyph="&#xE790;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="{x:Bind ViewModel.CardGpuTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{x:Bind ViewModel.LblGpuSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- GPUs Bento Modules List -->
+                        <ListView ItemsSource="{x:Bind ViewModel.Gpus}" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:GpuInfo">
+                                    <Border Background="#202431" 
+                                            BorderBrush="#2B3040" 
+                                            BorderThickness="1" CornerRadius="8" Margin="0,4" Padding="14,12">
+                                        <StackPanel Spacing="10">
+                                            <!-- Top: Model and DirectX Badge -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="Bold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{x:Bind Vendor}" FontSize="10" Foreground="#94A3B8" />
+                                                </StackPanel>
+
+                                                <Border Grid.Column="1" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Top">
+                                                    <TextBlock Text="{x:Bind DirectXVersion}" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- VRAM Key Metric (Big 28px) -->
+                                            <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                                <Grid>
+                                                    <TextBlock Text="ОБЪЕМ ВИДЕОПАМЯТИ (VRAM)" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                                                    <TextBlock Text="{x:Bind FormattedVram}" FontSize="28" FontWeight="Bold" Foreground="#806BFF" HorizontalAlignment="Left" Margin="0,14,0,0" />
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- 2 Metrics: Driver and HAGS -->
+                                            <Grid ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="ВЕРСИЯ ДРАЙВЕРА" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                                        <TextBlock Text="{x:Bind DriverVersion}" FontSize="11" Foreground="#CBD5E1" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <Border Grid.Column="1" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="HAGS ПЛАНИРОВАНИЕ" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                                            <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{x:Bind HagsStatusString}" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= BENTO CARD 4: OS & POWER ENVIRONMENT ================= -->
+                <Border x:Name="CardOs" Grid.Row="1" Grid.Column="1" Style="{StaticResource SilkMinimalCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <FontIcon Glyph="&#xE7EE;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="{x:Bind ViewModel.CardOsTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{x:Bind ViewModel.LblOsSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="64-bit" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
+                            </Border>
+                        </Grid>
+
+                        <!-- OS Edition & Build Plate -->
+                        <Border Style="{StaticResource SilkMinimalTileStyle}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{x:Bind ViewModel.LblOsEditionHeader, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                <TextBlock Text="{x:Bind ViewModel.OsEdition, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{x:Bind ViewModel.OsBuild, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 4 Modular Environment Tiles -->
+                        <StackPanel Spacing="8">
+                            <!-- Power Plan -->
+                            <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="10,7">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE945;" FontSize="13" Foreground="#806BFF" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{x:Bind ViewModel.LblPowerPlan, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                        <TextBlock Text="{x:Bind ViewModel.OsPowerPlan, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Game Mode -->
+                            <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="10,7">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="#10B981" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{x:Bind ViewModel.LblGameMode, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                        <TextBlock Text="Game Bar &amp; GPU Priority" FontSize="10" Foreground="#94A3B8" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.OsGameMode, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Core Isolation HVCI -->
+                            <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="10,7">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE72E;" FontSize="13" Foreground="#806BFF" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{x:Bind ViewModel.LblCoreIsolation, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                        <TextBlock Text="{x:Bind ViewModel.LblHvciSubtitle, Mode=OneWay}" FontSize="10" Foreground="#94A3B8" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.OsCoreIsolation, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#CBD5E1" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Power State & Device Form -->
+                            <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="10,7">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xEBB5;" FontSize="13" Foreground="#806BFF" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{x:Bind ViewModel.LblPowerState, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{x:Bind ViewModel.IsAcText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" />
+                                            <TextBlock Text="•" FontSize="10" Foreground="#64748B" VerticalAlignment="Center" />
+                                            <TextBlock Text="{x:Bind ViewModel.IsLaptopText, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= BENTO CARD 5: STORAGE & DRIVES ================= -->
+                <Border x:Name="CardStorage" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource SilkMinimalCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <FontIcon Glyph="&#xEDA2;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="{x:Bind ViewModel.CardStorageTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{x:Bind ViewModel.LblStorageSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Storage Drives List -->
+                        <ListView ItemsSource="{x:Bind ViewModel.StorageDrives}" SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:DiskDriveInfo">
+                                    <Border Background="#202431" 
+                                            BorderBrush="#2B3040" 
+                                            BorderThickness="1" CornerRadius="8" Margin="0,4" Padding="14,12">
+                                        <StackPanel Spacing="8">
+                                            <!-- Top row: Drive letter, Model, Media badge, TRIM badge, and Big Capacity 28px -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <!-- Drive Letter Badge -->
+                                                    <Border Background="#181B25" BorderBrush="#806BFF" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                        <TextBlock Text="{x:Bind DriveLetter}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                                    </Border>
+
+                                                    <!-- Model -->
+                                                    <TextBlock Text="{x:Bind Model}" FontSize="13" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                                                    <!-- Type Badge (NVMe/SSD/HDD) -->
+                                                    <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                        <TextBlock Text="{x:Bind MediaType}" FontSize="9" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    </Border>
+
+                                                    <!-- TRIM Support Badge -->
+                                                    <Border Background="#181B25" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                            <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#10B981" />
+                                                            <TextBlock Text="TRIM ACTIVE" FontSize="9" FontWeight="Bold" Foreground="#10B981" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- Big Capacity Metric (28px) -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind FormattedSize}" FontSize="28" FontWeight="Bold" Foreground="#806BFF" LineHeight="30" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Progress Bar of Used Space (Thin 4px, without glow) -->
+                                            <ProgressBar Value="{x:Bind UsedPercent}" Maximum="100" Height="4" CornerRadius="2">
+                                                <ProgressBar.Resources>
+                                                    <SolidColorBrush x:Key="ProgressBarForeground" Color="#806BFF" />
+                                                    <SolidColorBrush x:Key="ProgressBarBackground" Color="#181B25" />
+                                                </ProgressBar.Resources>
+                                            </ProgressBar>
+
+                                            <!-- Bottom Info Row -->
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{x:Bind FormattedUsedSpace}" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1" />
+                                                    <TextBlock Text="{x:Bind Model, Converter={StaticResource ActionTextConverter}, ConverterParameter=Scan_Lbl_UsedOf}" FontSize="11" Foreground="#94A3B8" />
+                                                    <TextBlock Text="{x:Bind FormattedSize}" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1" />
+                                                </StackPanel>
+
+                                                <TextBlock Text="{x:Bind FormattedFreeSpace}" FontSize="11" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

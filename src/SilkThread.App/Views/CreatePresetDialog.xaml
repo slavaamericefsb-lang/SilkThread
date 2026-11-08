@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="SilkThread.App.Views.CreatePresetDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CornerRadius="12"
+    BorderBrush="#2B3040"
+    BorderThickness="1"
+    Background="#181B25"
+    RequestedTheme="Dark">
+
+    <Grid Width="480" RowSpacing="16" Margin="4">
+        <Grid.RowDefinitions>
+            <!-- Header -->
+            <RowDefinition Height="Auto" />
+            <!-- Active Tweaks Info Banner -->
+            <RowDefinition Height="Auto" />
+            <!-- Inputs -->
+            <RowDefinition Height="Auto" />
+            <!-- Buttons -->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="8">
+                    <FontIcon Glyph="&#xE74E;" FontSize="18" Foreground="#806BFF" />
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock x:Name="DialogTitleText" Text="Создание пресета" FontSize="17" FontWeight="Bold" Foreground="#F3F4F8" />
+                    <TextBlock x:Name="DialogSubtitleText" Text="Экспорт текущих параметров системы в файл .silkpreset" FontSize="12" Foreground="#969CAB" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Active Tweaks Info -->
+        <Border Grid.Row="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,10">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="20" Foreground="#22C55E" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock x:Name="BannerTitleText" Text="Конфигурация активных параметров" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock x:Name="BannerLabelText" Text="Будет сохранено активных твиков:" FontSize="11" Foreground="#969CAB" />
+                        <TextBlock x:Name="ActiveCountText" Text="0" FontSize="11" FontWeight="Bold" Foreground="#22C55E" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Inputs -->
+        <StackPanel Grid.Row="2" Spacing="12">
+            <!-- Name -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="FieldTitleLabel" Text="Название пресета" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBox x:Name="PresetNameBox" PlaceholderText="Например: Gaming Pro Profile" 
+                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8" CornerRadius="8" Padding="10,8" />
+            </StackPanel>
+
+            <!-- Description -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="FieldDescLabel" Text="Описание" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBox x:Name="PresetDescBox" PlaceholderText="Например: Оптимизация сети, задержек и фоновых служб" 
+                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8"
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="68" CornerRadius="8" Padding="10,8" />
+            </StackPanel>
+
+            <!-- Author -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="FieldAuthorLabel" Text="Автор" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBox x:Name="PresetAuthorBox" 
+                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8" CornerRadius="8" Padding="10,8" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Actions -->
+        <Grid Grid.Row="3" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Click="CancelButton_Click"
+                    Style="{StaticResource SilkSecondaryButtonStyle}" Margin="0,0,10,0" Padding="16,8">
+                <TextBlock x:Name="CancelButtonText" Text="Отмена" FontSize="12" Foreground="#F3F4F8" />
+            </Button>
+
+            <Button Grid.Column="2" Click="SaveButton_Click"
+                    Style="{StaticResource SilkPrimaryButtonStyle}" Padding="20,8">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE74E;" FontSize="11" Foreground="White" />
+                    <TextBlock x:Name="SaveButtonText" Text="Сохранить" FontSize="12" FontWeight="SemiBold" Foreground="White" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</ContentDialog>

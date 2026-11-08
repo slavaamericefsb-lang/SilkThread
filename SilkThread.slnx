@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SilkThread.Core/SilkThread.Core.csproj" />
+    <Project Path="src/SilkThread.App/SilkThread.App.csproj" />
+    <Project Path="src/SilkThread.Installer/SilkThread.Installer.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SilkThread.Tests/SilkThread.Tests.csproj" />
+  </Folder>
+</Solution>

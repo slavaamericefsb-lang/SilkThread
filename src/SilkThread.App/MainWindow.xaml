@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="SilkThread.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="SilkThread — Windows Gaming Optimizer"
+    mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base" />
+    </Window.SystemBackdrop>
+
+    <Grid Background="{StaticResource SilkBackgroundDarkBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom Fluent TitleBar (Height 48, Minimal Dark UI) -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="{StaticResource SilkSidebarDarkBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="64" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Top Left Logo Container (Lightning Bolt in Purple Rounded Container) -->
+            <Grid Grid.Column="0" Width="64" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Width="38" Height="38" CornerRadius="10" Background="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE945;" FontSize="18" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+
+            <!-- App Title & Brand Info -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="SilkThread" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource SilkTextPrimaryBrush}" VerticalAlignment="Center" />
+                <Border Background="{StaticResource SilkBrandSelectionBrush}" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                    <TextBlock Text="WINDOWS GAMING OPTIMIZER" FontSize="9" FontWeight="Bold" Foreground="{StaticResource SilkBrandBrush}" />
+                </Border>
+            </StackPanel>
+
+            <!-- Quick Controls: Admin Badge and Language Switcher -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="0,0,160,0" VerticalAlignment="Center">
+                <!-- Admin Shield Badge (Minimal Dark UI: #181B25, border #2B3040) -->
+                <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,4" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72E;" FontSize="11" Foreground="{StaticResource SilkSuccessBrush}" />
+                        <TextBlock x:Name="AdminStatusText" Text="Admin ✓" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkSuccessBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Language Switcher Pill (Minimal Dark UI: #181B25, border #2B3040) -->
+                <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button x:Name="BtnLangRu" Click="BtnLangRu_Click" Padding="10,3" CornerRadius="6" Background="{StaticResource SilkBrandBrush}" BorderThickness="0">
+                            <TextBlock Text="RU" FontSize="10" FontWeight="Bold" Foreground="White" />
+                        </Button>
+                        <Button x:Name="BtnLangEn" Click="BtnLangEn_Click" Padding="10,3" CornerRadius="6" Background="Transparent" BorderThickness="0">
+                            <TextBlock Text="EN" FontSize="10" FontWeight="Bold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Navigation View: Minimal Dark 64px Rail -->
+        <NavigationView
+            x:Name="NavView"
+            Grid.Row="1"
+            Background="{StaticResource SilkBackgroundDarkBrush}"
+            PaneDisplayMode="LeftCompact"
+            CompactPaneLength="64"
+            OpenPaneLength="64"
+            IsPaneToggleButtonVisible="False"
+            IsPaneOpen="False"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            SelectionChanged="NavView_SelectionChanged"
+            Loaded="NavView_Loaded">
+
+            <NavigationView.Resources>
+                <!-- Minimal Dark Navigation Tokens -->
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#11141D" />
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#11141D" />
+                <SolidColorBrush x:Key="NavigationViewContentGridBackground" Color="#0E1017" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#0E1017" />
+
+                <!-- Selection & Hover Brushes -->
+                <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#806BFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#22806BFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#2E806BFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#33806BFF" />
+                <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelected" Color="#F3F4F8" />
+                <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#F3F4F8" />
+                <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelectedPointerOver" Color="#FFFFFF" />
+                <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#FFFFFF" />
+
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#202431" />
+                <SolidColorBrush x:Key="NavigationViewItemIconForegroundPointerOver" Color="#FFFFFF" />
+                <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#FFFFFF" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#2B3040" />
+                <SolidColorBrush x:Key="NavigationViewItemIconForeground" Color="#969CAB" />
+                <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#969CAB" />
+            </NavigationView.Resources>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="NavDashboard" Content="Главная" Tag="Dashboard" ToolTipService.ToolTip="Главная" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavTweaks" Content="Библиотека твиков" Tag="Tweaks" ToolTipService.ToolTip="Библиотека твиков" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE71D;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavScanner" Content="Диагностика ПК" Tag="Scanner" ToolTipService.ToolTip="Диагностика ПК" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavOptimization" Content="Мастер оптимизации" Tag="Optimization" ToolTipService.ToolTip="Мастер оптимизации" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7FC;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavHistory" Content="История и откат" Tag="History" ToolTipService.ToolTip="История и откат" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE81C;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavRestore" Content="Точки восстановления" Tag="Restore" ToolTipService.ToolTip="Точки восстановления" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE90F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem x:Name="NavSettings" Content="Параметры" Tag="Settings" ToolTipService.ToolTip="Параметры" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <!-- Main Content Area with Fluid Fade Navigation Animation -->
+            <Frame x:Name="ContentFrame" Margin="0" Background="{StaticResource SilkBackgroundDarkBrush}">
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition>
+                            <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                                <SuppressNavigationTransitionInfo />
+                            </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                        </NavigationThemeTransition>
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
+            </Frame>
+        </NavigationView>
+    </Grid>
+</Window>

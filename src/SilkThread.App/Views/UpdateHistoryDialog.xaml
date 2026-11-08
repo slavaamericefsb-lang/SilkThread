@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="SilkThread.App.Views.UpdateHistoryDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    DefaultButton="Close"
+    CloseButtonText="{x:Bind CloseText, Mode=OneWay}"
+    CloseButtonStyle="{StaticResource SilkDialogPrimaryButtonStyle}"
+    CornerRadius="14"
+    Background="{StaticResource SilkSurfaceDarkBrush}"
+    BorderBrush="{StaticResource SilkStrokeDarkBrush}"
+    BorderThickness="1"
+    RequestedTheme="Dark">
+
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">760</x:Double>
+        <x:Double x:Key="ContentDialogMinWidth">600</x:Double>
+    </ContentDialog.Resources>
+
+    <Grid MinWidth="600" MaxWidth="720" HorizontalAlignment="Stretch" Margin="0,4,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Brand Icon Container -->
+            <Border Grid.Column="0" Width="44" Height="44" CornerRadius="12" 
+                    Background="#1E1736" BorderBrush="{StaticResource SilkBrandGlowBrush}" BorderThickness="1.5"
+                    Margin="0,0,14,0" VerticalAlignment="Center">
+                <FontIcon Glyph="&#xE81C;" FontSize="20" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{x:Bind DialogTitle, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                <TextBlock Text="{x:Bind DialogSubtitle, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Header Divider -->
+        <Border Grid.Row="1" Height="1" Background="{StaticResource SilkStrokeDarkBrush}" Margin="0,0,0,16" />
+
+        <!-- Bento Timeline Scroll Viewer -->
+        <ScrollViewer Grid.Row="2" MaxHeight="490" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,2,14,2">
+            <Grid RowSpacing="18">
+                <Grid.RowDefinitions>
+                    <!-- Row 0: v2.0 (Latest Release) -->
+                    <RowDefinition Height="Auto" />
+                    <!-- Row 1: v1.5 -->
+                    <RowDefinition Height="Auto" />
+                    <!-- Row 2: v1.0 (Initial Release) -->
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="32" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Continuous Vertical Timeline Track -->
+                <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
+                        Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                        Margin="0,26,0,26">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#6366F1" Offset="0.0" />
+                            <GradientStop Color="#4F46E5" Offset="0.35" />
+                            <GradientStop Color="#06B6D4" Offset="0.65" />
+                            <GradientStop Color="#1E263D" Offset="0.95" />
+                            <GradientStop Color="#101422" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- ==================== RELEASE 1: v2.0 ==================== -->
+                <!-- Node 1: v2.0 (Neon Glow Point) -->
+                <Grid Grid.Row="0" Grid.Column="0" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,14,0,0">
+                    <Border Width="24" Height="24" CornerRadius="12" Background="#266366F1" BorderBrush="#806366F1" BorderThickness="1.5" />
+                    <Border Width="10" Height="10" CornerRadius="5" Background="#A5B4FC" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- Bento Card 1: v2.0 -->
+                <Border Grid.Row="0" Grid.Column="1"
+                        BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
+                        CornerRadius="12" Padding="16,14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#191629" Offset="0.0" />
+                            <GradientStop Color="#141724" Offset="0.5" />
+                            <GradientStop Color="#11131E" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <StackPanel Spacing="10">
+                        <!-- Card Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <!-- v2.0 Badge -->
+                                <Border Background="#2E1A47" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                    <TextBlock Text="v2.0" FontSize="11" FontWeight="Bold" Foreground="#DDD6FE" />
+                                </Border>
+
+                                <!-- Status Badge: АКТУАЛЬНАЯ ВЕРСИЯ -->
+                                <Border Background="#1C10B981" BorderBrush="{StaticResource SilkEmeraldBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource SilkEmeraldBrush}" />
+                                        <TextBlock Text="{x:Bind LatestBadgeText, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource SilkEmeraldBrush}" CharacterSpacing="30" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Title -->
+                                <TextBlock Text="{x:Bind V20_Title, Mode=OneWay}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <!-- Release Date -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" />
+                                <TextBlock Text="{x:Bind V20_Date, Mode=OneWay}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource SilkStrokeDarkBrush}" Margin="0,2,0,2" />
+
+                        <!-- Highlights List -->
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#221838" BorderBrush="#408B5CF6" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V20_Item1, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#221838" BorderBrush="#408B5CF6" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V20_Item2, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#221838" BorderBrush="#408B5CF6" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V20_Item3, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#221838" BorderBrush="#408B5CF6" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V20_Item4, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#221838" BorderBrush="#408B5CF6" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V20_Item5, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ==================== RELEASE 2: v1.5 ==================== -->
+                <!-- Node 2: v1.5 (Neon Cyan Point) -->
+                <Grid Grid.Row="1" Grid.Column="0" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,14,0,0">
+                    <Border Width="24" Height="24" CornerRadius="12" Background="#2238BDF8" BorderBrush="#7038BDF8" BorderThickness="1.5" />
+                    <Border Width="10" Height="10" CornerRadius="5" Background="#38BDF8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- Bento Card 2: v1.5 -->
+                <Border Grid.Row="1" Grid.Column="1"
+                        BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
+                        CornerRadius="12" Padding="16,14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#141926" Offset="0.0" />
+                            <GradientStop Color="#121520" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <StackPanel Spacing="10">
+                        <!-- Card Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <!-- v1.5 Badge -->
+                                <Border Background="{StaticResource SilkSkyBgBrush}" BorderBrush="{StaticResource SilkSkyBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                    <TextBlock Text="v1.5" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SilkSkyBrush}" />
+                                </Border>
+
+                                <!-- Title -->
+                                <TextBlock Text="{x:Bind V15_Title, Mode=OneWay}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <!-- Release Date -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" />
+                                <TextBlock Text="{x:Bind V15_Date, Mode=OneWay}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource SilkStrokeDarkBrush}" Margin="0,2,0,2" />
+
+                        <!-- Highlights List -->
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#122538" BorderBrush="#3538BDF8" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkSkyBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V15_Item1, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#122538" BorderBrush="#3538BDF8" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkSkyBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V15_Item2, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#122538" BorderBrush="#3538BDF8" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkSkyBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V15_Item3, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ==================== RELEASE 3: v1.0 ==================== -->
+                <!-- Node 3: v1.0 (Foundational Point) -->
+                <Grid Grid.Row="2" Grid.Column="0" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,14,0,0">
+                    <Border Width="24" Height="24" CornerRadius="12" Background="#1A222636" BorderBrush="#5064748B" BorderThickness="1.5" />
+                    <Border Width="8" Height="8" CornerRadius="4" Background="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- Bento Card 3: v1.0 -->
+                <Border Grid.Row="2" Grid.Column="1"
+                        BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
+                        CornerRadius="12" Padding="16,14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#13151F" Offset="0.0" />
+                            <GradientStop Color="#10121A" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <StackPanel Spacing="10">
+                        <!-- Card Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <!-- v1.0 Badge -->
+                                <Border Background="#1A1E2B" BorderBrush="{StaticResource SilkStrokeHoverBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                    <TextBlock Text="v1.0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                                </Border>
+
+                                <!-- Title -->
+                                <TextBlock Text="{x:Bind V10_Title, Mode=OneWay}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <!-- Release Date -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" />
+                                <TextBlock Text="{x:Bind V10_Date, Mode=OneWay}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="{StaticResource SilkTextMutedBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource SilkStrokeDarkBrush}" Margin="0,2,0,2" />
+
+                        <!-- Highlights List -->
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#181B26" BorderBrush="#3564748B" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkTextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V10_Item1, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#181B26" BorderBrush="#3564748B" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkTextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V10_Item2, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="18" Height="18" CornerRadius="9" Background="#181B26" BorderBrush="#3564748B" BorderThickness="1" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="{StaticResource SilkTextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind V10_Item3, Mode=OneWay}" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

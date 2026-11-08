@@ -1,0 +1,203 @@
+<Window x:Class="SilkThread.Installer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SilkThread 2.0 — Установка" 
+        Height="520" Width="720"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
+        MouseDown="Window_MouseDown">
+
+    <Border Background="#0C0D14" 
+            BorderBrush="#252836" 
+            BorderThickness="1" 
+            CornerRadius="12" 
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="46"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Fluent TitleBar -->
+            <Grid Grid.Row="0" Background="#12141D">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <Border Width="24" Height="24" CornerRadius="5" Background="#1A1C28" BorderBrush="#3B2D54" BorderThickness="1" Margin="0,0,10,0">
+                        <Image Source="Assets/Logo_SilkThread.png" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock x:Name="TitleText" Text="SilkThread 2.0 — Установка" FontSize="13" FontWeight="SemiBold" Foreground="#F8FAFC" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Background="#338B5CF6" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                        <TextBlock Text="SETUP WIZARD" FontSize="9" FontWeight="Bold" Foreground="#A78BFA"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Controls & Language -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Button x:Name="BtnLang" Click="BtnLang_Click" Content="RU / EN" 
+                            Background="#1A1C26" Foreground="#94A3B8" BorderBrush="#2A2D3D" BorderThickness="1" 
+                            Padding="8,3" FontSize="10" FontWeight="Bold" Cursor="Hand" Margin="0,0,6,0"/>
+                    <Button Click="BtnMinimize_Click" Content="—" 
+                            Background="Transparent" Foreground="#94A3B8" BorderThickness="0" 
+                            Width="36" Height="30" FontSize="12" Cursor="Hand" Margin="0,0,2,0"/>
+                    <Button Click="BtnClose_Click" Content="✕" 
+                            Background="Transparent" Foreground="#94A3B8" BorderThickness="0" 
+                            Width="36" Height="30" FontSize="11" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Content Area with States -->
+            <Grid Grid.Row="1" Margin="28,20,28,24">
+
+                <!-- STEP 1: WELCOME & OPTIONS -->
+                <Grid x:Name="PanelWelcome" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Hero Banner -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="64" Height="64" CornerRadius="12" Background="#161824" BorderBrush="#3B2D54" BorderThickness="1" Margin="0,0,18,0">
+                            <Image Source="Assets/Logo_SilkThread.png" Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="LblHeroTitle" Text="Добро пожаловать в SilkThread 2.0" FontSize="20" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="LblHeroDesc" Text="Профессиональный оптимизатор Windows для максимального FPS и минимального Input Lag." FontSize="12" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#1E1B4B" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"><TextBlock Text="⚡ 165 Твиков" FontSize="10" FontWeight="Bold" Foreground="#C4B5FD"/></Border>
+                                <Border Background="#064E3B" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"><TextBlock Text="🛡 Безопасный откат" FontSize="10" FontWeight="Bold" Foreground="#6EE7B7"/></Border>
+                                <Border Background="#1E293B" CornerRadius="4" Padding="6,2"><TextBlock Text="🔍 Сканер ПК" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/></Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Settings & Path Card -->
+                    <Border Grid.Row="1" Background="#131520" BorderBrush="#252838" BorderThickness="1" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock x:Name="LblInstallDir" Text="Папка установки:" FontSize="12" FontWeight="SemiBold" Foreground="#CBD5E1" Margin="0,0,0,8"/>
+
+                            <!-- Directory Input -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtInstallPath" Grid.Column="0" Height="36" 
+                                         Background="#0B0D14" Foreground="#F8FAFC" BorderBrush="#2F3346" BorderThickness="1" 
+                                         Padding="10,8" FontSize="12" VerticalContentAlignment="Center"/>
+                                <Button Grid.Column="1" Click="BtnBrowse_Click" Content="Обзор..." 
+                                        Background="#1E2130" Foreground="#E2E8F0" BorderBrush="#2F3346" BorderThickness="1" 
+                                        Margin="8,0,0,0" Padding="14,0" Height="36" Cursor="Hand" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <!-- Checkboxes Options -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox x:Name="ChkDesktop" IsChecked="True" Content="Создать ярлык на Рабочем столе" Foreground="#E2E8F0" FontSize="12" Cursor="Hand" Margin="0,0,0,8"/>
+                                <CheckBox x:Name="ChkStartMenu" IsChecked="True" Content="Создать ярлык в меню Пуск" Foreground="#E2E8F0" FontSize="12" Cursor="Hand" Margin="0,0,0,8"/>
+                                <CheckBox x:Name="ChkLaunchAfter" IsChecked="True" Content="Запустить SilkThread после завершения установки" Foreground="#E2E8F0" FontSize="12" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <TextBlock x:Name="LblSpaceInfo" Text="Требуемое место на диске: ~165 МБ" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Bottom Action Bar -->
+                    <Grid Grid.Row="2" Margin="0,18,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Click="BtnClose_Click" Content="Отмена" 
+                                Background="Transparent" Foreground="#94A3B8" BorderBrush="#2A2D3D" BorderThickness="1" 
+                                Padding="16,8" FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
+
+                        <Button Grid.Column="1" Click="BtnInstall_Click" Content="Установить SilkThread" 
+                                Background="#8B5CF6" Foreground="#FFFFFF" BorderThickness="0" 
+                                Padding="24,9" FontSize="13" FontWeight="Bold" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+                </Grid>
+
+                <!-- STEP 2: INSTALLING PROGRESS -->
+                <Grid x:Name="PanelProgress" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="520">
+                        <Border Width="56" Height="56" CornerRadius="12" Background="#161824" BorderBrush="#3B2D54" BorderThickness="1" HorizontalAlignment="Center" Margin="0,0,0,16">
+                            <Image Source="Assets/Logo_SilkThread.png" Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock x:Name="LblProgressTitle" Text="Установка SilkThread 2.0..." FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="LblProgressStatus" Text="Подготовка файлов..." FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+
+                        <ProgressBar x:Name="ProgInstall" Height="8" Minimum="0" Maximum="100" Value="0" 
+                                     Foreground="#8B5CF6" Background="#1A1C28" BorderThickness="0" Margin="0,0,0,10"/>
+
+                        <TextBlock x:Name="LblProgressDetail" Text="SilkThread.App.exe" FontSize="10" Foreground="#64748B" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- STEP 3: FINISHED -->
+                <Grid x:Name="PanelFinished" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="520">
+                        <Border Width="64" Height="64" CornerRadius="32" Background="#132E22" BorderBrush="#10B981" BorderThickness="2" HorizontalAlignment="Center" Margin="0,0,0,16">
+                            <TextBlock Text="✓" FontSize="32" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock x:Name="LblDoneTitle" Text="SilkThread успешно установлен!" FontSize="20" FontWeight="Bold" Foreground="#F8FAFC" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="LblDoneDesc" Text="Программа готова к оптимизации компонентов Windows и запуску игр." FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,20"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Click="BtnFinish_Click" Content="Завершить" 
+                                    Background="#1A1C28" Foreground="#E2E8F0" BorderBrush="#2F3346" BorderThickness="1" 
+                                    Padding="20,10" FontSize="12" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,12,0"/>
+                            <Button Click="BtnLaunchApp_Click" Content="Запустить SilkThread" 
+                                    Background="#8B5CF6" Foreground="#FFFFFF" BorderThickness="0" 
+                                    Padding="24,10" FontSize="13" FontWeight="Bold" Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- UNINSTALL SCREEN (If launched with /uninstall) -->
+                <Grid x:Name="PanelUninstall" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="520">
+                        <Border Width="64" Height="64" CornerRadius="32" Background="#341A22" BorderBrush="#EF4444" BorderThickness="2" HorizontalAlignment="Center" Margin="0,0,0,16">
+                            <TextBlock Text="🗑" FontSize="28" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock x:Name="LblUninstallTitle" Text="Удаление SilkThread 2.0" FontSize="20" FontWeight="Bold" Foreground="#F8FAFC" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="LblUninstallDesc" Text="Вы действительно хотите удалить SilkThread, все его компоненты и ярлыки?" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,20"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Click="BtnClose_Click" Content="Отмена" 
+                                    Background="#1A1C28" Foreground="#E2E8F0" BorderBrush="#2F3346" BorderThickness="1" 
+                                    Padding="20,10" FontSize="12" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,12,0"/>
+                            <Button Click="BtnDoUninstall_Click" Content="Удалить программу" 
+                                    Background="#EF4444" Foreground="#FFFFFF" BorderThickness="0" 
+                                    Padding="24,10" FontSize="13" FontWeight="Bold" Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
