@@ -5,6 +5,9 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>SilkThread.Installer</RootNamespace>
     <AssemblyName>SilkThread_Setup</AssemblyName>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>

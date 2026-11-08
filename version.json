@@ -1,7 +1,7 @@
 {
-    "version":  "1.0.0",
-    "title":  "SilkThread v1.0.0 - Minimal Dark UI Release",
-    "description":  "Первый стабильный релиз SilkThread с поддержкой IOST, Bento Grid и оптимизаций задержек Windows 11.",
-    "releaseDate":  "2026-11-08",
-    "downloadUrl": "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe"
+  "version": "1.1.0",
+  "title": "SilkThread v1.1.0 — Minimal Dark UI & IOST",
+  "description": "Масштабный релиз v1.1.0:\n• Полный перевод на дизайн-систему Minimal Dark UI и Bento Grid\n• Интеллектуальный ИИ-движок IOST (мультикатегорийный отбор 35-45+ твиков)\n• Двухпанельная библиотека твиков с быстрыми фильтрами\n• Плавная анимация игровой матрицы задержек без дрожания\n• Встроенная система дистанционных обновлений в 1 клик\n• Полная поддержка двух языков (RU / EN)",
+  "releaseDate": "2026-11-08",
+  "downloadUrl": "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe"
 }

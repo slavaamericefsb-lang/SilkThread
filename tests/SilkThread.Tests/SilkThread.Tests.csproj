@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SilkThread.Core\SilkThread.Core.csproj" />
+    <ProjectReference Include="..\..\src\SilkThread.App\SilkThread.App.csproj" />
   </ItemGroup>
 
 </Project>

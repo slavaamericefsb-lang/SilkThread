@@ -17,13 +17,22 @@ public sealed partial class UpdateHistoryDialog : ContentDialog, INotifyProperty
     public string CloseText => _loc["UpdHist_Close"];
     public string LatestBadgeText => _loc["UpdHist_Badge_Latest"];
 
-    public string V20_Title => _loc["UpdHist_v20_Title"];
-    public string V20_Date => _loc["UpdHist_v20_Date"];
-    public string V20_Item1 => _loc["UpdHist_v20_Item1"];
-    public string V20_Item2 => _loc["UpdHist_v20_Item2"];
-    public string V20_Item3 => _loc["UpdHist_v20_Item3"];
-    public string V20_Item4 => _loc["UpdHist_v20_Item4"];
-    public string V20_Item5 => _loc["UpdHist_v20_Item5"];
+    public string V11_Title => _loc["UpdHist_v11_Title"];
+    public string V11_Date => _loc["UpdHist_v11_Date"];
+    public string V11_Item1 => _loc["UpdHist_v11_Item1"];
+    public string V11_Item2 => _loc["UpdHist_v11_Item2"];
+    public string V11_Item3 => _loc["UpdHist_v11_Item3"];
+    public string V11_Item4 => _loc["UpdHist_v11_Item4"];
+    public string V11_Item5 => _loc["UpdHist_v11_Item5"];
+    public string V11_Item6 => _loc["UpdHist_v11_Item6"];
+
+    public string V20_Title => _loc["UpdHist_v11_Title"];
+    public string V20_Date => _loc["UpdHist_v11_Date"];
+    public string V20_Item1 => _loc["UpdHist_v11_Item1"];
+    public string V20_Item2 => _loc["UpdHist_v11_Item2"];
+    public string V20_Item3 => _loc["UpdHist_v11_Item3"];
+    public string V20_Item4 => _loc["UpdHist_v11_Item4"];
+    public string V20_Item5 => _loc["UpdHist_v11_Item5"];
 
     public string V15_Title => _loc["UpdHist_v15_Title"];
     public string V15_Date => _loc["UpdHist_v15_Date"];

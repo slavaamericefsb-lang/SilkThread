@@ -25,14 +25,14 @@ public sealed class UpdateService : IUpdateService
     public string CurrentVersion { get; }
 
     public string UpdateEndpointUrl { get; set; } = 
-        "https://raw.githubusercontent.com/SilkThreadApp/SilkThread/main/version.json";
+        "https://raw.githubusercontent.com/slavaamericefsb-lang/SilkThread/main/version.json";
 
     public event EventHandler<UpdateInfo>? UpdateAvailable;
 
     public UpdateService()
     {
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        CurrentVersion = ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "2.0.0";
+        CurrentVersion = ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.1.0";
     }
 
     /// <summary>

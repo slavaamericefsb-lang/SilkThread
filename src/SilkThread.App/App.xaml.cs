@@ -102,6 +102,7 @@ public partial class App : Application
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<ILiquidAiOptimizerService, LiquidAiOptimizerService>();
         services.AddSingleton<IUpdateService, UpdateService>();
+        services.AddSingleton<IUpdateHistoryService, UpdateHistoryService>();
 
         // ViewModels
         services.AddSingleton<ShellViewModel>();
