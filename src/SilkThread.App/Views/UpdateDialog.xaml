@@ -55,7 +55,7 @@
 
                 <!-- Title & Subtitle -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="Вышло новое обновление!" FontSize="18" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                    <TextBlock x:Name="DialogTitleText" Text="Вышло новое обновление!" FontSize="18" FontWeight="SemiBold" Foreground="#F3F4F8" />
                     <TextBlock x:Name="CurrentVersionHintText" Text="Рекомендуется обновить SilkThread для стабильной работы" FontSize="13" Foreground="#969CAB" />
                 </StackPanel>
             </Grid>
@@ -83,14 +83,14 @@
                 </StackPanel>
 
                 <Border Grid.Column="1" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,2,0">
-                    <TextBlock Text="Официальный релиз" FontSize="11" FontWeight="Bold" Foreground="#22C55E" />
+                    <TextBlock x:Name="OfficialBadgeText" Text="Официальный релиз" FontSize="11" FontWeight="Bold" Foreground="#22C55E" />
                 </Border>
             </Grid>
         </Border>
 
         <!-- 2: Changelog / Description Box -->
         <StackPanel Grid.Row="2" Spacing="8">
-            <TextBlock Text="Что нового в этой версии:" FontSize="13" FontWeight="SemiBold" Foreground="#969CAB" />
+            <TextBlock x:Name="WhatsNewHeaderText" Text="Что нового в этой версии:" FontSize="13" FontWeight="SemiBold" Foreground="#969CAB" />
             <Border Background="#121520" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14">
                 <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
                     <TextBlock x:Name="DescriptionText" 
@@ -126,7 +126,7 @@
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
                         Width="Auto" MinWidth="90" Height="38" MinHeight="38" Padding="16,8" CornerRadius="8"
                         Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                    <TextBlock Text="Позже" FontSize="13" Foreground="#F3F4F8" />
+                    <TextBlock x:Name="BtnLaterText" Text="Позже" FontSize="13" Foreground="#F3F4F8" />
                 </Button>
 
                 <!-- Primary: «Обновить» -->
@@ -136,7 +136,7 @@
                         Background="#806BFF" BorderThickness="0">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE896;" FontSize="14" Foreground="#FFFFFF" />
-                        <TextBlock Text="Обновить" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="None" TextWrapping="NoWrap" />
+                        <TextBlock x:Name="BtnUpdateText" Text="Обновить" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="None" TextWrapping="NoWrap" />
                     </StackPanel>
                 </Button>
             </StackPanel>

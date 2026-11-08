@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using SilkThread.App.Services;
+using SilkThread.App.Views;
 using Xunit;
 
 namespace SilkThread.Tests;
@@ -245,5 +246,45 @@ public class UpdateServiceTests
 
         Assert.ThrowsAny<ArgumentException>(() =>
             UpdateService.GenerateInPlaceUpdateScript(@"C:\patch.zip", @"C:\App", ""));
+    }
+
+    [Fact]
+    public void ManifestDeserialization_WithDownloadSize_ParsesCorrectly()
+    {
+        string manifestJson = """
+        {
+          "version": "1.1.2",
+          "title": "SilkThread v1.1.2",
+          "description": "Release notes",
+          "releaseDate": "2026-11-09",
+          "patchUrl": "https://example.com/patch.zip",
+          "patchSize": 3309712,
+          "downloadUrl": "https://example.com/setup.exe",
+          "downloadSize": 65432100
+        }
+        """;
+
+        var updateInfo = JsonSerializer.Deserialize<UpdateInfo>(manifestJson, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        Assert.NotNull(updateInfo);
+        Assert.Equal("1.1.2", updateInfo.Version);
+        Assert.Equal(3309712, updateInfo.PatchSize);
+        Assert.Equal(65432100, updateInfo.DownloadSize);
+    }
+
+    [Theory]
+    [InlineData(3309712, true, "3.2 МБ")]
+    [InlineData(3309712, false, "3.2 MB")]
+    [InlineData(1048576, true, "1 МБ")]
+    [InlineData(1048576, false, "1 MB")]
+    [InlineData(512000, true, "500 КБ")]
+    [InlineData(512000, false, "500 KB")]
+    public void FormatFileSize_VariousByteSizes_FormatsCorrectly(long bytes, bool isRu, string expected)
+    {
+        string result = UpdateDialog.FormatFileSize(bytes, isRu);
+        Assert.Equal(expected, result);
     }
 }

@@ -4,6 +4,7 @@
     "description":  "Обновление v1.1.2:\n• Бесшовное in-place обновление без полной переустановки программы (~3 МБ вместо 268 МБ)\n• Мгновенное применение патча за 2 секунды с сохранением пользовательских настроек\n• Автоматическая генерация SilkThread_Patch.zip при публикации релизов\n• Улучшена стабильность системы доставки обновлений",
     "releaseDate":  "2026-11-09",
     "patchUrl":  "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Patch.zip",
-    "patchSize":  3309712,
-    "downloadUrl":  "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe"
+    "patchSize":  3312552,
+    "downloadUrl":  "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe",
+    "downloadSize":  281105686
 }

@@ -28,6 +28,9 @@ public sealed class UpdateInfo
     [JsonPropertyName("patchSize")]
     public long? PatchSize { get; set; }
 
+    [JsonPropertyName("downloadSize")]
+    public long? DownloadSize { get; set; }
+
     [JsonPropertyName("releaseDate")]
     public string ReleaseDate { get; set; } = string.Empty;
 }

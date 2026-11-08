@@ -423,6 +423,15 @@ public class LocalizationService : ILocalizationService
         ["Update_UpToDate"] = "У вас установлена последняя версия SilkThread ✓",
         ["Update_Available"] = "Вышло новое обновление!",
         ["Update_Error"] = "Не удалось связаться с сервером обновлений",
+        ["Update_ReleaseDate"] = "Дата релиза:",
+        ["Update_Size"] = "Размер:",
+        ["Update_MB"] = "МБ",
+        ["Update_KB"] = "КБ",
+        ["Update_OfficialRelease"] = "Официальный релиз",
+        ["Update_WhatsNew"] = "Что нового в этой версии:",
+        ["Update_Later"] = "Позже",
+        ["Update_Install"] = "Обновить",
+        ["Update_CurrentVersion"] = "Установлена версия v{0} • Доступна более новая",
 
         // IOST (Intelligent Optimization & System Tuning)
         ["Dash_Ai_Title"] = "IOST — Интеллектуальная оптимизация",
@@ -795,6 +804,15 @@ public class LocalizationService : ILocalizationService
         ["Update_UpToDate"] = "SilkThread is up to date ✓",
         ["Update_Available"] = "New update available!",
         ["Update_Error"] = "Could not connect to update server",
+        ["Update_ReleaseDate"] = "Release date:",
+        ["Update_Size"] = "Size:",
+        ["Update_MB"] = "MB",
+        ["Update_KB"] = "KB",
+        ["Update_OfficialRelease"] = "Official Release",
+        ["Update_WhatsNew"] = "What's new in this version:",
+        ["Update_Later"] = "Later",
+        ["Update_Install"] = "Update",
+        ["Update_CurrentVersion"] = "Installed version v{0} • Newer version available",
 
         // IOST (Intelligent Optimization & System Tuning)
         ["Dash_Ai_Title"] = "IOST — Intelligent Optimization",

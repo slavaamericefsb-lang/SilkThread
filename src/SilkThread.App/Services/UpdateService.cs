@@ -44,7 +44,7 @@ public sealed class UpdateService : IUpdateService
         }
         else
         {
-            CurrentVersion = "1.1.0";
+            CurrentVersion = "1.1.2";
         }
     }
 

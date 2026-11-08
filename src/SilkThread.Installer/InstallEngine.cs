@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -10,7 +10,7 @@ public static class InstallEngine
 {
     public const string AppName = "SilkThread";
     public const string AppDisplayName = "SilkThread — Windows Gaming Optimizer";
-    public const string AppVersion = "1.1.0";
+    public const string AppVersion = "1.1.2";
     public const string AppPublisher = "SilkThread";
     public const string RegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\SilkThread";
 
@@ -185,3 +185,5 @@ public static class InstallEngine
         catch { }
     }
 }
+
+

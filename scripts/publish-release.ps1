@@ -82,20 +82,54 @@ if ([string]::IsNullOrWhiteSpace($GithubUser)) {
 $downloadUrl = "https://github.com/$GithubUser/SilkThread/releases/latest/download/SilkThread_Setup.exe"
 $patchUrl = "https://github.com/$GithubUser/SilkThread/releases/latest/download/SilkThread_Patch.zip"
 $patchSize = if ($manifest -and $manifest.patchSize) { [long]$manifest.patchSize } else { $null }
+$downloadSize = if ($manifest -and $manifest.downloadSize) { [long]$manifest.downloadSize } else { $null }
 
 # Update version.json initially
 $newManifest = [ordered]@{
-    version     = $Version
-    title       = $Title
-    description = $Notes
-    releaseDate = $releaseDate
-    patchUrl    = $patchUrl
-    patchSize   = $patchSize
-    downloadUrl = $downloadUrl
+    version      = $Version
+    title        = $Title
+    description  = $Notes
+    releaseDate  = $releaseDate
+    patchUrl     = $patchUrl
+    patchSize    = $patchSize
+    downloadUrl  = $downloadUrl
+    downloadSize = $downloadSize
 }
 $jsonString = ConvertTo-Json $newManifest -Depth 4
 Set-Content -Path $versionFile -Value $jsonString -Encoding UTF8
 Write-Host "[OK] Prepared version.json (v$Version, $releaseDate)" -ForegroundColor Green
+
+# Synchronize project file versions and installer engine constant
+$verParts = $Version.Split('.')
+$major = if ($verParts.Length -gt 0) { $verParts[0] } else { "1" }
+$minor = if ($verParts.Length -gt 1) { $verParts[1] } else { "0" }
+$build = if ($verParts.Length -gt 2) { $verParts[2] } else { "0" }
+$rev   = if ($verParts.Length -gt 3) { $verParts[3] } else { "0" }
+$quadVersion = "$major.$minor.$build.$rev"
+
+Write-Host ">>> Synchronizing project versions to $Version ($quadVersion)..." -ForegroundColor Yellow
+
+$appCsproj = Join-Path $repoRoot "src\SilkThread.App\SilkThread.App.csproj"
+$installerCsproj = Join-Path $repoRoot "src\SilkThread.Installer\SilkThread.Installer.csproj"
+$installEngineCs = Join-Path $repoRoot "src\SilkThread.Installer\InstallEngine.cs"
+
+foreach ($projFile in @($appCsproj, $installerCsproj)) {
+    if (Test-Path $projFile) {
+        $content = Get-Content $projFile -Raw -Encoding UTF8
+        $content = [regex]::Replace($content, '<Version>[^<]+</Version>', "<Version>$Version</Version>")
+        $content = [regex]::Replace($content, '<AssemblyVersion>[^<]+</AssemblyVersion>', "<AssemblyVersion>$quadVersion</AssemblyVersion>")
+        $content = [regex]::Replace($content, '<FileVersion>[^<]+</FileVersion>', "<FileVersion>$quadVersion</FileVersion>")
+        Set-Content -Path $projFile -Value $content -Encoding UTF8
+        Write-Host "  [OK] Synchronized $projFile -> $Version ($quadVersion)" -ForegroundColor Gray
+    }
+}
+
+if (Test-Path $installEngineCs) {
+    $content = Get-Content $installEngineCs -Raw -Encoding UTF8
+    $content = [regex]::Replace($content, 'public const string AppVersion = "[^"]+";', "public const string AppVersion = `"$Version`";")
+    Set-Content -Path $installEngineCs -Value $content -Encoding UTF8
+    Write-Host "  [OK] Synchronized $installEngineCs -> $Version" -ForegroundColor Gray
+}
 
 # 2. Build and Package (unless SkipBuild is specified)
 $distDir = Join-Path $repoRoot "dist"
@@ -212,19 +246,21 @@ $checksumPath = Join-Path $distDir "SHA256SUMS.txt"
 Set-Content -Path $checksumPath -Value $checksumContent -Encoding ASCII
 Write-Host "[OK] SHA256 Checksums updated: $checksumPath" -ForegroundColor Green
 
-# Finalize version.json with accurate patch size
+# Finalize version.json with accurate patch size and installer download size
+$downloadSize = if (Test-Path $setupExe) { (Get-Item $setupExe).Length } else { $null }
 $finalManifest = [ordered]@{
-    version     = $Version
-    title       = $Title
-    description = $Notes
-    releaseDate = $releaseDate
-    patchUrl    = $patchUrl
-    patchSize   = $patchSize
-    downloadUrl = $downloadUrl
+    version      = $Version
+    title        = $Title
+    description  = $Notes
+    releaseDate  = $releaseDate
+    patchUrl     = $patchUrl
+    patchSize    = $patchSize
+    downloadUrl  = $downloadUrl
+    downloadSize = $downloadSize
 }
 $jsonString = ConvertTo-Json $finalManifest -Depth 4
 Set-Content -Path $versionFile -Value $jsonString -Encoding UTF8
-Write-Host "[OK] Finalized version.json (v$Version, patchSize: $patchSize)" -ForegroundColor Green
+Write-Host "[OK] Finalized version.json (v$Version, patchSize: $patchSize, downloadSize: $downloadSize)" -ForegroundColor Green
 
 if ($BuildOnly) {
     Write-Host ""
@@ -253,12 +289,24 @@ if ($hasGh) {
     $ghAuthCheck = (& gh auth status 2>&1)
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[OK] Authenticated to GitHub CLI!" -ForegroundColor Green
-        Write-Host "Creating GitHub Release $tagName..." -ForegroundColor Cyan
-        & gh release create $tagName "$setupExe" "$patchZip" "$checksumPath" "$versionFile" --title "$Title" --notes "$Notes"
+
+        $null = cmd.exe /c "gh release view $tagName 2>nul"
         if ($LASTEXITCODE -eq 0) {
-            Write-Host ""
-            Write-Host "[OK] Release $tagName published successfully on GitHub!" -ForegroundColor Green
-            exit 0
+            Write-Host "Release $tagName already exists. Updating release assets..." -ForegroundColor Cyan
+            & gh release upload $tagName "$setupExe" "$patchZip" "$checksumPath" "$versionFile" --clobber
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host ""
+                Write-Host "[OK] Release $tagName assets updated successfully on GitHub!" -ForegroundColor Green
+                exit 0
+            }
+        } else {
+            Write-Host "Creating GitHub Release $tagName..." -ForegroundColor Cyan
+            & gh release create $tagName "$setupExe" "$patchZip" "$checksumPath" "$versionFile" --title "$Title" --notes "$Notes"
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host ""
+                Write-Host "[OK] Release $tagName published successfully on GitHub!" -ForegroundColor Green
+                exit 0
+            }
         }
     }
 }
