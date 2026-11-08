@@ -44,6 +44,37 @@ jobs:
         run: |
           dotnet publish src/SilkThread.App/SilkThread.App.csproj -c Release -r win-x64 --self-contained true -o ./dist/SilkThread
 
+      - name: Package Lightweight Patch (SilkThread_Patch.zip)
+        shell: pwsh
+        run: |
+          $distDir = "./dist"
+          $appDistDir = "$distDir/SilkThread"
+          $patchZip = "$distDir/SilkThread_Patch.zip"
+          if (Test-Path $patchZip) { Remove-Item $patchZip -Force }
+          $patchStagingDir = "$distDir/patch_staging"
+          if (Test-Path $patchStagingDir) { Remove-Item $patchStagingDir -Recurse -Force }
+          New-Item -ItemType Directory -Path $patchStagingDir -Force | Out-Null
+          
+          $patchItems = Get-ChildItem -Path $appDistDir -Recurse | Where-Object {
+              -not $_.PSIsContainer -and
+              -not ($_.Extension -eq ".pdb") -and
+              ($_.Name -like "SilkThread.*" -or $_.Name -like "*.pri" -or $_.Name -like "*.xbf" -or $_.Name -like "workloads*.json" -or $_.FullName -like "*\Assets\*")
+          }
+          $appDistPath = (Resolve-Path $appDistDir).Path
+          foreach ($item in $patchItems) {
+              $relative = $item.FullName.Substring($appDistPath.Length).TrimStart('\', '/')
+              $targetPath = Join-Path $patchStagingDir $relative
+              $targetParent = Split-Path $targetPath
+              if (-not (Test-Path $targetParent)) {
+                  New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+              }
+              Copy-Item $item.FullName $targetPath -Force
+          }
+          [System.IO.Compression.ZipFile]::CreateFromDirectory($patchStagingDir, $patchZip, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+          Remove-Item $patchStagingDir -Recurse -Force
+          $patchSize = (Get-Item $patchZip).Length / 1MB
+          Write-Host "Lightweight patch created: [$(Get-Item $patchZip).FullName] ($("{0:N2}" -f $patchSize) MB)"
+
       - name: Package Installer Payload
         shell: pwsh
         run: |
@@ -65,9 +96,15 @@ jobs:
         shell: pwsh
         run: |
           $setupExe = "./dist/SilkThread_Setup.exe"
+          $patchZip = "./dist/SilkThread_Patch.zip"
           $hash = (Get-FileHash -Path $setupExe -Algorithm SHA256).Hash
-          "$hash  SilkThread_Setup.exe" | Out-File -FilePath "./dist/SHA256SUMS.txt" -Encoding ascii
-          Write-Host "SilkThread_Setup.exe SHA256: $hash"
+          $checksumContent = "$hash  SilkThread_Setup.exe"
+          if (Test-Path $patchZip) {
+              $patchHash = (Get-FileHash -Path $patchZip -Algorithm SHA256).Hash
+              $checksumContent += "`r`n$patchHash  SilkThread_Patch.zip"
+          }
+          $checksumContent | Out-File -FilePath "./dist/SHA256SUMS.txt" -Encoding ascii
+          Write-Host "SHA256SUMS.txt content:`n$checksumContent"
           
           # Verify version.json exists
           if (Test-Path "./version.json") {
@@ -82,6 +119,7 @@ jobs:
           prerelease: false
           files: |
             dist/SilkThread_Setup.exe
+            dist/SilkThread_Patch.zip
             dist/SHA256SUMS.txt
             version.json
         env:
