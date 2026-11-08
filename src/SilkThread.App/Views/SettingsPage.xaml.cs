@@ -75,6 +75,8 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
         try
         {
             var update = await updateService.CheckForUpdatesAsync(isManualCheck: true);
+            ViewModel.RefreshVersionDebugInfo(updateService.LastRemoteVersion);
+
             if (update != null)
             {
                 CheckUpdatesStatusText.Text = loc["Update_Available"];
@@ -88,7 +90,12 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
             }
             else
             {
-                CheckUpdatesStatusText.Text = loc["Update_UpToDate"];
+                string serverVer = updateService.LastRemoteVersion ?? updateService.CurrentVersion;
+                string verComparison = loc.CurrentLanguage == "ru"
+                    ? $"Текущая версия: {updateService.CurrentVersion} | Версия на сервере: {serverVer}"
+                    : $"Current version: {updateService.CurrentVersion} | Server version: {serverVer}";
+
+                CheckUpdatesStatusText.Text = $"{loc["Update_UpToDate"]}\n{verComparison}";
                 CheckUpdatesStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 197, 94));
             }
         }

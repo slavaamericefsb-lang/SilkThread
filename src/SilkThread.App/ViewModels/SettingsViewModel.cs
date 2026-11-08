@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using SilkThread.App.Services;
 
@@ -10,6 +11,10 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _loc;
+    private readonly IUpdateService _updateService;
+
+    [ObservableProperty]
+    private string _versionDebugInfo = "";
 
     [ObservableProperty]
     private int _languageIndex; // 0 = Русский, 1 = English
@@ -56,7 +61,9 @@ public partial class SettingsViewModel : ObservableObject
     public string RebootNotifyLabel => _loc["Set_Reboot_Notify"];
     public string AboutTitle => _loc["Set_About_Title"];
     public string AboutDesc => _loc["Set_About_Desc"];
-    public string VersionLabel => _loc["Set_Version"];
+    public string VersionLabel => _loc.CurrentLanguage == "ru"
+        ? $"Версия {_updateService.CurrentVersion} (Windows 11 Edition)"
+        : $"Version {_updateService.CurrentVersion} (Windows 11 Edition)";
     public string UpdateHistoryButtonText => _loc["UpdHist_Btn"];
     public string CheckUpdatesButtonText => _loc["Update_CheckButton"];
 
@@ -90,7 +97,7 @@ public partial class SettingsViewModel : ObservableObject
         ? "Автоматически скрывать твики для других архитектур GPU/CPU или несовместимых накопителей." 
         : "Automatically hide tweaks intended for other CPU/GPU architectures or incompatible drives.";
 
-    public string AppVersion => "SilkThread 2.0 (Windows 11 x64)";
+    public string AppVersion => $"SilkThread {_updateService.CurrentVersion} (Windows 11 x64)";
     public string RuntimeEnvironment => $".NET {Environment.Version} (WinUI 3 / Windows App SDK)";
 
     public string SubSafetyLabel => _loc["Set_Sub_Safety"];
@@ -100,9 +107,18 @@ public partial class SettingsViewModel : ObservableObject
     public string SubAboutLabel => _loc["Set_Sub_About"];
 
     public SettingsViewModel(ISettingsService settingsService, ILocalizationService localizationService)
+        : this(settingsService, localizationService, App.Services.GetRequiredService<IUpdateService>())
+    {
+    }
+
+    public SettingsViewModel(
+        ISettingsService settingsService, 
+        ILocalizationService localizationService, 
+        IUpdateService updateService)
     {
         _settingsService = settingsService;
         _loc = localizationService;
+        _updateService = updateService;
 
         _languageIndex = _loc.CurrentLanguage == "en" ? 1 : 0;
         _confirmDangerousTweaks = _settingsService.Settings.ConfirmDangerousTweaks;
@@ -114,9 +130,12 @@ public partial class SettingsViewModel : ObservableObject
         // Force Dark Theme (Mica Dark)
         _settingsService.Settings.AppTheme = ElementTheme.Dark;
 
+        RefreshVersionDebugInfo();
+
         _loc.LanguageChanged += (s, e) =>
         {
             _languageIndex = _loc.CurrentLanguage == "en" ? 1 : 0;
+            RefreshVersionDebugInfo();
             OnPropertyChanged(nameof(LanguageIndex));
             OnPropertyChanged(nameof(PageTitle));
             OnPropertyChanged(nameof(PageSubtitle));
@@ -152,7 +171,19 @@ public partial class SettingsViewModel : ObservableObject
             OnPropertyChanged(nameof(SubLangSwitchLabel));
             OnPropertyChanged(nameof(SubAboutLabel));
             OnPropertyChanged(nameof(LockTooltipText));
+            OnPropertyChanged(nameof(VersionLabel));
+            OnPropertyChanged(nameof(AppVersion));
         };
+    }
+
+    public void RefreshVersionDebugInfo(string? remoteVersion = null)
+    {
+        string serverVer = remoteVersion ?? _updateService.LastRemoteVersion ?? (_loc.CurrentLanguage == "ru" ? "не проверялось" : "not checked");
+        string label = _loc.CurrentLanguage == "ru" ? "Текущая версия" : "Current version";
+        string serverLabel = _loc.CurrentLanguage == "ru" ? "Версия на сервере" : "Server version";
+
+        VersionDebugInfo = $"{label}: {_updateService.CurrentVersion} | {serverLabel}: {serverVer}";
+        App.Log($"[SettingsViewModel] Текущая версия: {_updateService.CurrentVersion} | Версия на сервере: {serverVer}");
     }
 
     [RelayCommand]

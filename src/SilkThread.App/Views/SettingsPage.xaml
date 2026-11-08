@@ -329,6 +329,10 @@
                                                 <TextBlock Text="SilkThread Core Team" FontSize="10" Foreground="#969CAB" />
                                             </Border>
                                         </StackPanel>
+
+                                        <!-- Diagnostic / Debug Version Info -->
+                                        <TextBlock Text="{x:Bind ViewModel.VersionDebugInfo, Mode=OneWay}" 
+                                                   FontSize="10.5" Foreground="#806BFF" FontFamily="Consolas" Margin="0,5,0,0" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -366,6 +370,7 @@
                             <!-- Check Updates Status Text -->
                             <TextBlock x:Name="CheckUpdatesStatusText" 
                                        Visibility="Collapsed"
+                                       TextAlignment="Center"
                                        FontSize="11.5" Foreground="#969CAB" 
                                        HorizontalAlignment="Center" Margin="0,-2,0,0" />
                         </StackPanel>

@@ -40,9 +40,14 @@ public readonly record struct UpdateDownloadProgress(
 public interface IUpdateService
 {
     /// <summary>
-    /// Current installed application version (e.g. "2.0.0").
+    /// Current installed application version (e.g. "1.1.0").
     /// </summary>
     string CurrentVersion { get; }
+
+    /// <summary>
+    /// Last detected remote version on server (e.g. "1.1.0").
+    /// </summary>
+    string? LastRemoteVersion { get; }
 
     /// <summary>
     /// Remote URL endpoint hosting version.json.

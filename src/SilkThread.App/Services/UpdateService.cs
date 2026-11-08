@@ -24,6 +24,8 @@ public sealed class UpdateService : IUpdateService
 
     public string CurrentVersion { get; }
 
+    public string? LastRemoteVersion { get; private set; }
+
     public string UpdateEndpointUrl { get; set; } = 
         "https://raw.githubusercontent.com/slavaamericefsb-lang/SilkThread/main/version.json";
 
@@ -42,11 +44,29 @@ public sealed class UpdateService : IUpdateService
     {
         try
         {
-            App.Log($"[UpdateService] Checking for updates at: {UpdateEndpointUrl}");
+            var uriBuilder = new UriBuilder(UpdateEndpointUrl);
+            string cacheBustParam = $"nocache={DateTime.UtcNow.Ticks}";
+            if (string.IsNullOrEmpty(uriBuilder.Query) || uriBuilder.Query == "?")
+            {
+                uriBuilder.Query = cacheBustParam;
+            }
+            else
+            {
+                uriBuilder.Query = uriBuilder.Query.TrimStart('?') + "&" + cacheBustParam;
+            }
 
-            using var request = new HttpRequestMessage(HttpMethod.Get, UpdateEndpointUrl);
+            string requestUrl = uriBuilder.Uri.ToString();
+            App.Log($"[UpdateService] Checking for updates at: {requestUrl}");
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue("SilkThread-App", CurrentVersion));
-            request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true };
+            request.Headers.CacheControl = new CacheControlHeaderValue 
+            { 
+                NoCache = true,
+                NoStore = true,
+                MustRevalidate = true
+            };
+            request.Headers.Pragma.ParseAdd("no-cache");
 
             using var response = await s_httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
@@ -67,16 +87,17 @@ public sealed class UpdateService : IUpdateService
                 return null;
             }
 
-            App.Log($"[UpdateService] Remote version: {updateInfo.Version}, Current version: {CurrentVersion}");
+            LastRemoteVersion = updateInfo.Version.Trim();
+            App.Log($"[UpdateService] Текущая версия: {CurrentVersion} | Версия на сервере: {LastRemoteVersion}");
 
-            if (IsNewerVersion(updateInfo.Version, CurrentVersion))
+            if (IsNewerVersion(LastRemoteVersion, CurrentVersion))
             {
-                App.Log($"[UpdateService] Newer version available: {updateInfo.Version} ({updateInfo.Title})");
+                App.Log($"[UpdateService] Newer version available: {LastRemoteVersion} ({updateInfo.Title})");
                 UpdateAvailable?.Invoke(this, updateInfo);
                 return updateInfo;
             }
 
-            App.Log("[UpdateService] Application is currently up-to-date.");
+            App.Log($"[UpdateService] Application is currently up-to-date (Current: {CurrentVersion}, Remote: {LastRemoteVersion}).");
             return null;
         }
         catch (OperationCanceledException)
