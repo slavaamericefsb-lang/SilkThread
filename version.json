@@ -1,7 +1,9 @@
-{
-  "version": "1.1.1",
-  "title": "SilkThread v1.1.0 — Minimal Dark UI & IOST",
-  "description": "Масштабный релиз v1.1.0:\n• Полный перевод на дизайн-систему Minimal Dark UI и Bento Grid\n• Интеллектуальный ИИ-движок IOST (мультикатегорийный отбор 35-45+ твиков)\n• Двухпанельная библиотека твиков с быстрыми фильтрами\n• Плавная анимация игровой матрицы задержек без дрожания\n• Встроенная система дистанционных обновлений в 1 клик\n• Полная поддержка двух языков (RU / EN)",
-  "releaseDate": "2026-11-08",
-  "downloadUrl": "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe"
+﻿{
+    "version":  "1.1.2",
+    "title":  "SilkThread v1.1.2 — In-Place Seamless Update",
+    "description":  "Обновление v1.1.2:\n• Бесшовное in-place обновление без полной переустановки программы (~3 МБ вместо 268 МБ)\n• Мгновенное применение патча за 2 секунды с сохранением пользовательских настроек\n• Автоматическая генерация SilkThread_Patch.zip при публикации релизов\n• Улучшена стабильность системы доставки обновлений",
+    "releaseDate":  "2026-11-09",
+    "patchUrl":  "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Patch.zip",
+    "patchSize":  3309712,
+    "downloadUrl":  "https://github.com/slavaamericefsb-lang/SilkThread/releases/latest/download/SilkThread_Setup.exe"
 }

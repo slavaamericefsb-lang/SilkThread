@@ -22,6 +22,12 @@ public sealed class UpdateInfo
     [JsonPropertyName("downloadUrl")]
     public string DownloadUrl { get; set; } = string.Empty;
 
+    [JsonPropertyName("patchUrl")]
+    public string? PatchUrl { get; set; }
+
+    [JsonPropertyName("patchSize")]
+    public long? PatchSize { get; set; }
+
     [JsonPropertyName("releaseDate")]
     public string ReleaseDate { get; set; } = string.Empty;
 }

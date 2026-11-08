@@ -181,11 +181,12 @@ public sealed partial class MainWindow : Window
                     {
                         try
                         {
-                            if (Content?.XamlRoot != null)
+                            var xamlRoot = App.MainWindowInstance?.Content?.XamlRoot ?? Content?.XamlRoot;
+                            if (xamlRoot != null)
                             {
                                 var dialog = new UpdateDialog(update, updateService)
                                 {
-                                    XamlRoot = Content.XamlRoot
+                                    XamlRoot = xamlRoot
                                 };
                                 await dialog.ShowAsync();
                             }

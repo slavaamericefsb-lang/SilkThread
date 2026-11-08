@@ -80,26 +80,31 @@ if ([string]::IsNullOrWhiteSpace($GithubUser)) {
 }
 
 $downloadUrl = "https://github.com/$GithubUser/SilkThread/releases/latest/download/SilkThread_Setup.exe"
+$patchUrl = "https://github.com/$GithubUser/SilkThread/releases/latest/download/SilkThread_Patch.zip"
+$patchSize = if ($manifest -and $manifest.patchSize) { [long]$manifest.patchSize } else { $null }
 
-# Update version.json
+# Update version.json initially
 $newManifest = [ordered]@{
     version     = $Version
     title       = $Title
     description = $Notes
     releaseDate = $releaseDate
+    patchUrl    = $patchUrl
+    patchSize   = $patchSize
     downloadUrl = $downloadUrl
 }
 $jsonString = ConvertTo-Json $newManifest -Depth 4
 Set-Content -Path $versionFile -Value $jsonString -Encoding UTF8
-Write-Host "[OK] Updated version.json (v$Version, $releaseDate)" -ForegroundColor Green
+Write-Host "[OK] Prepared version.json (v$Version, $releaseDate)" -ForegroundColor Green
 
 # 2. Build and Package (unless SkipBuild is specified)
 $distDir = Join-Path $repoRoot "dist"
 $setupExe = Join-Path $distDir "SilkThread_Setup.exe"
+$patchZip = Join-Path $distDir "SilkThread_Patch.zip"
 
 if (-not $SkipBuild) {
     Write-Host ""
-    Write-Host ">>> [1/4] Running automated tests..." -ForegroundColor Yellow
+    Write-Host ">>> [1/5] Running automated tests..." -ForegroundColor Yellow
     dotnet test "$repoRoot\tests\SilkThread.Tests\SilkThread.Tests.csproj" -c Release --verbosity minimal
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Tests failed. Aborting release publication."
@@ -108,7 +113,7 @@ if (-not $SkipBuild) {
     Write-Host "[OK] All tests passed!" -ForegroundColor Green
 
     Write-Host ""
-    Write-Host ">>> [2/4] Publishing SilkThread.App (win-x64 Standalone)..." -ForegroundColor Yellow
+    Write-Host ">>> [2/5] Publishing SilkThread.App (win-x64 Standalone)..." -ForegroundColor Yellow
     $appDistDir = Join-Path $distDir "SilkThread"
     dotnet publish "$repoRoot\src\SilkThread.App\SilkThread.App.csproj" -c Release -r win-x64 --self-contained true -o $appDistDir
     if ($LASTEXITCODE -ne 0) {
@@ -117,8 +122,46 @@ if (-not $SkipBuild) {
     }
 
     Write-Host ""
-    Write-Host ">>> [3/4] Packaging payload into installer..." -ForegroundColor Yellow
+    Write-Host ">>> [3/5] Packaging Lightweight In-Place Patch (SilkThread_Patch.zip)..." -ForegroundColor Yellow
     Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    if (Test-Path $patchZip) {
+        Remove-Item $patchZip -Force
+    }
+
+    $patchStagingDir = Join-Path $distDir "patch_staging"
+    if (Test-Path $patchStagingDir) {
+        Remove-Item $patchStagingDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $patchStagingDir -Force | Out-Null
+
+    $patchItems = Get-ChildItem -Path $appDistDir -Recurse | Where-Object {
+        -not $_.PSIsContainer -and
+        -not ($_.Extension -eq ".pdb") -and
+        ($_.Name -like "SilkThread.*" -or $_.Name -like "*.pri" -or $_.Name -like "*.xbf" -or $_.Name -like "workloads*.json" -or $_.FullName -like "*\Assets\*")
+    }
+
+    $appDistPath = (Resolve-Path $appDistDir).Path
+    foreach ($item in $patchItems) {
+        $relative = $item.FullName.Substring($appDistPath.Length).TrimStart('\', '/')
+        $targetPath = Join-Path $patchStagingDir $relative
+        $targetParent = Split-Path $targetPath
+        if (-not (Test-Path $targetParent)) {
+            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+        }
+        Copy-Item $item.FullName $targetPath -Force
+    }
+
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($patchStagingDir, $patchZip, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+    Remove-Item $patchStagingDir -Recurse -Force
+
+    $patchItem = Get-Item $patchZip
+    $patchSize = $patchItem.Length
+    $patchMB = [math]::Round($patchItem.Length / 1MB, 2)
+    Write-Host "[OK] Lightweight patch created: $patchZip ($patchMB MB, $patchSize bytes)" -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host ">>> [4/5] Packaging payload into full installer..." -ForegroundColor Yellow
     $payloadDir = Join-Path $repoRoot "src\SilkThread.Installer\Payload"
     if (-not (Test-Path $payloadDir)) {
         New-Item -ItemType Directory -Path $payloadDir -Force | Out-Null
@@ -134,7 +177,7 @@ if (-not $SkipBuild) {
     Write-Host "[OK] Payload archived: $zipPath ($zipMB MB)" -ForegroundColor Green
 
     Write-Host ""
-    Write-Host ">>> [4/4] Compiling Single-File Installer (SilkThread_Setup.exe)..." -ForegroundColor Yellow
+    Write-Host ">>> [5/5] Compiling Single-File Installer (SilkThread_Setup.exe)..." -ForegroundColor Yellow
     $installerBuildDir = Join-Path $distDir "installer_build"
     dotnet publish "$repoRoot\src\SilkThread.Installer\SilkThread.Installer.csproj" -c Release -r win-x64 --self-contained true -o $installerBuildDir
     if ($LASTEXITCODE -ne 0) {
@@ -154,16 +197,40 @@ $exeItem = Get-Item $setupExe
 $exeMB = [math]::Round($exeItem.Length / 1MB, 2)
 Write-Host "[OK] Installer ready: $setupExe ($exeMB MB)" -ForegroundColor Green
 
-# 3. Compute SHA256
+# 3. Compute SHA256 & finalize version.json
 $hash = (Get-FileHash -Path $setupExe -Algorithm SHA256).Hash
+$checksumContent = "$hash  SilkThread_Setup.exe"
+
+if (Test-Path $patchZip) {
+    $patchItem = Get-Item $patchZip
+    $patchSize = $patchItem.Length
+    $patchHash = (Get-FileHash -Path $patchZip -Algorithm SHA256).Hash
+    $checksumContent += "`r`n$patchHash  SilkThread_Patch.zip"
+}
+
 $checksumPath = Join-Path $distDir "SHA256SUMS.txt"
-Set-Content -Path $checksumPath -Value "$hash  SilkThread_Setup.exe" -Encoding ASCII
-Write-Host "[OK] SHA256 Checksum: $hash" -ForegroundColor Green
+Set-Content -Path $checksumPath -Value $checksumContent -Encoding ASCII
+Write-Host "[OK] SHA256 Checksums updated: $checksumPath" -ForegroundColor Green
+
+# Finalize version.json with accurate patch size
+$finalManifest = [ordered]@{
+    version     = $Version
+    title       = $Title
+    description = $Notes
+    releaseDate = $releaseDate
+    patchUrl    = $patchUrl
+    patchSize   = $patchSize
+    downloadUrl = $downloadUrl
+}
+$jsonString = ConvertTo-Json $finalManifest -Depth 4
+Set-Content -Path $versionFile -Value $jsonString -Encoding UTF8
+Write-Host "[OK] Finalized version.json (v$Version, patchSize: $patchSize)" -ForegroundColor Green
 
 if ($BuildOnly) {
     Write-Host ""
     Write-Host "[OK] BuildOnly mode completed successfully!" -ForegroundColor Green
-    Write-Host "Output: $setupExe" -ForegroundColor Cyan
+    Write-Host "Installer: $setupExe" -ForegroundColor Cyan
+    Write-Host "Patch:     $patchZip" -ForegroundColor Cyan
     exit 0
 }
 
@@ -187,7 +254,7 @@ if ($hasGh) {
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[OK] Authenticated to GitHub CLI!" -ForegroundColor Green
         Write-Host "Creating GitHub Release $tagName..." -ForegroundColor Cyan
-        & gh release create $tagName "$setupExe" "$checksumPath" "$versionFile" --title "$Title" --notes "$Notes"
+        & gh release create $tagName "$setupExe" "$patchZip" "$checksumPath" "$versionFile" --title "$Title" --notes "$Notes"
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
             Write-Host "[OK] Release $tagName published successfully on GitHub!" -ForegroundColor Green
@@ -212,6 +279,7 @@ Write-Host "   URL: https://github.com/$GithubUser/SilkThread/releases/new" -For
 Write-Host "   - Select tag: $tagName" -ForegroundColor Gray
 Write-Host "   - Title: $Title" -ForegroundColor Gray
 Write-Host "   - Attach file: $setupExe" -ForegroundColor Gray
+Write-Host "   - Attach file: $patchZip" -ForegroundColor Gray
 Write-Host "   - Attach file: $checksumPath" -ForegroundColor Gray
 Write-Host "   - Attach file: $versionFile" -ForegroundColor Gray
 Write-Host ""

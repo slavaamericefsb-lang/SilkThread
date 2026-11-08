@@ -2,9 +2,9 @@
 ; Inno Setup 6+ Installer Configuration Script
 
 #define MyAppName "SilkThread"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "SilkThread"
-#define MyAppURL "https://github.com/SilkThread/SilkThread"
+#define MyAppURL "https://github.com/slavaamericefsb-lang/SilkThread"
 #define MyAppExeName "SilkThread.App.exe"
 
 [Setup]

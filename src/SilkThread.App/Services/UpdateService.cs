@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +36,16 @@ public sealed class UpdateService : IUpdateService
     public UpdateService()
     {
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        CurrentVersion = ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.1.0";
+        if (ver != null)
+        {
+            CurrentVersion = ver.Build >= 0 
+                ? (ver.Revision > 0 ? $"{ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}" : $"{ver.Major}.{ver.Minor}.{ver.Build}")
+                : $"{ver.Major}.{ver.Minor}.0";
+        }
+        else
+        {
+            CurrentVersion = "1.1.0";
+        }
     }
 
     /// <summary>
@@ -72,6 +83,10 @@ public sealed class UpdateService : IUpdateService
             if (!response.IsSuccessStatusCode)
             {
                 App.Log($"[UpdateService] Remote server returned HTTP {response.StatusCode}");
+                if (isManualCheck)
+                {
+                    throw new HttpRequestException($"Remote server returned HTTP {response.StatusCode} ({(int)response.StatusCode})");
+                }
                 return null;
             }
 
@@ -84,6 +99,10 @@ public sealed class UpdateService : IUpdateService
             if (updateInfo == null || string.IsNullOrWhiteSpace(updateInfo.Version))
             {
                 App.Log("[UpdateService] Empty or invalid JSON received from remote update manifest.");
+                if (isManualCheck)
+                {
+                    throw new InvalidOperationException("Empty or invalid update manifest received from remote server.");
+                }
                 return null;
             }
 
@@ -117,8 +136,61 @@ public sealed class UpdateService : IUpdateService
     }
 
     /// <summary>
-    /// Downloads the updated installer to %TEMP%\SilkThread_Setup.exe and launches it,
-    /// exiting the current application process so binary files can be replaced.
+    /// Checks whether the update info points to a lightweight in-place patch.
+    /// </summary>
+    public static bool IsPatchUpdateAvailable(UpdateInfo? update) =>
+        update != null && !string.IsNullOrWhiteSpace(update.PatchUrl);
+
+    /// <summary>
+    /// Generates the standalone Windows batch script used to extract the patch archive directly over
+    /// the application directory and cleanly relaunch the updated executable without an installer wizard.
+    /// </summary>
+    public static string GenerateInPlaceUpdateScript(string patchZipPath, string appDir, string appExePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(patchZipPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(appDir);
+        ArgumentException.ThrowIfNullOrWhiteSpace(appExePath);
+
+        string cleanAppDir = appDir.TrimEnd('\\', '/');
+
+        var sb = new StringBuilder();
+        sb.AppendLine("@echo off");
+        sb.AppendLine("chcp 65001 >nul");
+        sb.AppendLine();
+        sb.AppendLine(":: 1. Wait for caller process to exit and release file handles");
+        sb.AppendLine("timeout /t 1 /nobreak >nul 2>&1 || ping 127.0.0.1 -n 2 >nul");
+        sb.AppendLine();
+        sb.AppendLine(":: 2. Extract patch archive directly over application directory");
+        sb.AppendLine("where tar >nul 2>&1");
+        sb.AppendLine("if %errorlevel% equ 0 (");
+        sb.AppendLine($"    tar -xf \"{patchZipPath}\" -C \"{cleanAppDir}\"");
+        sb.AppendLine(") else (");
+        sb.AppendLine($"    powershell -NoProfile -NonInteractive -Command \"Expand-Archive -Path '{patchZipPath}' -DestinationPath '{cleanAppDir}' -Force\"");
+        sb.AppendLine(")");
+        sb.AppendLine();
+        sb.AppendLine(":: Ensure files replaced; retry once if still locked");
+        sb.AppendLine("if not %errorlevel% equ 0 (");
+        sb.AppendLine("    timeout /t 1 /nobreak >nul 2>&1");
+        sb.AppendLine("    where tar >nul 2>&1");
+        sb.AppendLine("    if %errorlevel% equ 0 (");
+        sb.AppendLine($"        tar -xf \"{patchZipPath}\" -C \"{cleanAppDir}\"");
+        sb.AppendLine("    )");
+        sb.AppendLine(")");
+        sb.AppendLine();
+        sb.AppendLine(":: 3. Restart updated application");
+        sb.AppendLine($"start \"\" \"{appExePath}\"");
+        sb.AppendLine();
+        sb.AppendLine(":: 4. Cleanup patch archive and self-delete script");
+        sb.AppendLine($"del /f /q \"{patchZipPath}\" >nul 2>&1");
+        sb.AppendLine("(goto) 2>nul & del \"%~f0\"");
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Downloads the update payload (lightweight patch or full installer) and installs it.
+    /// If PatchUrl is present, downloads ~3 MB patch zip and performs seamless in-place extraction over AppContext.BaseDirectory.
+    /// If PatchUrl is absent, falls back to DownloadUrl full installer.
     /// </summary>
     public async Task DownloadAndInstallUpdateAsync(
         UpdateInfo update, 
@@ -126,21 +198,28 @@ public sealed class UpdateService : IUpdateService
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(update);
-        if (string.IsNullOrWhiteSpace(update.DownloadUrl))
+
+        bool isPatch = IsPatchUpdateAvailable(update);
+        string downloadUrl = isPatch ? update.PatchUrl! : update.DownloadUrl;
+
+        if (string.IsNullOrWhiteSpace(downloadUrl))
         {
             throw new InvalidOperationException("Download URL is not specified in update manifest.");
         }
 
-        string tempPath = Path.Combine(Path.GetTempPath(), "SilkThread_Setup.exe");
-        App.Log($"[UpdateService] Downloading setup from {update.DownloadUrl} to {tempPath}");
+        string tempDestination = isPatch
+            ? Path.Combine(Path.GetTempPath(), "SilkThread_Patch.zip")
+            : Path.Combine(Path.GetTempPath(), "SilkThread_Setup.exe");
 
-        // Remove any previous downloaded installer file
-        if (File.Exists(tempPath))
+        App.Log($"[UpdateService] Starting download (PatchMode={isPatch}) from {downloadUrl} to {tempDestination}");
+
+        // Remove any previous temporary file
+        if (File.Exists(tempDestination))
         {
-            try { File.Delete(tempPath); } catch { }
+            try { File.Delete(tempDestination); } catch { }
         }
 
-        using (var request = new HttpRequestMessage(HttpMethod.Get, update.DownloadUrl))
+        using (var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl))
         {
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue("SilkThread-App", CurrentVersion));
 
@@ -148,9 +227,13 @@ public sealed class UpdateService : IUpdateService
             response.EnsureSuccessStatusCode();
 
             long? totalBytes = response.Content.Headers.ContentLength;
+            if (!totalBytes.HasValue && isPatch && update.PatchSize.HasValue && update.PatchSize.Value > 0)
+            {
+                totalBytes = update.PatchSize.Value;
+            }
 
             await using var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-            await using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+            await using var fileStream = new FileStream(tempDestination, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
 
             var buffer = new byte[81920];
             long totalRead = 0;
@@ -171,30 +254,85 @@ public sealed class UpdateService : IUpdateService
             await fileStream.FlushAsync(ct).ConfigureAwait(false);
         }
 
-        App.Log($"[UpdateService] Download finished successfully. File size: {new FileInfo(tempPath).Length} bytes.");
+        long downloadedLength = new FileInfo(tempDestination).Length;
+        App.Log($"[UpdateService] Download finished successfully. File size: {downloadedLength} bytes.");
 
-        // Spawn installer process and exit app
-        try
+        if (isPatch)
         {
-            var psi = new ProcessStartInfo
+            // Verify patch archive integrity before applying
+            try
             {
-                FileName = tempPath,
-                UseShellExecute = true,
-                Verb = "runas"
-            };
+                using var zipCheck = ZipFile.OpenRead(tempDestination);
+                if (zipCheck.Entries.Count == 0)
+                {
+                    throw new InvalidDataException("Downloaded patch archive contains no files.");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log($"[UpdateService] Invalid patch zip downloaded: {ex.Message}");
+                throw new InvalidOperationException($"Downloaded patch archive is corrupt or invalid: {ex.Message}", ex);
+            }
 
-            App.Log("[UpdateService] Launching installer process...");
-            Process.Start(psi);
+            // Prepare in-place update script
+            string appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            string appExe = Path.Combine(appDir, "SilkThread.App.exe");
+            if (!File.Exists(appExe) && !string.IsNullOrEmpty(Environment.ProcessPath))
+            {
+                appExe = Environment.ProcessPath;
+            }
 
-            // Give process moment to spawn before exit
-            await Task.Delay(500, ct).ConfigureAwait(false);
-            App.Log("[UpdateService] Exiting SilkThread to release file handles for update.");
-            Environment.Exit(0);
+            string scriptPath = Path.Combine(Path.GetTempPath(), "SilkThread_Update_InPlace.cmd");
+            string scriptContent = GenerateInPlaceUpdateScript(tempDestination, appDir, appExe);
+            await File.WriteAllTextAsync(scriptPath, scriptContent, new UTF8Encoding(false), ct).ConfigureAwait(false);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = scriptPath,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+
+                App.Log("[UpdateService] Launching lightweight in-place updater script with elevation...");
+                Process.Start(psi);
+
+                await Task.Delay(500, ct).ConfigureAwait(false);
+                App.Log("[UpdateService] Exiting SilkThread to release files for seamless patch.");
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                App.Log($"[UpdateService] Failed to start in-place updater script: {ex.Message}");
+                throw;
+            }
         }
-        catch (Exception ex)
+        else
         {
-            App.Log($"[UpdateService] Failed to start installer process: {ex.Message}");
-            throw;
+            // Fallback: Spawn full installer process and exit app
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = tempDestination,
+                    UseShellExecute = true,
+                    Verb = "runas"
+                };
+
+                App.Log("[UpdateService] Launching fallback installer process...");
+                Process.Start(psi);
+
+                await Task.Delay(500, ct).ConfigureAwait(false);
+                App.Log("[UpdateService] Exiting SilkThread to release file handles for installer.");
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                App.Log($"[UpdateService] Failed to start installer process: {ex.Message}");
+                throw;
+            }
         }
     }
 

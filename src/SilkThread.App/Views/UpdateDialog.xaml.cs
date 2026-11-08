@@ -19,8 +19,14 @@ public sealed partial class UpdateDialog : ContentDialog
 
         InitializeComponent();
 
+        // Attach to the root window's visual tree for strict dead-center positioning
+        if (App.MainWindowInstance?.Content?.XamlRoot != null)
+        {
+            XamlRoot = App.MainWindowInstance.Content.XamlRoot;
+        }
+
         // Populate metadata
-        BadgeVersionText.Text = update.Version.StartsWith('v') || update.Version.StartsWith('V')
+        BadgeVersionText.Text = update.Version.StartsWith("v", StringComparison.OrdinalIgnoreCase)
             ? update.Version
             : $"v{update.Version}";
 
@@ -28,15 +34,20 @@ public sealed partial class UpdateDialog : ContentDialog
             ? $"Обновление {update.Version}"
             : update.Title;
 
+        string patchHint = !string.IsNullOrWhiteSpace(update.PatchUrl)
+            ? " • Быстрый патч (~3 МБ) без переустановки"
+            : string.Empty;
+
         ReleaseDateText.Text = string.IsNullOrWhiteSpace(update.ReleaseDate)
-            ? string.Empty
-            : $"Дата релиза: {update.ReleaseDate}";
+            ? (string.IsNullOrEmpty(patchHint) ? string.Empty : patchHint.TrimStart(' ', '•'))
+            : $"Дата релиза: {update.ReleaseDate}{patchHint}";
 
         DescriptionText.Text = string.IsNullOrWhiteSpace(update.Description)
             ? "Улучшения производительности и исправления стабильности."
             : update.Description;
 
-        CurrentVersionHintText.Text = $"Установлена версия v{_updateService.CurrentVersion} • Доступна более новая";
+        var cleanCurrent = _updateService.CurrentVersion?.TrimStart('v', 'V') ?? "1.0.0";
+        CurrentVersionHintText.Text = $"Установлена версия v{cleanCurrent} • Доступна более новая";
     }
 
     private void BtnLater_Click(object sender, RoutedEventArgs e)
@@ -51,7 +62,9 @@ public sealed partial class UpdateDialog : ContentDialog
         BtnLater.IsEnabled = false;
         ErrorMessageText.Text = string.Empty;
         DownloadProgressPanel.Visibility = Visibility.Visible;
-        DownloadStatusText.Text = "Подключение к серверу загрузки...";
+        DownloadStatusText.Text = !string.IsNullOrWhiteSpace(_update.PatchUrl)
+            ? "Загрузка быстрого патча (~3 МБ)..."
+            : "Подключение к серверу загрузки...";
 
         var progress = new Progress<UpdateDownloadProgress>(p =>
         {

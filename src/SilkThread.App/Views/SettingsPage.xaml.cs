@@ -50,11 +50,15 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
     {
         try
         {
-            var dialog = new UpdateHistoryDialog
+            var xamlRoot = App.MainWindowInstance?.Content?.XamlRoot ?? this.XamlRoot;
+            if (xamlRoot != null)
             {
-                XamlRoot = this.XamlRoot
-            };
-            await dialog.ShowAsync();
+                var dialog = new UpdateHistoryDialog
+                {
+                    XamlRoot = xamlRoot
+                };
+                await dialog.ShowAsync();
+            }
         }
         catch (System.Exception ex)
         {
@@ -82,21 +86,36 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
                 CheckUpdatesStatusText.Text = loc["Update_Available"];
                 CheckUpdatesStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 128, 107, 255));
 
-                var dialog = new UpdateDialog(update, updateService)
+                var xamlRoot = App.MainWindowInstance?.Content?.XamlRoot ?? this.XamlRoot;
+                if (xamlRoot != null)
                 {
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                    var dialog = new UpdateDialog(update, updateService)
+                    {
+                        XamlRoot = xamlRoot
+                    };
+                    await dialog.ShowAsync();
+                }
+                else
+                {
+                    App.Log("[CheckUpdatesButton_Click] Could not show UpdateDialog: XamlRoot is null.");
+                }
             }
             else
             {
-                string serverVer = updateService.LastRemoteVersion ?? updateService.CurrentVersion;
-                string verComparison = loc.CurrentLanguage == "ru"
-                    ? $"Текущая версия: {updateService.CurrentVersion} | Версия на сервере: {serverVer}"
-                    : $"Current version: {updateService.CurrentVersion} | Server version: {serverVer}";
+                if (!string.IsNullOrEmpty(updateService.LastRemoteVersion))
+                {
+                    string verComparison = loc.CurrentLanguage == "ru"
+                        ? $"Текущая версия: {updateService.CurrentVersion} | Версия на сервере: {updateService.LastRemoteVersion}"
+                        : $"Current version: {updateService.CurrentVersion} | Server version: {updateService.LastRemoteVersion}";
 
-                CheckUpdatesStatusText.Text = $"{loc["Update_UpToDate"]}\n{verComparison}";
-                CheckUpdatesStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 197, 94));
+                    CheckUpdatesStatusText.Text = $"{loc["Update_UpToDate"]}\n{verComparison}";
+                    CheckUpdatesStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 197, 94));
+                }
+                else
+                {
+                    CheckUpdatesStatusText.Text = loc["Update_Error"];
+                    CheckUpdatesStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 239, 68, 68));
+                }
             }
         }
         catch (System.Exception ex)
