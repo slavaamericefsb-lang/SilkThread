@@ -126,6 +126,12 @@
 
                 <NavigationViewItem x:Name="NavOptimization" Content="Мастер оптимизации" Tag="Optimization" ToolTipService.ToolTip="Мастер оптимизации" ToolTipService.Placement="Right">
                     <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D2;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavGames" Content="Игровые параметры" Tag="Games" ToolTipService.ToolTip="Игровые параметры" ToolTipService.Placement="Right">
+                    <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE7FC;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>

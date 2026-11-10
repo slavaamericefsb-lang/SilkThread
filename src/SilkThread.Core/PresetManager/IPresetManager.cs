@@ -23,6 +23,8 @@ public class EvaluatedPreset
     public int IncompatibleCount => Tweaks.Count(t => !t.IsCompatible);
     public int CompatibleCount => Tweaks.Count(t => t.IsCompatible);
     public bool HasIncompatible => IncompatibleCount > 0;
+    public string? GenerationSource => Preset?.GenerationSource;
+    public bool UsedOnlineModel => Preset?.UsedOnlineModel ?? false;
 }
 
 public interface IPresetManager

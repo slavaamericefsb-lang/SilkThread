@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:SilkThread.App.ViewModels"
     xmlns:controls="using:SilkThread.App.Controls"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Background="#0E1017"
     Loaded="Page_Loaded"
     SizeChanged="Page_SizeChanged"
@@ -66,7 +67,8 @@
         </Style>
     </Page.Resources>
 
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,18,24,28" Background="#0E1017">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,18,24,28" Background="#0E1017"
+                  helpers:SmoothScroll.IsEnabled="True">
         <Grid HorizontalAlignment="Stretch" RowSpacing="18">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -193,6 +195,15 @@
 
                             <!-- High-Contrast Circular Score Indicator Dial: 98% / Оптимизировано -->
                             <Grid x:Name="ScoreDialContainer" Grid.Row="0" Grid.Column="0" Width="110" Height="110" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <!-- Breathing Glow Ring: live system protection aura -->
+                                <Border x:Name="ScoreGlowRing" Width="110" Height="110" CornerRadius="55" 
+                                        BorderBrush="#806BFF" BorderThickness="3" Opacity="0.45"
+                                        RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform x:Name="ScoreGlowScale" ScaleX="1.0" ScaleY="1.0" />
+                                    </Border.RenderTransform>
+                                </Border>
+
                                 <!-- Subtle Outer Ring Track -->
                                 <Border Width="110" Height="110" CornerRadius="55" BorderBrush="#202431" BorderThickness="3.5" />
 
@@ -203,7 +214,7 @@
                                 <Border Width="98" Height="98" CornerRadius="49" Background="#181B25" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="0">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{x:Bind ViewModel.SystemScore, Mode=OneWay}"
+                                            <TextBlock x:Name="ScoreCounterTextBlock" Text="{x:Bind ViewModel.SystemScore, Mode=OneWay}"
                                                        FontSize="34" FontWeight="Bold" Foreground="#F3F4F8" />
                                             <TextBlock Text="%"
                                                        FontSize="18" FontWeight="Bold" Foreground="#806BFF" Margin="2,4,0,0" VerticalAlignment="Top" />
@@ -492,7 +503,7 @@
                 <Border x:Name="Card2Iost" Grid.Row="1" Grid.Column="0" 
                         Style="{StaticResource MinimalCardStyle}" VerticalAlignment="Stretch">
                     <StackPanel Spacing="14">
-                        <!-- Header: Icon \uE7C5, «IOST — Интеллектуальная оптимизация», Right Badge «IOST активен» -->
+                        <!-- Header: Icon \uE7C5, «IOST — Интеллектуальная оптимизация», Right Badge «IOST активен / не активен» -->
                         <Grid x:Name="AiHeaderGrid">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="AiHeaderCol0" Width="*" />
@@ -512,129 +523,221 @@
                                            FontSize="12" Foreground="#969CAB" TextWrapping="Wrap" LineHeight="16" />
                             </StackPanel>
 
-                            <!-- Badge: «IOST активен» -->
+                            <!-- Badge: «IOST активен» / «IOST не активен» with dot -->
                             <Border x:Name="AiHeaderBadgesPanel" Grid.Row="0" Grid.Column="1" 
-                                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="8,4" VerticalAlignment="Top">
+                                    Background="{x:Bind ViewModel.IostBadgeBg, Mode=OneWay}" 
+                                    BorderBrush="{x:Bind ViewModel.IostBadgeBorder, Mode=OneWay}" 
+                                    BorderThickness="1" CornerRadius="8" Padding="9,5" VerticalAlignment="Top">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE7C5;" FontSize="11" Foreground="#806BFF" />
-                                    <TextBlock Text="{x:Bind ViewModel.AiBentoBadge, Mode=OneWay}" FontSize="10.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                    <Grid VerticalAlignment="Center">
+                                        <Border x:Name="IostPulseGlow" Width="14" Height="14" CornerRadius="7" 
+                                                Background="{x:Bind ViewModel.IostDotGlowBrush, Mode=OneWay}" 
+                                                Opacity="0.45"
+                                                RenderTransformOrigin="0.5,0.5"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                Visibility="{x:Bind ViewModel.IsIostActive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="IostPulseScale" ScaleX="1.0" ScaleY="1.0" />
+                                            </Border.RenderTransform>
+                                        </Border>
+                                        <Border Width="7" Height="7" CornerRadius="3.5" 
+                                                Background="{x:Bind ViewModel.IostDotBrush, Mode=OneWay}" 
+                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                    <TextBlock Text="{x:Bind ViewModel.IostBadgeText, Mode=OneWay}" 
+                                               FontSize="11" FontWeight="Bold" 
+                                               Foreground="{x:Bind ViewModel.IostBadgeFg, Mode=OneWay}" />
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <!-- Block 1: Сценарий использования -> 4 чипса -->
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{x:Bind ViewModel.AiScenarioHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
-                            <ItemsControl ItemsSource="{x:Bind ViewModel.AiScenarios}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:AiSurveyOptionItem">
-                                        <Button Click="AiScenario_Click"
-                                                Background="{x:Bind BackgroundBrush, Mode=OneWay}"
-                                                BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
-                                                BorderThickness="1"
-                                                CornerRadius="8" Padding="11,6">
-                                            <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-
-                        <!-- Block 2: Ключевой приоритет -> 4 чипса -->
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{x:Bind ViewModel.AiPriorityHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
-                            <ItemsControl ItemsSource="{x:Bind ViewModel.AiPriorities}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:AiSurveyOptionItem">
-                                        <Button Click="AiPriority_Click"
-                                                Background="{x:Bind BackgroundBrush, Mode=OneWay}"
-                                                BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
-                                                BorderThickness="1"
-                                                CornerRadius="8" Padding="11,6">
-                                            <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-
-                        <!-- Телеметрический прогноз (3 чипса в ряд на подложках #202431) -->
-                        <Grid x:Name="AiForecastGrid" ColumnSpacing="8" RowSpacing="8" Margin="0,2,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <!-- Chip 1: Прирост FPS -->
-                            <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                                <StackPanel Spacing="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <FontIcon Glyph="&#xE74B;" FontSize="12" Foreground="#22C55E" />
-                                        <TextBlock Text="{x:Bind ViewModel.ForecastFpsLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
-                                    </StackPanel>
-                                    <TextBlock Text="+ 14 - 32%" FontSize="13" FontWeight="Bold" Foreground="#22C55E" />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Chip 2: Задержка ввода -->
-                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                                <StackPanel Spacing="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <FontIcon Glyph="&#xE962;" FontSize="12" Foreground="#38BDF8" />
-                                        <TextBlock Text="{x:Bind ViewModel.ForecastLatencyLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
-                                    </StackPanel>
-                                    <TextBlock Text="- 9 - 14 мс" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Chip 3: Очистка RAM -->
-                            <Border Grid.Column="2" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                                <StackPanel Spacing="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <FontIcon Glyph="&#xE7C5;" FontSize="12" Foreground="#806BFF" />
-                                        <TextBlock Text="{x:Bind ViewModel.ForecastRamLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
-                                    </StackPanel>
-                                    <TextBlock Text="- 0.6 - 1.2 ГБ" FontSize="13" FontWeight="Bold" Foreground="#A78BFA" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
-                        <!-- AI Execution Progress Bar & Status Text (when generating) -->
-                        <StackPanel Visibility="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Spacing="6">
-                            <Grid>
+                        <!-- Inactive Notice Bar when API key is missing -->
+                        <Border Visibility="{x:Bind ViewModel.IostInactiveNoticeVisibility, Mode=OneWay}"
+                                Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                            <Grid ColumnSpacing="10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <ProgressRing Grid.Column="0" IsActive="True" Width="14" Height="14" Foreground="#806BFF" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.AiProgressStatus, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" VerticalAlignment="Center" />
+                                <FontIcon Glyph="&#xE7BA;" FontSize="13" Foreground="#969CAB" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.IostInactiveNotice, Mode=OneWay}" FontSize="11" Foreground="#969CAB" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.OpenSettingsCommand}" Style="{StaticResource MinimalSecondaryButtonStyle}" Padding="10,5">
+                                    <TextBlock Text="{x:Bind ViewModel.OpenSettingsBtnText, Mode=OneWay}" FontSize="10.5" FontWeight="SemiBold" />
+                                </Button>
                             </Grid>
-                            <ProgressBar IsIndeterminate="True" Height="3" CornerRadius="1.5" Foreground="#806BFF" />
-                        </StackPanel>
+                        </Border>
 
-                        <!-- Кнопка снизу: «Сгенерировать персональный пресет (IOST)» -->
-                        <Button Command="{x:Bind ViewModel.GenerateAiPresetCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                Style="{StaticResource MinimalPrimaryButtonStyle}"
-                                HorizontalAlignment="Stretch" Padding="16,11"
-                                ToolTipService.ToolTip="Запустить алгоритм IOST для генерации персонального набора оптимизаций">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <FontIcon Glyph="&#xE7C5;" FontSize="14" Foreground="White" />
-                                <TextBlock Text="{x:Bind ViewModel.AiGenerateBtnText, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" />
+                        <!-- Interactive Controls Container (disabled & dimmed when IOST is inactive) -->
+                        <StackPanel x:Name="IostControlsContainer"
+                                    IsHitTestVisible="{x:Bind ViewModel.IsIostActive, Mode=OneWay}"
+                                    Opacity="{x:Bind ViewModel.IostCardOpacity, Mode=OneWay}"
+                                    Spacing="14">
+
+                            <!-- Block 1: Сценарий использования -> 4 чипса -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{x:Bind ViewModel.AiScenarioHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.AiScenarios}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AiSurveyOptionItem">
+                                            <Button Click="AiScenario_Click"
+                                                    Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                                    BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8" Padding="11,6">
+                                                <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
-                        </Button>
+
+                            <!-- Block 2: Ключевой приоритет -> 4 чипса -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{x:Bind ViewModel.AiPriorityHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.AiPriorities}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AiSurveyOptionItem">
+                                            <Button Click="AiPriority_Click"
+                                                    Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                                    BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8" Padding="11,6">
+                                                <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Block 3: Допустимый риск -> 3 чипса -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{x:Bind ViewModel.AiRiskHeader, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.AiRisks}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AiSurveyOptionItem">
+                                            <Button Click="AiRisk_Click"
+                                                    Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                                    BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8" Padding="11,6">
+                                                <TextBlock Text="{x:Bind FormattedTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind TextBrush, Mode=OneWay}" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Block 4: Анализ производительности на основе системы IOST -->
+                            <StackPanel Spacing="6" Margin="0,2,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Section Title: «Анализ производительности на основе системы IOST» -->
+                                    <TextBlock Text="{x:Bind ViewModel.AiAnalysisSectionTitle, Mode=OneWay}" 
+                                               FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" VerticalAlignment="Center" />
+
+                                    <!-- Real-time Indicator during analysis or ready status -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <ProgressRing Visibility="{x:Bind ViewModel.IsAiAnalyzing, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                      IsActive="{x:Bind ViewModel.IsAiAnalyzing, Mode=OneWay}"
+                                                      Width="12" Height="12" Foreground="#806BFF" />
+                                        <TextBlock Text="{x:Bind ViewModel.AiAnalysisIndicatorText, Mode=OneWay}" 
+                                                   FontSize="11" Foreground="{x:Bind ViewModel.AiAnalysisIndicatorBrush, Mode=OneWay}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Subtle shimmer bar during analysis -->
+                                <ProgressBar Visibility="{x:Bind ViewModel.IsAiAnalyzing, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                             IsIndeterminate="True" Height="2" CornerRadius="1" Foreground="#806BFF" Background="#202431" />
+
+                                <!-- 3 Forecast Metric Chips -->
+                                <Grid x:Name="AiForecastGrid" ColumnSpacing="8" RowSpacing="8" Margin="0,2,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Chip 1: Прирост FPS -->
+                                    <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                        <StackPanel Spacing="3">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <FontIcon Glyph="&#xE74B;" FontSize="12" Foreground="#22C55E" />
+                                                <TextBlock Text="{x:Bind ViewModel.ForecastFpsLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind ViewModel.ForecastFpsValue, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" Foreground="#22C55E" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Chip 2: Задержка ввода -->
+                                    <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                        <StackPanel Spacing="3">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <FontIcon Glyph="&#xE962;" FontSize="12" Foreground="#38BDF8" />
+                                                <TextBlock Text="{x:Bind ViewModel.ForecastLatencyLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind ViewModel.ForecastLatencyValue, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Chip 3: Очистка RAM -->
+                                    <Border Grid.Column="2" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                        <StackPanel Spacing="3">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <FontIcon Glyph="&#xE7C5;" FontSize="12" Foreground="#806BFF" />
+                                                <TextBlock Text="{x:Bind ViewModel.ForecastRamLabel, Mode=OneWay}" FontSize="10" Foreground="#969CAB" />
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind ViewModel.ForecastRamValue, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" Foreground="#A78BFA" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- AI Execution Progress Bar & Status Text (when generating) -->
+                            <StackPanel Visibility="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Spacing="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressRing Grid.Column="0" IsActive="True" Width="14" Height="14" Foreground="#806BFF" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.AiProgressStatus, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" VerticalAlignment="Center" />
+                                </Grid>
+                                <ProgressBar IsIndeterminate="True" Height="3" CornerRadius="1.5" Foreground="#806BFF" />
+                            </StackPanel>
+
+                            <!-- Кнопка снизу: «Сгенерировать пресет (IOST)» -->
+                            <Button Command="{x:Bind ViewModel.GenerateAiPresetCommand}"
+                                    IsEnabled="{x:Bind ViewModel.IsAiGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                    Style="{StaticResource MinimalPrimaryButtonStyle}"
+                                    HorizontalAlignment="Stretch" Padding="16,11"
+                                    ToolTipService.ToolTip="Запустить алгоритм IOST для генерации персонального набора оптимизаций">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <FontIcon Glyph="&#xE7C5;" FontSize="14" Foreground="White" />
+                                    <TextBlock Text="{x:Bind ViewModel.AiGenerateBtnText, Mode=OneWay}" FontSize="12.5" FontWeight="Bold" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
@@ -983,7 +1086,7 @@
                                     ToolTipService.ToolTip="Создать файл профиля (.silkpreset) из применённых твиков системы">
                                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                     <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="#806BFF" />
-                                    <TextBlock Text="{x:Bind ViewModel.CreatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind ViewModel.CreatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Button>
 
@@ -994,7 +1097,7 @@
                                     ToolTipService.ToolTip="Выбрать и применить файл профиля (.silkpreset) с интерактивным аудитом твиков">
                                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                     <FontIcon Glyph="&#xE8E5;" FontSize="12" Foreground="White" />
-                                    <TextBlock Text="{x:Bind ViewModel.ActivatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind ViewModel.ActivatePresetBtnText, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Button>
                         </Grid>

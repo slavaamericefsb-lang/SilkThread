@@ -6,10 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:SilkThread.App.ViewModels"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32"
+                  helpers:SmoothScroll.IsEnabled="True">
         <StackPanel Spacing="20" HorizontalAlignment="Stretch">
 
             <!-- 0: Page Title & Custom Preset Actions -->
@@ -81,6 +83,7 @@
                             <!-- 4 Profile Cards GridView -->
                             <GridView ItemsSource="{x:Bind ViewModel.Presets}"
                                       SelectedItem="{x:Bind ViewModel.SelectedPreset, Mode=TwoWay}"
+                                      SelectedIndex="{x:Bind ViewModel.SelectedProfileIndex, Mode=TwoWay}"
                                       SelectionMode="Single"
                                       IsItemClickEnabled="False">
                                 <GridView.Resources>
@@ -154,9 +157,9 @@
                                                 </Grid>
                                             </Border>
 
-                                            <!-- Restrained Selected Border (#806BFF 1.5px solid) -->
+                                            <!-- Profile Cards Selected Border with Smooth Transition & Glow -->
                                             <Border CornerRadius="12" BorderThickness="1.5" BorderBrush="#806BFF" 
-                                                    Visibility="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    Opacity="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToGlowOpacityConverter}}"
                                                     IsHitTestVisible="False" />
                                         </Grid>
                                     </DataTemplate>
@@ -194,22 +197,25 @@
                             </Grid>
 
                             <!-- Safeguard Restore Point Option Block (ToggleSwitch #806BFF) -->
-                            <Border Style="{StaticResource SilkMinimalTileStyle}" Padding="14,12">
-                                <Grid ColumnSpacing="12">
+                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind ViewModel.CreateRestorePointLabel, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F8FAFC" />
-                                        <TextBlock Text="{x:Bind ViewModel.RestorePointSubtitle, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" />
+                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.CreateRestorePointLabel, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                        <TextBlock Text="{x:Bind ViewModel.RestorePointSubtitle, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
                                     </StackPanel>
 
                                     <!-- WinUI 3 ToggleSwitch with custom #806BFF accent colors -->
                                     <ToggleSwitch Grid.Column="1"
                                                   IsOn="{x:Bind ViewModel.CreateRestorePoint, Mode=TwoWay}"
                                                   OnContent="" OffContent=""
-                                                  VerticalAlignment="Center">
+                                                  MinWidth="0"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,8,0">
                                         <ToggleSwitch.Resources>
                                             <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#806BFF" />
                                             <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#9382FF" />
@@ -320,10 +326,24 @@
                                     </StackPanel>
                                 </Button>
 
+                                <!-- Terminal Live Badge with Pulsing Emerald Glow -->
                                 <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,4">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" VerticalAlignment="Center" />
-                                        <TextBlock Text="LIVE" FontSize="9" FontWeight="Bold" Foreground="#10B981" />
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Grid VerticalAlignment="Center">
+                                            <!-- Pulsing emerald aura when live / executing -->
+                                            <Border x:Name="TerminalLiveGlow" Width="10" Height="10" CornerRadius="5"
+                                                    Background="#10B981" Opacity="0.45"
+                                                    RenderTransformOrigin="0.5,0.5"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform x:Name="TerminalLiveScale" ScaleX="1.0" ScaleY="1.0" />
+                                                </Border.RenderTransform>
+                                            </Border>
+                                            <!-- Core live emerald dot -->
+                                            <Border Width="6" Height="6" CornerRadius="3" Background="#10B981"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <TextBlock Text="LIVE" FontSize="9" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -371,11 +391,15 @@
                                         <Border Width="10" Height="10" CornerRadius="5" Background="#10B981" />
                                     </StackPanel>
 
-                                    <TextBlock Text="silkthread-audit ~ powershell/registry" FontSize="11" FontFamily="Consolas" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="silkthread-audit ~ powershell/registry" FontSize="11" FontFamily="Consolas" Foreground="#64748B" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="TerminalCursor" Text="█" FontSize="11" FontFamily="Consolas" Foreground="#10B981" VerticalAlignment="Center" />
+                                    </StackPanel>
                                 </Grid>
 
                                 <!-- Real-time Log Stream -->
-                                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.ExecutionLog}" SelectionMode="None">
+                                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.ExecutionLog}" SelectionMode="None"
+                                          helpers:SmoothScroll.IsEnabled="True">
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
                                             <TextBlock Text="{x:Bind}" FontSize="11" FontFamily="Consolas" Foreground="#CBD5E1" Margin="0,2" TextWrapping="Wrap" LineHeight="16" />

@@ -81,7 +81,16 @@ public partial class TweaksViewModel : ObservableObject
     private string _selectedFilterType = "All"; // All, Recommended, Applied, Safe
 
     [ObservableProperty]
-    private bool _hideIncompatible = true;
+    [NotifyPropertyChangedFor(nameof(CompatibleOnlyLabel))]
+    [NotifyPropertyChangedFor(nameof(IncompatibleToggleLabel))]
+    [NotifyPropertyChangedFor(nameof(HideIncompatible))]
+    private bool _showIncompatible;
+
+    public bool HideIncompatible
+    {
+        get => !ShowIncompatible;
+        set => ShowIncompatible = !value;
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedTweak))]
@@ -118,7 +127,10 @@ public partial class TweaksViewModel : ObservableObject
     public string FilterAppliedLabel => _loc["Tweaks_Filter_Applied"];
     public string FilterNotAppliedLabel => _loc["Tweaks_Filter_NotApplied"];
     public string FilterSafeLabel => _loc["Tweaks_Filter_Safe"];
-    public string CompatibleOnlyLabel => _loc.CurrentLanguage == "ru" ? "Скрыть несовместимые" : "Hide incompatible";
+    public string CompatibleOnlyLabel => IncompatibleToggleLabel;
+    public string IncompatibleToggleLabel => ShowIncompatible
+        ? (_loc.CurrentLanguage == "ru" ? "Показать несовместимые" : "Show incompatible")
+        : (_loc.CurrentLanguage == "ru" ? "Скрыть несовместимые" : "Hide incompatible");
     public string BatchApplyRecLabel => _loc["Tweaks_Batch_ApplyRec"];
     public string BatchRevertLabel => _loc["Tweaks_Batch_Revert"];
     public string CreatePresetLabel => _loc["Tweaks_CreatePreset"];
@@ -205,7 +217,7 @@ public partial class TweaksViewModel : ObservableObject
         _loc = localizationService;
         _presetManager = presetManager;
 
-        HideIncompatible = _settingsService.Settings.HideIncompatibleTweaks;
+        ShowIncompatible = !_settingsService.Settings.HideIncompatibleTweaks;
 
         _loc.LanguageChanged += (s, e) =>
         {
@@ -232,6 +244,7 @@ public partial class TweaksViewModel : ObservableObject
         OnPropertyChanged(nameof(FilterNotAppliedLabel));
         OnPropertyChanged(nameof(FilterSafeLabel));
         OnPropertyChanged(nameof(CompatibleOnlyLabel));
+        OnPropertyChanged(nameof(IncompatibleToggleLabel));
         OnPropertyChanged(nameof(BatchApplyRecLabel));
         OnPropertyChanged(nameof(BatchRevertLabel));
         OnPropertyChanged(nameof(CreatePresetLabel));
@@ -452,10 +465,13 @@ public partial class TweaksViewModel : ObservableObject
         OnPropertyChanged(nameof(FilterNotAppliedFg));
         ApplyFilters();
     }
-    partial void OnHideIncompatibleChanged(bool value)
+    partial void OnShowIncompatibleChanged(bool value)
     {
-        _settingsService.Settings.HideIncompatibleTweaks = value;
+        _settingsService.Settings.HideIncompatibleTweaks = !value;
         _settingsService.Save();
+        OnPropertyChanged(nameof(CompatibleOnlyLabel));
+        OnPropertyChanged(nameof(IncompatibleToggleLabel));
+        OnPropertyChanged(nameof(HideIncompatible));
         ApplyFilters();
     }
 
@@ -621,8 +637,8 @@ public partial class TweaksViewModel : ObservableObject
             query = query.Where(t => t.Category == SelectedCategory.Category.Value);
         }
 
-        // 2. Hide Incompatible
-        if (HideIncompatible)
+        // 2. Hide Incompatible when toggle is inactive (!ShowIncompatible)
+        if (!ShowIncompatible)
         {
             query = query.Where(t => t.IsCompatible);
         }

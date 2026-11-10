@@ -68,6 +68,7 @@ public sealed partial class MainWindow : Window
             else if (e.SourcePageType == typeof(TweaksPage)) NavView.SelectedItem = NavTweaks;
             else if (e.SourcePageType == typeof(PcScannerPage)) NavView.SelectedItem = NavScanner;
             else if (e.SourcePageType == typeof(OptimizationPage)) NavView.SelectedItem = NavOptimization;
+            else if (e.SourcePageType == typeof(GamesPage)) NavView.SelectedItem = NavGames;
             else if (e.SourcePageType == typeof(HistoryPage)) NavView.SelectedItem = NavHistory;
             else if (e.SourcePageType == typeof(RestoreBackupPage)) NavView.SelectedItem = NavRestore;
             else if (e.SourcePageType == typeof(SettingsPage)) NavView.SelectedItem = NavSettings;
@@ -89,7 +90,80 @@ public sealed partial class MainWindow : Window
         // Admin badge check
         UpdateAdminStatus();
 
+        // 5-Click Developer Mode Trigger on Settings Gear
+        SetupDeveloperTrigger();
+
         App.Log("MainWindow constructor finished");
+    }
+
+    private readonly System.Collections.Generic.Queue<DateTime> _devClickTimestamps = new();
+    private bool _isDevWorkflowRunning = false;
+
+    private void SetupDeveloperTrigger()
+    {
+        NavSettings.AddHandler(
+            UIElement.PointerPressedEvent,
+            new Microsoft.UI.Xaml.Input.PointerEventHandler(NavSettings_PointerPressed),
+            handledEventsToo: true);
+    }
+
+    private void NavSettings_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(sender as UIElement);
+        if (!point.Properties.IsLeftButtonPressed) return;
+
+        if (_isDevWorkflowRunning) return;
+
+        var now = DateTime.UtcNow;
+        _devClickTimestamps.Enqueue(now);
+
+        // Keep only clicks within 2.5 seconds
+        while (_devClickTimestamps.Count > 0 && (now - _devClickTimestamps.Peek()).TotalSeconds > 2.5)
+        {
+            _devClickTimestamps.Dequeue();
+        }
+
+        if (_devClickTimestamps.Count >= 5)
+        {
+            _devClickTimestamps.Clear();
+            _ = OpenDeveloperWorkflowAsync();
+        }
+    }
+
+    private async System.Threading.Tasks.Task OpenDeveloperWorkflowAsync()
+    {
+        if (_isDevWorkflowRunning) return;
+        _isDevWorkflowRunning = true;
+
+        try
+        {
+            var xamlRoot = Content?.XamlRoot ?? App.MainWindowInstance?.Content?.XamlRoot;
+            if (xamlRoot == null) return;
+
+            var authDialog = new DeveloperAuthDialog
+            {
+                XamlRoot = xamlRoot
+            };
+
+            await authDialog.ShowAsync();
+
+            if (authDialog.IsAuthenticated)
+            {
+                var debugDialog = new DeveloperDebugDialog
+                {
+                    XamlRoot = xamlRoot
+                };
+                await debugDialog.ShowAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[Developer Workflow Error]: {ex.Message}");
+        }
+        finally
+        {
+            _isDevWorkflowRunning = false;
+        }
     }
 
     private void UpdateAdminStatus()
@@ -110,6 +184,7 @@ public sealed partial class MainWindow : Window
         SetNavItem(NavTweaks, _loc["Nav_Tweaks"]);
         SetNavItem(NavScanner, _loc["Nav_Scanner"]);
         SetNavItem(NavOptimization, _loc["Nav_Optimization"]);
+        SetNavItem(NavGames, _loc["Nav_Games"]);
         SetNavItem(NavHistory, _loc["Nav_History"]);
         SetNavItem(NavRestore, _loc["Nav_Restore"]);
         SetNavItem(NavSettings, _loc["Nav_Settings"]);
@@ -225,6 +300,7 @@ public sealed partial class MainWindow : Window
             "Tweaks" => typeof(TweaksPage),
             "Scanner" => typeof(PcScannerPage),
             "Optimization" => typeof(OptimizationPage),
+            "Games" => typeof(GamesPage),
             "History" => typeof(HistoryPage),
             "Restore" => typeof(RestoreBackupPage),
             "Settings" => typeof(SettingsPage),

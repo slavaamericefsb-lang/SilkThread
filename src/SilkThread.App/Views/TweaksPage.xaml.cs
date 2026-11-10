@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
+using SilkThread.App.Helpers;
 using SilkThread.App.Services;
 using SilkThread.App.ViewModels;
 
@@ -23,11 +25,97 @@ public sealed partial class TweaksPage : Page, IStaggeredPage
         };
     }
 
+    private TweakItemViewModel? _hookedTweak;
+
     public TweaksPage()
     {
         ViewModel = App.Services.GetRequiredService<TweaksViewModel>();
         InitializeComponent();
-        CategoriesScrollViewer.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler(CategoriesScrollViewer_PointerWheelChanged), true);
+
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(TweaksViewModel.SelectedTweak))
+            {
+                HookSelectedTweak(ViewModel.SelectedTweak);
+            }
+        };
+        HookSelectedTweak(ViewModel.SelectedTweak);
+    }
+
+    private void HookSelectedTweak(TweakItemViewModel? tweak)
+    {
+        if (_hookedTweak != null)
+        {
+            _hookedTweak.PropertyChanged -= SelectedTweak_PropertyChanged;
+        }
+        _hookedTweak = tweak;
+        if (_hookedTweak != null)
+        {
+            _hookedTweak.PropertyChanged += SelectedTweak_PropertyChanged;
+        }
+    }
+
+    private void SelectedTweak_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TweakItemViewModel.Status))
+        {
+            AnimateStatusBadgePop();
+        }
+    }
+
+    private void AnimateStatusBadgePop()
+    {
+        if (InspectorStatusBadgeScale == null) return;
+
+        var sb = new Storyboard();
+        var animX = new DoubleAnimationUsingKeyFrames();
+        animX.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.82 });
+        animX.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(130)),
+            Value = 1.18,
+            KeySpline = new KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
+        });
+        animX.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(240)),
+            Value = 0.96,
+            KeySpline = new KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
+        });
+        animX.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(340)),
+            Value = 1.0
+        });
+
+        var animY = new DoubleAnimationUsingKeyFrames();
+        animY.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.82 });
+        animY.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(130)),
+            Value = 1.18,
+            KeySpline = new KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
+        });
+        animY.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(240)),
+            Value = 0.96,
+            KeySpline = new KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
+        });
+        animY.KeyFrames.Add(new SplineDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(340)),
+            Value = 1.0
+        });
+
+        Storyboard.SetTarget(animX, InspectorStatusBadgeScale);
+        Storyboard.SetTargetProperty(animX, "ScaleX");
+        Storyboard.SetTarget(animY, InspectorStatusBadgeScale);
+        Storyboard.SetTargetProperty(animY, "ScaleY");
+
+        sb.Children.Add(animX);
+        sb.Children.Add(animY);
+        sb.Begin();
     }
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
@@ -54,36 +142,17 @@ public sealed partial class TweaksPage : Page, IStaggeredPage
 
     private void ScrollCategoriesLeft_Click(object sender, RoutedEventArgs e)
     {
-        var targetOffset = Math.Max(0, CategoriesScrollViewer.HorizontalOffset - 220);
-        CategoriesScrollViewer.ChangeView(targetOffset, null, null, false);
+        SmoothScroll.ScrollBy(CategoriesScrollViewer, -240, 0);
     }
 
     private void ScrollCategoriesRight_Click(object sender, RoutedEventArgs e)
     {
-        var targetOffset = CategoriesScrollViewer.HorizontalOffset + 220;
-        CategoriesScrollViewer.ChangeView(targetOffset, null, null, false);
+        SmoothScroll.ScrollBy(CategoriesScrollViewer, 240, 0);
     }
 
     private void ClearSearch_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SearchQuery = string.Empty;
         (FindName("SearchInput") as TextBox)?.Focus(FocusState.Programmatic);
-    }
-
-    private void CategoriesScrollViewer_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        var props = e.GetCurrentPoint(CategoriesScrollViewer).Properties;
-        var delta = props.MouseWheelDelta;
-        if (delta != 0)
-        {
-            // Translate vertical mouse wheel into horizontal scroll:
-            // Vertical wheel down (delta < 0) -> scroll right (positive horizontal offset)
-            // Vertical wheel up (delta > 0) -> scroll left (negative horizontal offset)
-            // If native horizontal wheel: delta > 0 is scroll right
-            double step = props.IsHorizontalMouseWheel ? (delta * 0.8) : (-delta * 0.8);
-            var targetOffset = Math.Max(0, CategoriesScrollViewer.HorizontalOffset + step);
-            CategoriesScrollViewer.ChangeView(targetOffset, null, null, false);
-            e.Handled = true;
-        }
     }
 }

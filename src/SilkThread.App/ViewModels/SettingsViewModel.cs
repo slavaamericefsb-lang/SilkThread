@@ -34,6 +34,24 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _openRouterModel = "liquid/lfm-3-1.7b:free";
 
+    public static readonly string[] AvailableModelIds = new[]
+    {
+        "liquid/lfm-3-1.7b:free",
+        "openrouter/free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+    };
+
+    [ObservableProperty]
+    private int _selectedModelIndex;
+
+    public string ModelItem0Label => "Liquid LFM 1.7B (liquid/lfm-3-1.7b:free)";
+    public string ModelItem1Label => _loc.CurrentLanguage == "ru"
+        ? "Автоматический выбор лучшей модели (openrouter/free)"
+        : "Auto: Best Free Model (openrouter/free)";
+    public string ModelItem2Label => "Google Gemma 26B (google/gemma-4-26b-a4b-it:free)";
+    public string ModelItem3Label => "NVIDIA Nemotron 30B (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LockIcon))]
     [NotifyPropertyChangedFor(nameof(LockTooltipText))]
@@ -48,9 +66,31 @@ public partial class SettingsViewModel : ObservableObject
 
     public double ApiKeyBoxOpacity => IsApiKeyUnlocked ? 1.0 : 0.65;
 
-    public string ActiveModelDisplayName => _loc.CurrentLanguage == "ru"
-        ? "Нейросетевой агент оптимизации"
-        : "AI Tuning Engine";
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeActiveBg = new(Windows.UI.Color.FromArgb(255, 22, 46, 34));     // #162E22
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeActiveBorder = new(Windows.UI.Color.FromArgb(255, 34, 197, 94)); // #22C55E
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeActiveFg = new(Windows.UI.Color.FromArgb(255, 34, 197, 94));     // #22C55E
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeInactiveBg = new(Windows.UI.Color.FromArgb(255, 32, 36, 49));   // #202431
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeInactiveBorder = new(Windows.UI.Color.FromArgb(255, 43, 48, 64));// #2B3040
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush s_badgeInactiveFg = new(Windows.UI.Color.FromArgb(255, 150, 156, 171)); // #969CAB
+
+    public bool IsApiKeyConfigured => !string.IsNullOrWhiteSpace(OpenRouterApiKey);
+
+    public string IostStatusBadgeText => IsApiKeyConfigured
+        ? _loc["Set_Ai_Badge_Ready"]
+        : _loc["Set_Ai_Badge_NotConfigured"];
+
+    public string IostStatusBadgeIcon => IsApiKeyConfigured ? "\uE73E" : "\uE7BA";
+    public Microsoft.UI.Xaml.Media.Brush IostStatusBadgeBg => IsApiKeyConfigured ? s_badgeActiveBg : s_badgeInactiveBg;
+    public Microsoft.UI.Xaml.Media.Brush IostStatusBadgeBorder => IsApiKeyConfigured ? s_badgeActiveBorder : s_badgeInactiveBorder;
+    public Microsoft.UI.Xaml.Media.Brush IostStatusBadgeFg => IsApiKeyConfigured ? s_badgeActiveFg : s_badgeInactiveFg;
+
+    public string ActiveModelDisplayName => OpenRouterModel switch
+    {
+        "openrouter/free" => _loc.CurrentLanguage == "ru" ? "Автовыбор (openrouter/free)" : "Auto-route (openrouter/free)",
+        "google/gemma-4-26b-a4b-it:free" => "Google Gemma 26B",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" => "NVIDIA Nemotron 30B",
+        _ => "Liquid LFM 1.7B"
+    };
 
     public string PageTitle => _loc["Set_Title"];
     public string PageSubtitle => _loc["Set_Subtitle"];
@@ -72,10 +112,10 @@ public partial class SettingsViewModel : ObservableObject
     public string SectionSafetyTitle => _loc.CurrentLanguage == "ru" ? "Безопасность и откат" : "Safety & Safeguards";
     public string SectionAboutTitle => _loc.CurrentLanguage == "ru" ? "О программе" : "About SilkThread";
 
-    public string SectionAiTitle => _loc.CurrentLanguage == "ru" ? "Параметры OpenRouter AI" : "OpenRouter AI Settings";
+    public string SectionAiTitle => _loc["Set_Ai_Title"];
     public string SectionAiDesc => _loc.CurrentLanguage == "ru"
-        ? "Конфигурация нейросетевого ассистента для персональной генерации пресетов."
-        : "Configuration for neural tuning copilot and preset generation.";
+        ? "Конфигурация системы IOST и нейросетевого ассистента для персональной генерации пресетов."
+        : "Configuration for the IOST system and neural tuning copilot for customized presets.";
     public string OpenRouterApiKeyLabel => _loc.CurrentLanguage == "ru" ? "API-ключ OpenRouter" : "OpenRouter API Key";
     public string OpenRouterApiKeyDesc => _loc.CurrentLanguage == "ru"
         ? "Ключ доступа к API OpenRouter для отправки запросов к нейросетевой модели."
@@ -85,7 +125,9 @@ public partial class SettingsViewModel : ObservableObject
         ? "Нейросетевая архитектура — адаптивное рассуждение о твиках Windows."
         : "Neural architecture — adaptive reasoning over Windows tweaks.";
     public string ModelTierBadge => _loc.CurrentLanguage == "ru" ? "FREE TIER АКТИВЕН" : "FREE TIER ACTIVE";
-    public string ModelStatusText => _loc.CurrentLanguage == "ru" ? "Готов к работе (OpenRouter Cloud)" : "Ready (OpenRouter Cloud)";
+    public string ModelStatusText => IsApiKeyConfigured
+        ? (_loc.CurrentLanguage == "ru" ? "Готов к работе (OpenRouter Cloud)" : "Ready (OpenRouter Cloud)")
+        : (_loc.CurrentLanguage == "ru" ? "Требуется API-ключ" : "API key required");
 
     public string ConfirmDangerousDesc => _loc.CurrentLanguage == "ru" 
         ? "Перед применением критических настроек ядра или служб запрашивать дополнительное подтверждение." 
@@ -126,6 +168,8 @@ public partial class SettingsViewModel : ObservableObject
         _hideIncompatibleTweaks = _settingsService.Settings.HideIncompatibleTweaks;
         _openRouterApiKey = _settingsService.Settings.OpenRouterApiKey;
         _openRouterModel = _settingsService.Settings.OpenRouterModel;
+        int modelIdx = Array.FindIndex(AvailableModelIds, m => string.Equals(m, _openRouterModel, StringComparison.OrdinalIgnoreCase));
+        _selectedModelIndex = modelIdx >= 0 ? modelIdx : 0;
 
         // Force Dark Theme (Mica Dark)
         _settingsService.Settings.AppTheme = ElementTheme.Dark;
@@ -173,7 +217,37 @@ public partial class SettingsViewModel : ObservableObject
             OnPropertyChanged(nameof(LockTooltipText));
             OnPropertyChanged(nameof(VersionLabel));
             OnPropertyChanged(nameof(AppVersion));
+            OnPropertyChanged(nameof(ModelItem0Label));
+            OnPropertyChanged(nameof(ModelItem1Label));
+            OnPropertyChanged(nameof(ModelItem2Label));
+            OnPropertyChanged(nameof(ModelItem3Label));
+            OnPropertyChanged(nameof(ActiveModelDisplayName));
+            NotifyIostProperties();
         };
+
+        _settingsService.SettingsChanged += (s, e) =>
+        {
+            if (OpenRouterApiKey != _settingsService.Settings.OpenRouterApiKey)
+            {
+                OpenRouterApiKey = _settingsService.Settings.OpenRouterApiKey;
+            }
+            if (OpenRouterModel != _settingsService.Settings.OpenRouterModel)
+            {
+                OpenRouterModel = _settingsService.Settings.OpenRouterModel;
+            }
+            NotifyIostProperties();
+        };
+    }
+
+    public void NotifyIostProperties()
+    {
+        OnPropertyChanged(nameof(IsApiKeyConfigured));
+        OnPropertyChanged(nameof(IostStatusBadgeText));
+        OnPropertyChanged(nameof(IostStatusBadgeIcon));
+        OnPropertyChanged(nameof(IostStatusBadgeBg));
+        OnPropertyChanged(nameof(IostStatusBadgeBorder));
+        OnPropertyChanged(nameof(IostStatusBadgeFg));
+        OnPropertyChanged(nameof(ModelStatusText));
     }
 
     public void RefreshVersionDebugInfo(string? remoteVersion = null)
@@ -199,6 +273,7 @@ public partial class SettingsViewModel : ObservableObject
         {
             IsApiKeyUnlocked = true;
         }
+        NotifyIostProperties();
     }
 
     partial void OnLanguageIndexChanged(int value)
@@ -229,6 +304,32 @@ public partial class SettingsViewModel : ObservableObject
     {
         _settingsService.Settings.OpenRouterApiKey = value;
         _settingsService.Save();
+        NotifyIostProperties();
+    }
+
+    partial void OnSelectedModelIndexChanged(int value)
+    {
+        if (value >= 0 && value < AvailableModelIds.Length)
+        {
+            var chosen = AvailableModelIds[value];
+            if (!string.Equals(OpenRouterModel, chosen, StringComparison.OrdinalIgnoreCase))
+            {
+                OpenRouterModel = chosen;
+            }
+        }
+    }
+
+    partial void OnOpenRouterModelChanged(string value)
+    {
+        _settingsService.Settings.OpenRouterModel = value;
+        _settingsService.Save();
+        int idx = Array.FindIndex(AvailableModelIds, m => string.Equals(m, value, StringComparison.OrdinalIgnoreCase));
+        if (idx >= 0 && idx != SelectedModelIndex)
+        {
+            SelectedModelIndex = idx;
+        }
+        OnPropertyChanged(nameof(ActiveModelDisplayName));
+        NotifyIostProperties();
     }
 }
 

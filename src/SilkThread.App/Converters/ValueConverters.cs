@@ -346,3 +346,153 @@ public class ActionTextConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
+
+public class BoolToFilterBgConverter : IValueConverter
+{
+    private static readonly SolidColorBrush ActiveBrush = new(Color.FromArgb(255, 128, 107, 255)); // #806BFF
+    private static readonly SolidColorBrush InactiveBrush = new(Colors.Transparent);
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? ActiveBrush : InactiveBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToFilterFgConverter : IValueConverter
+{
+    private static readonly SolidColorBrush ActiveBrush = new(Color.FromArgb(255, 255, 255, 255));
+    private static readonly SolidColorBrush InactiveBrush = new(Color.FromArgb(255, 150, 156, 171)); // #969CAB
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? ActiveBrush : InactiveBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToCardBgConverter : IValueConverter
+{
+    private static readonly SolidColorBrush SelectedBrush = new(Color.FromArgb(255, 29, 28, 43)); // #1D1C2B
+    private static readonly SolidColorBrush NormalBrush = new(Color.FromArgb(255, 24, 27, 37));    // #181B25
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? SelectedBrush : NormalBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToCardBorderConverter : IValueConverter
+{
+    private static readonly SolidColorBrush SelectedBrush = new(Color.FromArgb(255, 128, 107, 255)); // #806BFF
+    private static readonly SolidColorBrush NormalBrush = new(Color.FromArgb(255, 43, 48, 64));      // #2B3040
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? SelectedBrush : NormalBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToStatusBgConverter : IValueConverter
+{
+    private static readonly SolidColorBrush AppliedBrush = new(Color.FromArgb(30, 34, 197, 94));  // #1E22C55E
+    private static readonly SolidColorBrush DefaultBrush = new(Color.FromArgb(255, 32, 36, 49));   // #202431
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? AppliedBrush : DefaultBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToStatusBorderConverter : IValueConverter
+{
+    private static readonly SolidColorBrush AppliedBrush = new(Color.FromArgb(255, 34, 197, 94));  // #22C55E
+    private static readonly SolidColorBrush DefaultBrush = new(Color.FromArgb(255, 43, 48, 64));   // #2B3040
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? AppliedBrush : DefaultBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToStatusFgConverter : IValueConverter
+{
+    private static readonly SolidColorBrush AppliedBrush = new(Color.FromArgb(255, 34, 197, 94));  // #22C55E
+    private static readonly SolidColorBrush DefaultBrush = new(Color.FromArgb(255, 150, 156, 171)); // #969CAB
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? AppliedBrush : DefaultBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class ZeroToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        int count = value is int i ? i : 0;
+        return count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class NotNullToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return value != null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToCopyBtnTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        bool isCopied = value is bool b && b;
+        return isCopied 
+            ? LocalizationService.Instance["Games_Copied_Badge"]
+            : LocalizationService.Instance["Games_Copy_Btn"];
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToElevationConverter : IValueConverter
+{
+    public double ElevationOffset { get; set; } = -4.0;
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? ElevationOffset : 0.0;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class BoolToGlowOpacityConverter : IValueConverter
+{
+    public double ActiveOpacity { get; set; } = 0.95;
+    public double InactiveOpacity { get; set; } = 0.0;
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return (value is bool b && b) ? ActiveOpacity : InactiveOpacity;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}

@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using SilkThread.App.Services;
 using SilkThread.App.Views;
 using SilkThread.Core.CompatibilityEngine;
+using SilkThread.Core.Execution;
 using SilkThread.Core.HardwareDetection;
 using SilkThread.Core.Models;
 using SilkThread.Core.PresetManager;
@@ -54,6 +55,9 @@ public partial class OptimizationViewModel : ObservableObject
 
     [ObservableProperty]
     private OptimizationPreset? _selectedPreset;
+
+    [ObservableProperty]
+    private int _selectedProfileIndex;
 
     [ObservableProperty]
     private bool _createRestorePoint = true;
@@ -202,7 +206,14 @@ public partial class OptimizationViewModel : ObservableObject
                       t.Risk <= RiskLevel.Medium
         ));
 
-        SelectedPreset = Presets.FirstOrDefault(p => p.Id == prevId) ?? Presets.FirstOrDefault();
+        int targetIndex = _settingsService.LastOptimizationProfileIndex;
+        if (targetIndex < 0 || targetIndex >= Presets.Count)
+        {
+            targetIndex = 0;
+        }
+
+        SelectedProfileIndex = targetIndex;
+        SelectedPreset = Presets[targetIndex];
         if (SelectedPreset != null)
         {
             SelectedPreset.IsSelected = true;
@@ -220,13 +231,46 @@ public partial class OptimizationViewModel : ObservableObject
         {
             p.IsSelected = (p == value);
         }
+
+        if (value != null)
+        {
+            int index = Presets.IndexOf(value);
+            if (index >= 0)
+            {
+                if (SelectedProfileIndex != index)
+                {
+                    SelectedProfileIndex = index;
+                }
+                if (_settingsService.LastOptimizationProfileIndex != index)
+                {
+                    _settingsService.LastOptimizationProfileIndex = index;
+                    _settingsService.Save();
+                }
+            }
+        }
+
         _ = RefreshTweaksToApplyAsync();
+    }
+
+    partial void OnSelectedProfileIndexChanged(int value)
+    {
+        if (value >= 0 && value < Presets.Count && SelectedPreset != Presets[value])
+        {
+            SelectedPreset = Presets[value];
+        }
     }
 
     [RelayCommand]
     public void SelectPreset(OptimizationPreset preset)
     {
         SelectedPreset = preset;
+        int index = Presets.IndexOf(preset);
+        if (index >= 0)
+        {
+            SelectedProfileIndex = index;
+            _settingsService.LastOptimizationProfileIndex = index;
+            _settingsService.Save();
+        }
     }
 
     [RelayCommand]
@@ -272,33 +316,53 @@ public partial class OptimizationViewModel : ObservableObject
 
         CurrentStatusText = _loc["Opt_Executing"];
 
+        Action<string> logAction = msg =>
+        {
+            var timestamp = DateTime.Now.ToString("HH:mm:ss");
+            var line = $"[{timestamp}] {msg}";
+            var dq = App.MainWindowInstance?.DispatcherQueue;
+            if (dq != null && !dq.HasThreadAccess)
+            {
+                dq.TryEnqueue(() => ExecutionLog.Add(line));
+            }
+            else
+            {
+                ExecutionLog.Add(line);
+            }
+        };
+
+        TweakExecutionService.Instance.OperationLogged += logAction;
+
         try
         {
-            var targetIds = TweaksToApply.Select(t => t.Id).ToList();
-
-            ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] Запуск пакетной оптимизации: {SelectedPreset?.Name}");
+            logAction($"Запуск пакетной оптимизации: «{SelectedPreset?.Name}»");
 
             if (CreateRestorePoint)
             {
                 CurrentStatusText = _loc.CurrentLanguage == "ru"
                     ? "Создание системной точки восстановления..."
                     : "Creating system restore point...";
-                ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] {_loc["Opt_CreateRestorePoint"]}...");
+                logAction($"[RESTORE] {_loc["Opt_CreateRestorePoint"]}...");
 
                 var rpResult = await _restorePointManager.CreateRestorePointAsync(
                     $"SilkThread Batch Optimization ({SelectedPreset?.Name ?? "Preset"})");
 
                 if (rpResult.Success)
                 {
-                    ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] ✓ Точка восстановления создана: {rpResult.Message}");
+                    logAction($"[RESTORE] ✓ Точка восстановления создана: {rpResult.Message}");
                 }
                 else
                 {
-                    ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] ⚠ Точка восстановления не создана: {rpResult.Message}");
+                    logAction($"[RESTORE] ⚠ Точка восстановления не создана: {rpResult.Message}");
                 }
             }
 
+            var hw = await _hardwareScanner.ScanAsync();
             int count = 0;
+            int appliedCount = 0;
+            int skippedCount = 0;
+            int failedCount = 0;
+
             foreach (var tweak in TweaksToApply)
             {
                 count++;
@@ -307,23 +371,51 @@ public partial class OptimizationViewModel : ObservableObject
 
                 CurrentStatusText = $"[{count}/{TweaksToApply.Count}] {tweak.Title}";
 
-                var res = await _tweakEngine.ApplyTweakAsync(tweak.Id);
-                ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] {(res.Success ? "✓" : "✗")} {tweak.Title}: {res.Message}");
-
-                if (res.Success)
+                var def = _tweakEngine.GetTweakById(tweak.Id);
+                if (def != null)
                 {
-                    tweak.Status = TweakStatus.Applied;
+                    var compat = _compatibilityEngine.EvaluateCompatibility(def, hw);
+                    if (!compat.IsCompatible)
+                    {
+                        skippedCount++;
+                        logAction($"[SKIPPED] ⚠ {tweak.Title} -> {compat.Reason}");
+                        continue;
+                    }
+                }
+
+                logAction($"[TWEAK] >>> [{count}/{TweaksToApply.Count}] {tweak.Title}");
+
+                try
+                {
+                    var res = await _tweakEngine.ApplyTweakAsync(tweak.Id);
+                    if (res.Success)
+                    {
+                        appliedCount++;
+                        tweak.Status = TweakStatus.Applied;
+                        logAction($"[STATUS] ✓ {tweak.Title}: {res.Message}");
+                    }
+                    else
+                    {
+                        failedCount++;
+                        logAction($"[ERROR] ✗ {tweak.Title}: {res.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failedCount++;
+                    logAction($"[ERROR] ✗ Исключение при выполнении {tweak.Title}: {ex.Message}");
                 }
             }
 
             CurrentStatusText = _loc.CurrentLanguage == "ru"
-                ? $"✓ Пакетная оптимизация успешно завершена! Применено {count} параметров."
-                : $"✓ Batch optimization completed! Applied {count} settings.";
+                ? $"✓ Пакетная оптимизация завершена. Применено: {appliedCount}, Ошибок: {failedCount}, Пропущено: {skippedCount}."
+                : $"✓ Batch optimization completed. Applied: {appliedCount}, Failed: {failedCount}, Skipped: {skippedCount}.";
 
-            ExecutionLog.Add($"[{DateTime.Now:HH:mm:ss}] Все операции успешно выполнены.");
+            logAction($"Все операции завершены. Успешно: {appliedCount}, Сбоев: {failedCount}, Пропущено: {skippedCount}.");
         }
         finally
         {
+            TweakExecutionService.Instance.OperationLogged -= logAction;
             IsExecuting = false;
         }
     }

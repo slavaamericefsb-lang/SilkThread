@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:SilkThread.Core.Models"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
@@ -95,7 +96,8 @@
                 </Border>
 
                 <!-- History Records List -->
-                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.HistoryRecords}" SelectionMode="None">
+                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.HistoryRecords}" SelectionMode="None"
+                          helpers:SmoothScroll.IsEnabled="True">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />

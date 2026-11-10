@@ -24,6 +24,26 @@ public class TweakPreset
     [JsonPropertyName("tweakIds")]
     public List<string> TweakIds { get; set; } = new();
 
+    [JsonPropertyName("generationSource")]
+    public string? GenerationSource { get; set; }
+
+    [JsonPropertyName("usedOnlineModel")]
+    public bool UsedOnlineModel { get; set; }
+
+    [JsonPropertyName("isOnlineAiGenerated")]
+    public bool IsOnlineAiGenerated
+    {
+        get => UsedOnlineModel;
+        set => UsedOnlineModel = value;
+    }
+
+    [JsonPropertyName("aiModelUsed")]
+    public string? AiModelUsed
+    {
+        get => GenerationSource;
+        set => GenerationSource = value;
+    }
+
     [JsonIgnore]
     public int TotalCount => TweakIds?.Count ?? 0;
 

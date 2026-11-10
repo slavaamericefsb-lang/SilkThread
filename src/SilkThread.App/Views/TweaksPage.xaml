@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:SilkThread.App.ViewModels"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Loaded="Page_Loaded"
     Background="#0E1017"
     mc:Ignorable="d">
@@ -98,22 +99,10 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Page Title & Subtitle -->
-            <StackPanel Grid.Column="0" Spacing="4">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" 
-                               FontSize="22" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <FontIcon Glyph="&#xE713;" FontSize="10" Foreground="#806BFF" />
-                            <TextBlock Text="{x:Bind ViewModel.TotalCount, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
-                            <TextBlock Text="{x:Bind ViewModel.TweaksSuffixLabel, Mode=OneWay}" FontSize="11" Foreground="#969CAB" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-                <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" 
-                           FontSize="12" Foreground="#969CAB" />
-            </StackPanel>
+            <!-- Page Title -->
+            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" 
+                       FontSize="22" FontWeight="SemiBold" Foreground="#F3F4F8"
+                       VerticalAlignment="Center" />
 
             <!-- Header Quick Stats & Actions -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -248,7 +237,7 @@
                               VerticalScrollBarVisibility="Disabled"
                               HorizontalScrollMode="Enabled"
                               VerticalScrollMode="Disabled"
-                              PointerWheelChanged="CategoriesScrollViewer_PointerWheelChanged">
+                              helpers:SmoothScroll.IsEnabled="True">
                     <ItemsControl ItemsSource="{x:Bind ViewModel.Categories}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -367,27 +356,42 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- ToggleSwitch "Скрыть несовместимые" -->
+                        <!-- ToggleSwitch "Показать несовместимые" / "Скрыть несовместимые" -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind ViewModel.CompatibleOnlyLabel, Mode=OneWay}"
+                            <TextBlock Text="{x:Bind ViewModel.IncompatibleToggleLabel, Mode=OneWay}"
                                        FontSize="11"
                                        Foreground="#969CAB"
                                        VerticalAlignment="Center" />
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.HideIncompatible, Mode=TwoWay}"
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowIncompatible, Mode=TwoWay}"
                                           OnContent="" OffContent=""
                                           MinWidth="0"
                                           Margin="0"
                                           VerticalAlignment="Center">
                                 <ToggleSwitch.Resources>
+                                    <!-- Track On (#806BFF) -->
                                     <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#806BFF" />
                                     <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#9482FF" />
                                     <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#6E55F5" />
                                     <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#806BFF" />
                                     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#9482FF" />
                                     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#6E55F5" />
-                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#806BFF" />
-                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#9482FF" />
-                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#6E55F5" />
+
+                                    <!-- Track Off (#202431 / #2B3040) -->
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#202431" />
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#2B3040" />
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="#181B25" />
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2B3040" />
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#3A4156" />
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#2B3040" />
+
+                                    <!-- Knob Crisp White (#FFFFFF) -->
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFill" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillPointerOver" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillPressed" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF" />
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF" />
                                 </ToggleSwitch.Resources>
                             </ToggleSwitch>
                         </StackPanel>
@@ -407,6 +411,7 @@
                               SelectionMode="Single"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              helpers:SmoothScroll.IsEnabled="True"
                               VerticalAlignment="Stretch"
                               Padding="0,0,6,0">
                         <ListView.Resources>
@@ -568,6 +573,7 @@
                         <ScrollViewer Grid.Row="0"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
+                                      helpers:SmoothScroll.IsEnabled="True"
                                       VerticalAlignment="Stretch"
                                       Padding="0,0,10,0">
                             <StackPanel Spacing="16">
@@ -635,11 +641,15 @@
                                                        Foreground="{x:Bind ViewModel.SelectedTweak.RecommendationForeground, Mode=OneWay}" />
                                         </Border>
 
-                                        <!-- Status Badge -->
-                                        <Border CornerRadius="6" Padding="9,3"
+                                        <!-- Status Badge with Smooth Pop Animation on Toggle -->
+                                        <Border x:Name="InspectorStatusBadge" CornerRadius="6" Padding="9,3"
                                                 Background="{x:Bind ViewModel.SelectedTweak.StatusBadgeBackground, Mode=OneWay}"
                                                 BorderBrush="{x:Bind ViewModel.SelectedTweak.StatusBadgeBorder, Mode=OneWay}"
-                                                BorderThickness="1">
+                                                BorderThickness="1"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="InspectorStatusBadgeScale" ScaleX="1.0" ScaleY="1.0" />
+                                            </Border.RenderTransform>
                                             <StackPanel Orientation="Horizontal" Spacing="5">
                                                 <Ellipse Width="6" Height="6" Fill="{x:Bind ViewModel.SelectedTweak.StatusBadgeDot, Mode=OneWay}" VerticalAlignment="Center" />
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedTweak.LocalizedStatus, Mode=OneWay, FallbackValue=''}" 

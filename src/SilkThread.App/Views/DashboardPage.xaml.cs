@@ -39,11 +39,151 @@ public sealed partial class DashboardPage : Page, IStaggeredPage
     {
         ViewModel = App.Services.GetRequiredService<DashboardViewModel>();
         InitializeComponent();
+
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(DashboardViewModel.SystemScore))
+            {
+                StartScoreCountUpAnimation(_displayedScore, ViewModel.SystemScore);
+            }
+        };
+    }
+
+    private Storyboard? _scoreGlowStoryboard;
+    private Storyboard? _iostPulseStoryboard;
+    private DispatcherTimer? _scoreCountUpTimer;
+    private int _displayedScore = 0;
+    private int _targetScore = 98;
+    private DateTime _scoreAnimStartTime;
+    private readonly TimeSpan _scoreAnimDuration = TimeSpan.FromMilliseconds(1200);
+
+    private void StartScoreCountUpAnimation(int fromValue, int toValue)
+    {
+        if (ScoreCounterTextBlock == null) return;
+        _displayedScore = fromValue;
+        _targetScore = toValue;
+        _scoreAnimStartTime = DateTime.UtcNow;
+
+        _scoreCountUpTimer?.Stop();
+        _scoreCountUpTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        _scoreCountUpTimer.Tick += (s, e) =>
+        {
+            double elapsed = (DateTime.UtcNow - _scoreAnimStartTime).TotalMilliseconds;
+            double progress = Math.Clamp(elapsed / _scoreAnimDuration.TotalMilliseconds, 0.0, 1.0);
+            double eased = 1.0 - Math.Pow(1.0 - progress, 3); // Cubic Ease-Out
+            int currentVal = (int)Math.Round(fromValue + (toValue - fromValue) * eased);
+            _displayedScore = currentVal;
+            ScoreCounterTextBlock.Text = currentVal.ToString();
+
+            if (progress >= 1.0)
+            {
+                _scoreCountUpTimer?.Stop();
+                ScoreCounterTextBlock.Text = toValue.ToString();
+            }
+        };
+        _scoreCountUpTimer.Start();
+    }
+
+    private void StartScoreGlowAnimation()
+    {
+        if (ScoreGlowRing == null || ScoreGlowScale == null) return;
+
+        _scoreGlowStoryboard?.Stop();
+        _scoreGlowStoryboard = new Storyboard
+        {
+            RepeatBehavior = RepeatBehavior.Forever,
+            AutoReverse = true
+        };
+
+        var scaleX = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.08,
+            Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(scaleX, ScoreGlowScale);
+        Storyboard.SetTargetProperty(scaleX, "ScaleX");
+
+        var scaleY = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.08,
+            Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(scaleY, ScoreGlowScale);
+        Storyboard.SetTargetProperty(scaleY, "ScaleY");
+
+        var opacity = new DoubleAnimation
+        {
+            From = 0.40,
+            To = 0.85,
+            Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(opacity, ScoreGlowRing);
+        Storyboard.SetTargetProperty(opacity, "Opacity");
+
+        _scoreGlowStoryboard.Children.Add(scaleX);
+        _scoreGlowStoryboard.Children.Add(scaleY);
+        _scoreGlowStoryboard.Children.Add(opacity);
+        _scoreGlowStoryboard.Begin();
+    }
+
+    private void StartIostPulseAnimation()
+    {
+        if (IostPulseGlow == null || IostPulseScale == null) return;
+
+        _iostPulseStoryboard?.Stop();
+        _iostPulseStoryboard = new Storyboard
+        {
+            RepeatBehavior = RepeatBehavior.Forever,
+            AutoReverse = true
+        };
+
+        var scaleX = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.55,
+            Duration = new Duration(TimeSpan.FromSeconds(1.2)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(scaleX, IostPulseScale);
+        Storyboard.SetTargetProperty(scaleX, "ScaleX");
+
+        var scaleY = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.55,
+            Duration = new Duration(TimeSpan.FromSeconds(1.2)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(scaleY, IostPulseScale);
+        Storyboard.SetTargetProperty(scaleY, "ScaleY");
+
+        var opacity = new DoubleAnimation
+        {
+            From = 0.65,
+            To = 0.15,
+            Duration = new Duration(TimeSpan.FromSeconds(1.2)),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(opacity, IostPulseGlow);
+        Storyboard.SetTargetProperty(opacity, "Opacity");
+
+        _iostPulseStoryboard.Children.Add(scaleX);
+        _iostPulseStoryboard.Children.Add(scaleY);
+        _iostPulseStoryboard.Children.Add(opacity);
+        _iostPulseStoryboard.Begin();
     }
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
         PageTransitionHelper.AnimatePageEntrance(this);
+        StartScoreGlowAnimation();
+        StartIostPulseAnimation();
+        StartScoreCountUpAnimation(0, ViewModel.SystemScore);
         await ViewModel.InitializeAsync();
     }
 
@@ -394,6 +534,14 @@ public sealed partial class DashboardPage : Page, IStaggeredPage
         if (sender is FrameworkElement fe && fe.DataContext is AiSurveyOptionItem item)
         {
             ViewModel.SelectAiPriority(item);
+        }
+    }
+
+    private void AiRisk_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is AiSurveyOptionItem item)
+        {
+            ViewModel.SelectAiRisk(item);
         }
     }
 }

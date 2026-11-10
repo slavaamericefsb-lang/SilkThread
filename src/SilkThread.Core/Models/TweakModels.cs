@@ -57,11 +57,12 @@ public record RestorePointItem(
     long SequenceNumber,
     string Description,
     DateTime CreatedAt,
-    string RestorePointType
+    string RestorePointType,
+    bool IsNewest = false
 )
 {
-    public string FormattedDate => CreatedAt.ToLocalTime().ToString("dd.MM.yyyy");
-    public string FormattedTime => CreatedAt.ToLocalTime().ToString("HH:mm:ss");
+    public string FormattedDate => (CreatedAt.Kind == DateTimeKind.Utc ? CreatedAt.ToLocalTime() : CreatedAt).ToString("dd.MM.yyyy");
+    public string FormattedTime => (CreatedAt.Kind == DateTimeKind.Utc ? CreatedAt.ToLocalTime() : CreatedAt).ToString("HH:mm:ss");
     public string FormattedCreationTime => $"{FormattedDate} {FormattedTime}";
     public string EventType => RestorePointType;
     public string EventTypeString => EventType;

@@ -59,6 +59,42 @@ public partial class PresetTweakItemViewModel : ObservableObject
     private static readonly SolidColorBrush s_roseBadgeBg = new(Color.FromArgb(40, 239, 68, 68));
     private static readonly SolidColorBrush s_emeraldBadgeBg = new(Color.FromArgb(40, 16, 185, 129));
 
+    private static readonly SolidColorBrush s_riskLowBg = new(Color.FromArgb(38, 34, 197, 94));     // 15% #22C55E
+    private static readonly SolidColorBrush s_riskLowBorder = new(Color.FromArgb(255, 34, 197, 94));
+    private static readonly SolidColorBrush s_riskLowFg = new(Color.FromArgb(255, 74, 222, 128));
+
+    private static readonly SolidColorBrush s_riskMedBg = new(Color.FromArgb(38, 245, 158, 11));    // 15% #F59E0B
+    private static readonly SolidColorBrush s_riskMedBorder = new(Color.FromArgb(255, 245, 158, 11));
+    private static readonly SolidColorBrush s_riskMedFg = new(Color.FromArgb(255, 251, 191, 36));
+
+    private static readonly SolidColorBrush s_riskHighBg = new(Color.FromArgb(38, 239, 68, 68));    // 15% #EF4444
+    private static readonly SolidColorBrush s_riskHighBorder = new(Color.FromArgb(255, 239, 68, 68));
+    private static readonly SolidColorBrush s_riskHighFg = new(Color.FromArgb(255, 248, 113, 113));
+
+    public SolidColorBrush RiskBackground => Risk switch
+    {
+        RiskLevel.Low => s_riskLowBg,
+        RiskLevel.Medium => s_riskMedBg,
+        RiskLevel.High or RiskLevel.Critical => s_riskHighBg,
+        _ => s_riskLowBg
+    };
+
+    public SolidColorBrush RiskBorder => Risk switch
+    {
+        RiskLevel.Low => s_riskLowBorder,
+        RiskLevel.Medium => s_riskMedBorder,
+        RiskLevel.High or RiskLevel.Critical => s_riskHighBorder,
+        _ => s_riskLowBorder
+    };
+
+    public SolidColorBrush RiskForeground => Risk switch
+    {
+        RiskLevel.Low => s_riskLowFg,
+        RiskLevel.Medium => s_riskMedFg,
+        RiskLevel.High or RiskLevel.Critical => s_riskHighFg,
+        _ => s_riskLowFg
+    };
+
     public Brush CardBorderBrush => IsIncompatible ? s_incompatibleBorder : s_compatibleBorder;
     public Brush CardBackgroundBrush => IsIncompatible ? s_incompatibleBg : s_compatibleBg;
     public Brush BadgeBackgroundBrush => IsIncompatible ? s_roseBadgeBg : s_emeraldBadgeBg;
@@ -161,7 +197,78 @@ public partial class PresetReviewViewModel : ObservableObject
     public int CompatibleCount => _evaluated.CompatibleCount;
     public bool HasIncompatible => _evaluated.HasIncompatible;
 
+    private static SolidColorBrush? s_onlineBadgeBorder;
+    private static SolidColorBrush? s_onlineBadgeBg;
+    private static SolidColorBrush? s_onlineBadgeFg;
+
+    private static SolidColorBrush? s_offlineBadgeBorder;
+    private static SolidColorBrush? s_offlineBadgeBg;
+    private static SolidColorBrush? s_offlineBadgeFg;
+
+    private static SolidColorBrush OnlineBadgeBorder => s_onlineBadgeBorder ??= new(Color.FromArgb(255, 128, 107, 255));
+    private static SolidColorBrush OnlineBadgeBg => s_onlineBadgeBg ??= new(Color.FromArgb(255, 32, 36, 49));
+    private static SolidColorBrush OnlineBadgeFg => s_onlineBadgeFg ??= new(Color.FromArgb(255, 128, 107, 255));
+
+    private static SolidColorBrush OfflineBadgeBorder => s_offlineBadgeBorder ??= new(Color.FromArgb(160, 150, 156, 171));
+    private static SolidColorBrush OfflineBadgeBg => s_offlineBadgeBg ??= new(Color.FromArgb(255, 32, 36, 49));
+    private static SolidColorBrush OfflineBadgeFg => s_offlineBadgeFg ??= new(Color.FromArgb(255, 150, 156, 171));
+
+    public string GenerationSource => _evaluated.Preset?.GenerationSource 
+        ?? (_evaluated.Preset?.Author == "SilkThread IOST" ? "Локальный эксперт IOST" : "");
+
+    public bool IsOnlineAiGenerated => (_evaluated.Preset?.IsOnlineAiGenerated ?? false) || (_evaluated.Preset?.UsedOnlineModel ?? false);
+    public string? AiModelUsed => _evaluated.Preset?.AiModelUsed;
+
+    public bool UsedOnlineModel => IsOnlineAiGenerated || 
+        (!string.IsNullOrEmpty(_evaluated.Preset?.GenerationSource) && _evaluated.Preset.GenerationSource.Contains("OpenRouter", StringComparison.OrdinalIgnoreCase));
+
+    public bool HasSourceBadge => !string.IsNullOrEmpty(GenerationSource) || 
+                                  _evaluated.Preset?.Author == "SilkThread IOST" || 
+                                  _evaluated.Preset?.Name?.StartsWith("AI:") == true;
+
+    public string SourceBadgeText
+    {
+        get
+        {
+            if (UsedOnlineModel)
+            {
+                var src = !string.IsNullOrWhiteSpace(_evaluated.Preset?.GenerationSource)
+                    ? _evaluated.Preset.GenerationSource
+                    : (!string.IsNullOrWhiteSpace(_evaluated.Preset?.Author) && _evaluated.Preset.Author.StartsWith("AI (") 
+                        ? _evaluated.Preset.Author 
+                        : "OpenRouter");
+
+                if (src.StartsWith("Нейросеть OpenRouter (", StringComparison.OrdinalIgnoreCase) && src.EndsWith(")"))
+                {
+                    var inner = src.Substring("Нейросеть OpenRouter (".Length);
+                    inner = inner.Substring(0, inner.Length - 1);
+                    return $"Нейросеть: {inner}";
+                }
+                if (src.StartsWith("AI (") && src.EndsWith(")"))
+                {
+                    var inner = src.Substring(4, src.Length - 5);
+                    return $"Нейросеть: {inner}";
+                }
+                if (src.StartsWith("Нейросеть:", StringComparison.OrdinalIgnoreCase))
+                    return src;
+
+                return $"Нейросеть: {src}";
+            }
+
+            return "Локальный эксперт IOST";
+        }
+    }
+
+    public SolidColorBrush SourceBadgeBorderBrush => UsedOnlineModel ? OnlineBadgeBorder : OfflineBadgeBorder;
+    public SolidColorBrush SourceBadgeBackgroundBrush => UsedOnlineModel ? OnlineBadgeBg : OfflineBadgeBg;
+    public SolidColorBrush SourceBadgeForegroundBrush => UsedOnlineModel ? OnlineBadgeFg : OfflineBadgeFg;
+    public string SourceBadgeBorderHex => UsedOnlineModel ? "#806BFF" : "#969CAB";
+    public string SourceBadgeBgHex => "#202431";
+    public string SourceBadgeFgHex => UsedOnlineModel ? "#806BFF" : "#969CAB";
+    public string SourceBadgeIcon => UsedOnlineModel ? "\uE945" : "\uE9D9";
+
     public ObservableCollection<PresetTweakItemViewModel> Tweaks { get; } = new();
+    public ObservableCollection<PresetCategoryGroupViewModel> CategoryGroups { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanApply))]
@@ -213,8 +320,42 @@ public partial class PresetReviewViewModel : ObservableObject
             Tweaks.Add(new PresetTweakItemViewModel(item, UpdateSelectedCount));
         }
 
+        // Group tweaks by Category for structured review
+        var grouped = Tweaks
+            .GroupBy(t => t.Category)
+            .OrderBy(g => g.Any(t => t.IsIncompatible) ? 0 : 1)
+            .ThenBy(g => g.Key.ToString());
+
+        foreach (var g in grouped)
+        {
+            string catName = LocalizationService.Instance.GetCategoryName(g.Key);
+            string catIcon = GetCategoryGlyph(g.Key);
+            var groupVm = new PresetCategoryGroupViewModel(g.Key, catName, catIcon, g.OrderBy(t => t.IsCompatible ? 1 : 0).ThenBy(t => t.Title));
+            CategoryGroups.Add(groupVm);
+        }
+
         UpdateSelectedCount();
     }
+
+    public static string GetCategoryGlyph(TweakCategory cat) => cat switch
+    {
+        TweakCategory.CpuOptimization => "\uE9D9",
+        TweakCategory.GpuOptimization => "\uE790",
+        TweakCategory.RamOptimization => "\uE7C5",
+        TweakCategory.GamingPerformance => "\uE7FC",
+        TweakCategory.WindowsPerformance => "\uE945",
+        TweakCategory.InputAndLatency => "\uE964",
+        TweakCategory.NetworkOptimization => "\uE839",
+        TweakCategory.StorageOptimization => "\uEDA2",
+        TweakCategory.BackgroundProcesses => "\uE9F5",
+        TweakCategory.WindowsServices => "\uE895",
+        TweakCategory.PowerManagement => "\uE7E8",
+        TweakCategory.WindowsExplorerAndUi => "\uE8B7",
+        TweakCategory.SecurityAndPrivacy => "\uE72E",
+        TweakCategory.SystemMaintenance => "\uE90F",
+        TweakCategory.AdvancedTweaks => "\uE7BE",
+        _ => "\uE713"
+    };
 
     private void UpdateSelectedCount()
     {
@@ -298,5 +439,25 @@ public partial class PresetReviewViewModel : ObservableObject
             .Replace("LFM-3", "IOST")
             .Replace("ИИ-Оптимизатор", "IOST")
             .Replace("Liquid AI", "IOST");
+    }
+}
+
+public partial class PresetCategoryGroupViewModel : ObservableObject
+{
+    public TweakCategory Category { get; }
+    public string CategoryName { get; }
+    public string CategoryIcon { get; }
+    public string CountBadge => $"({Items.Count})";
+    public ObservableCollection<PresetTweakItemViewModel> Items { get; } = new();
+
+    public PresetCategoryGroupViewModel(TweakCategory category, string categoryName, string categoryIcon, IEnumerable<PresetTweakItemViewModel> items)
+    {
+        Category = category;
+        CategoryName = categoryName;
+        CategoryIcon = categoryIcon;
+        foreach (var item in items)
+        {
+            Items.Add(item);
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SilkThread.Core.Execution;
 using SilkThread.Core.Models;
 using SilkThread.Core.SystemOperations;
 
@@ -262,24 +263,42 @@ public static class TweakBuilder
                 var snapshot = ServiceOperations.SnapshotService(serviceName);
                 if (!snapshot.Exists)
                 {
+                    TweakExecutionService.Instance.LogServiceFailure(serviceName, "Service does not exist on this machine");
                     return Task.FromResult(TweakOperationResult.Fail($"Service '{serviceName}' does not exist on this Windows installation."));
                 }
 
                 bool ok = ServiceOperations.SetServiceStartType(serviceName, targetStartType);
+                string startTypeName = targetStartType switch
+                {
+                    2 => "Automatic",
+                    3 => "Manual",
+                    4 => "Disabled",
+                    _ => targetStartType.ToString()
+                };
+
+                string stateName = "Unchanged";
                 if (stopServiceImmediately)
                 {
-                    ServiceOperations.StopServiceIfRunning(serviceName);
+                    bool stopped = ServiceOperations.StopServiceIfRunning(serviceName);
+                    stateName = stopped ? "Stopped" : "Running";
+                }
+                else
+                {
+                    stateName = ServiceOperations.GetServiceStatus(serviceName);
                 }
 
                 if (ok)
                 {
+                    TweakExecutionService.Instance.LogService(serviceName, startTypeName, stateName);
                     return Task.FromResult(TweakOperationResult.Ok(
-                        $"Service '{serviceName}' set to {(targetStartType == 4 ? "Disabled" : "Manual")}.",
+                        $"Service '{serviceName}' set to {startTypeName}.",
                         snapshot.ToJson(),
                         targetStartType.ToString(),
                         requiresReboot
                     ));
                 }
+
+                TweakExecutionService.Instance.LogServiceFailure(serviceName, "Failed to modify service startup type");
                 return Task.FromResult(TweakOperationResult.Fail($"Failed to modify service '{serviceName}'."));
             },
 

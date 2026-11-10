@@ -8,6 +8,7 @@ using SilkThread.App.ViewModels;
 using SilkThread.Core.AiOptimizer;
 using SilkThread.Core.BackupManager;
 using SilkThread.Core.CompatibilityEngine;
+using SilkThread.Core.GameProfiles;
 using SilkThread.Core.HardwareDetection;
 using SilkThread.Core.PresetManager;
 using SilkThread.Core.RestorePointManager;
@@ -24,6 +25,7 @@ public partial class App : Application
     private static readonly string LogFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "SilkThread", "startup_debug.log");
+    public static string LogFilePath => LogFile;
 
     public static IServiceProvider Services { get; private set; } = null!;
 
@@ -78,6 +80,9 @@ public partial class App : Application
 
     private static void ConfigureServices(IServiceCollection services)
     {
+        // Wire up core logging to App.Log
+        OpenRouterAiService.ExternalLog = Log;
+
         // Core Services
         services.AddSingleton<IHardwareScanner, HardwareScanner>();
         services.AddSingleton<IRestorePointManager, RestorePointManager>();
@@ -85,6 +90,7 @@ public partial class App : Application
         services.AddSingleton<ICompatibilityEngine, CompatibilityEngine>();
         services.AddSingleton<IPresetManager, PresetManager>();
         services.AddSingleton<IAiOptimizerService, OpenRouterAiService>();
+        services.AddSingleton<IGameProfileService, GameProfileService>();
 
         // Tweak Engine initialized with 165 tweaks catalog
         services.AddSingleton<ITweakEngine>(sp =>
@@ -110,6 +116,7 @@ public partial class App : Application
         services.AddSingleton<TweaksViewModel>();
         services.AddSingleton<PcScannerViewModel>();
         services.AddSingleton<OptimizationViewModel>();
+        services.AddSingleton<GamesViewModel>();
         services.AddSingleton<HistoryViewModel>();
         services.AddSingleton<RestoreBackupViewModel>();
         services.AddSingleton<SettingsViewModel>();

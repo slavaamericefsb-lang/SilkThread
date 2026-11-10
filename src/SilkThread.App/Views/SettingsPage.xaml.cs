@@ -29,9 +29,12 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
         InitializeComponent();
     }
 
+    private Microsoft.UI.Xaml.Media.Animation.Storyboard? _iostPulseStoryboard;
+
     private void Page_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         PageTransitionHelper.AnimatePageEntrance(this);
+        StartIostPulseAnimation();
 
         if (OpenRouterKeyBox != null)
         {
@@ -39,6 +42,53 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
             OpenRouterKeyBox.PasswordChanged -= OpenRouterKeyBox_PasswordChanged;
             OpenRouterKeyBox.PasswordChanged += OpenRouterKeyBox_PasswordChanged;
         }
+    }
+
+    private void StartIostPulseAnimation()
+    {
+        if (IostStatusPulseRing == null || IostStatusPulseScale == null) return;
+
+        _iostPulseStoryboard?.Stop();
+        _iostPulseStoryboard = new Microsoft.UI.Xaml.Media.Animation.Storyboard
+        {
+            RepeatBehavior = Microsoft.UI.Xaml.Media.Animation.RepeatBehavior.Forever,
+            AutoReverse = true
+        };
+
+        var scaleX = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.65,
+            Duration = new Duration(System.TimeSpan.FromSeconds(1.25)),
+            EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+        };
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleX, IostStatusPulseScale);
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleX, "ScaleX");
+
+        var scaleY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.65,
+            Duration = new Duration(System.TimeSpan.FromSeconds(1.25)),
+            EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+        };
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleY, IostStatusPulseScale);
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleY, "ScaleY");
+
+        var opacity = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+        {
+            From = 0.55,
+            To = 0.12,
+            Duration = new Duration(System.TimeSpan.FromSeconds(1.25)),
+            EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+        };
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(opacity, IostStatusPulseRing);
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(opacity, "Opacity");
+
+        _iostPulseStoryboard.Children.Add(scaleX);
+        _iostPulseStoryboard.Children.Add(scaleY);
+        _iostPulseStoryboard.Children.Add(opacity);
+        _iostPulseStoryboard.Begin();
     }
 
     private void OpenRouterKeyBox_PasswordChanged(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

@@ -24,6 +24,18 @@
     <converters:LocalizedRecommendationConverter x:Key="LocalizedRecommendationConverter" />
     <converters:LocalizedStatusConverter x:Key="LocalizedStatusConverter" />
     <converters:ActionTextConverter x:Key="ActionTextConverter" />
+    <converters:BoolToFilterBgConverter x:Key="BoolToFilterBgConverter" />
+    <converters:BoolToFilterFgConverter x:Key="BoolToFilterFgConverter" />
+    <converters:BoolToCardBgConverter x:Key="BoolToCardBgConverter" />
+    <converters:BoolToCardBorderConverter x:Key="BoolToCardBorderConverter" />
+    <converters:BoolToStatusBgConverter x:Key="BoolToStatusBgConverter" />
+    <converters:BoolToStatusBorderConverter x:Key="BoolToStatusBorderConverter" />
+    <converters:BoolToStatusFgConverter x:Key="BoolToStatusFgConverter" />
+    <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+    <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter" />
+    <converters:BoolToCopyBtnTextConverter x:Key="BoolToCopyBtnTextConverter" />
+    <converters:BoolToElevationConverter x:Key="BoolToElevationConverter" />
+    <converters:BoolToGlowOpacityConverter x:Key="BoolToGlowOpacityConverter" />
 
     <!-- ========================================================================= -->
     <!-- Minimal Dark UI Design Tokens                                             -->

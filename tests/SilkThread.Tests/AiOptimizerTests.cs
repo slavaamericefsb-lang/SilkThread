@@ -250,6 +250,40 @@ public class AiOptimizerTests
     }
 
     [Fact]
+    public void ParseAiResponse_OpenRouterReasoningField_ExtractsAndParses()
+    {
+        using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
+
+        var sampleTweak = _allTweaks.First(t => t.Id == "cpu_power_throttling_disable");
+
+        var innerJson = $"{{\"analysisSummary\":\"Reasoning unpacked.\",\"recommendedTweakIds\":[\"{sampleTweak.Id}\"],\"tweakJustifications\":{{\"{sampleTweak.Id}\":\"Core stability.\"}},\"estimatedImpact\":\"10% lower latency.\"}}";
+        var escapedInnerJson = innerJson.Replace("\"", "\\\"");
+
+        var openRouterResponse = $$"""
+        {
+          "id": "gen-1718293847-abcdef",
+          "model": "liquid/lfm-3-1.7b:free",
+          "choices": [
+            {
+              "message": {
+                "role": "assistant",
+                "content": null,
+                "reasoning": "{{escapedInnerJson}}"
+              }
+            }
+          ]
+        }
+        """;
+
+        var result = service.ParseAiResponse(openRouterResponse, _sampleHardwareProfile, _allTweaks);
+
+        Assert.NotNull(result);
+        Assert.Equal("Reasoning unpacked.", result.AnalysisSummary);
+        Assert.Single(result.RecommendedTweakIds);
+        Assert.Equal(sampleTweak.Id, result.RecommendedTweakIds[0]);
+    }
+
+    [Fact]
     public void ParseAiResponse_MarkdownFencedJson_StripsFencesAndParses()
     {
         using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
@@ -364,7 +398,8 @@ public class AiOptimizerTests
 
         Assert.NotNull(result);
         Assert.NotEmpty(result.RecommendedTweakIds);
-        Assert.True(result.RecommendedTweakIds.Count >= 5, "Expected at least 5 recommended tweaks in heuristic fallback");
+        Assert.True(result.RecommendedTweakIds.Count >= 60 && result.RecommendedTweakIds.Count <= 80, 
+            $"Expected 60–80 recommended tweaks in SafeOnly heuristic fallback, but got {result.RecommendedTweakIds.Count}");
 
         var tweakMap = _allTweaks.ToDictionary(t => t.Id);
 
@@ -448,6 +483,31 @@ public class AiOptimizerTests
             var tweak = tweakMap[tweakId];
             Assert.False(tweak.DesktopOnly, $"Desktop-only tweak {tweak.Id} should not be recommended on a laptop");
         }
+    }
+
+    [Fact]
+    public void GenerateHeuristicFallback_ScalesCountsAcrossRiskTolerances()
+    {
+        using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
+
+        var safePref = new UserOptimizationPreferences("Esports", "SafeOnly", "LowestLatency", "240Hz+", "1000Hz+");
+        var safeResult = service.GenerateHeuristicFallback(safePref, _sampleHardwareProfile, _allTweaks);
+
+        var moderatePref = new UserOptimizationPreferences("AAA_Visuals", "Moderate", "MaxFps", "144Hz", "Default");
+        var moderateResult = service.GenerateHeuristicFallback(moderatePref, _sampleHardwareProfile, _allTweaks);
+
+        var experimentalPref = new UserOptimizationPreferences("AAA_Visuals", "Experimental", "MaxFps", "144Hz", "Default");
+        var experimentalResult = service.GenerateHeuristicFallback(experimentalPref, _sampleHardwareProfile, _allTweaks);
+
+        // Safe mode: ~60–80 tweaks
+        Assert.InRange(safeResult.RecommendedTweakIds.Count, 60, 80);
+
+        // Moderate mode: ~85–120 tweaks
+        Assert.InRange(moderateResult.RecommendedTweakIds.Count, 85, 120);
+
+        // Experimental mode: ~120–160+ tweaks
+        Assert.True(experimentalResult.RecommendedTweakIds.Count >= 120, 
+            $"Expected >= 120 tweaks in Experimental mode, got {experimentalResult.RecommendedTweakIds.Count}");
     }
 
     #endregion
@@ -605,6 +665,165 @@ public class AiOptimizerTests
         Assert.Contains("liquid/lfm-3-1.7b:free", capturedBody);
         Assert.Contains("json_object", capturedBody);
         Assert.Contains("0.2", capturedBody); // temperature
+    }
+
+    [Fact]
+    public async Task GetOptimizationRecommendationsAsync_OnHttp429_RetriesWithFallbackModel()
+    {
+        var sampleTweak = _allTweaks.First(t => t.Id == "cpu_power_throttling_disable");
+        var attempts = new List<string>();
+
+        var mockHandler = new MockHttpMessageHandler(async (req, ct) =>
+        {
+            var body = await req.Content!.ReadAsStringAsync(ct);
+            using var doc = System.Text.Json.JsonDocument.Parse(body);
+            var model = doc.RootElement.GetProperty("model").GetString() ?? "";
+            attempts.Add(model);
+
+            if (model == "liquid/lfm-3-1.7b:free")
+            {
+                // First model returns 429 rate limit
+                return new HttpResponseMessage((HttpStatusCode)429)
+                {
+                    Content = new StringContent("{\"error\":{\"message\":\"Rate limit exceeded\",\"code\":429}}", Encoding.UTF8, "application/json")
+                };
+            }
+
+            // Fallback model succeeds
+            var aiJson = $$"""
+            {
+              "analysisSummary": "Resilient fallback response.",
+              "recommendedTweakIds": ["{{sampleTweak.Id}}"],
+              "tweakJustifications": {
+                "{{sampleTweak.Id}}": "Disables power throttling."
+              },
+              "estimatedImpact": "-20% latency"
+            }
+            """;
+            var escapedAiJson = aiJson.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "");
+            var responseJson = $$"""
+            {
+              "id": "gen-fallback-12345",
+              "choices": [
+                {
+                  "message": {
+                    "role": "assistant",
+                    "content": "{{escapedAiJson}}"
+                  }
+                }
+              ]
+            }
+            """;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
+            };
+        });
+
+        using var httpClient = new HttpClient(mockHandler);
+        using var service = new OpenRouterAiService(
+            compatibilityEngine: _compatibilityEngine,
+            httpClient: httpClient,
+            apiKey: "test-openrouter-key"
+        );
+
+        var preferences = new UserOptimizationPreferences("Esports", "SafeOnly", "LowestLatency", "240Hz+", "1000Hz+");
+        var result = await service.GetOptimizationRecommendationsAsync(preferences, _sampleHardwareProfile, _allTweaks);
+
+        Assert.NotNull(result);
+        Assert.Equal("Resilient fallback response.", result.AnalysisSummary);
+        Assert.Single(result.RecommendedTweakIds);
+        Assert.Equal(2, attempts.Count);
+        Assert.Equal("liquid/lfm-3-1.7b:free", attempts[0]);
+        Assert.Equal("openrouter/free", attempts[1]);
+    }
+
+    [Fact]
+    public void ParseAiResponse_ConversationalPrefixAndPostfix_ParsesSuccessfully()
+    {
+        using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
+        var sampleTweak = _allTweaks.First(t => t.Id == "cpu_power_throttling_disable");
+
+        var textWithConversationalBloat = $$"""
+        Sure, here is the optimization profile you requested for Windows gaming:
+        {
+          "analysisSummary": "Extracted despite conversational prefixes.",
+          "recommendedTweakIds": ["{{sampleTweak.Id}}"],
+          "tweakJustifications": {
+            "{{sampleTweak.Id}}": "Disables power throttling."
+          },
+          "estimatedImpact": "-15% latency"
+        }
+        Sure! Let me know if you need anything else or have questions.
+        """;
+
+        var result = service.ParseAiResponse(textWithConversationalBloat, _sampleHardwareProfile, _allTweaks, null, "liquid/lfm-3-1.7b:free");
+
+        Assert.NotNull(result);
+        Assert.Equal("Extracted despite conversational prefixes.", result.AnalysisSummary);
+        Assert.Single(result.RecommendedTweakIds);
+        Assert.Equal(sampleTweak.Id, result.RecommendedTweakIds[0]);
+        Assert.True(result.IsOnlineAiGenerated);
+        Assert.Equal("liquid/lfm-3-1.7b:free", result.AiModelUsed);
+    }
+
+    [Fact]
+    public void ParseAiResponse_ConversationalTextWithNestedBraces_ParsesSuccessfully()
+    {
+        using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
+        var sampleTweak = _allTweaks.First(t => t.Id == "cpu_power_throttling_disable");
+
+        var textWithIrrelevantBraces = $$"""
+        Sure, note that {CS2 tweaks} are fully supported on {AMD Ryzen 7800X3D}. Here is the json:
+        {
+          "analysisSummary": "Parsed with nested extraneous braces.",
+          "recommendedTweakIds": ["{{sampleTweak.Id}}"],
+          "tweakJustifications": {
+            "{{sampleTweak.Id}}": "Disables power throttling."
+          },
+          "estimatedImpact": "-18% latency"
+        }
+        Remember to check {Settings} afterwards!
+        """;
+
+        var result = service.ParseAiResponse(textWithIrrelevantBraces, _sampleHardwareProfile, _allTweaks);
+
+        Assert.NotNull(result);
+        Assert.Equal("Parsed with nested extraneous braces.", result.AnalysisSummary);
+        Assert.Single(result.RecommendedTweakIds);
+        Assert.Equal(sampleTweak.Id, result.RecommendedTweakIds[0]);
+    }
+
+    [Fact]
+    public void ParseAiResponse_RegexTweaksArrayFallback_ParsesSuccessfully()
+    {
+        using var service = new OpenRouterAiService(compatibilityEngine: _compatibilityEngine);
+        var sampleTweak = _allTweaks.First(t => t.Id == "cpu_power_throttling_disable");
+
+        var rawArrayText = $$"""
+        Sure, here is the list of recommended tweaks:
+        "tweaks": [
+          {
+            "id": "{{sampleTweak.Id}}",
+            "rationale": "Direct array match without outer object."
+          }
+        ]
+        Hope this is what you wanted!
+        """;
+
+        var result = service.ParseAiResponse(rawArrayText, _sampleHardwareProfile, _allTweaks);
+
+        Assert.NotNull(result);
+        Assert.Single(result.RecommendedTweakIds);
+        Assert.Equal(sampleTweak.Id, result.RecommendedTweakIds[0]);
+    }
+
+    [Fact]
+    public void FallbackFreeModels_ContainsUpdatedOpenRouterModels()
+    {
+        Assert.Contains("openrouter/free", OpenRouterAiService.FallbackFreeModels);
+        Assert.Contains("google/gemma-4-26b-a4b-it:free", OpenRouterAiService.FallbackFreeModels);
+        Assert.Contains("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", OpenRouterAiService.FallbackFreeModels);
     }
 
     #endregion

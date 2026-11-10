@@ -276,7 +276,7 @@ public class HardwareScanner : IHardwareScanner
                 using (mo)
                 {
                     string name = mo["Name"]?.ToString()?.Trim() ?? "Unknown GPU";
-                    string driver = mo["DriverVersion"]?.ToString()?.Trim() ?? "Unknown";
+                    string rawDriver = mo["DriverVersion"]?.ToString()?.Trim() ?? "Unknown";
 
                     double vramGb = 0;
                     if (mo["AdapterRAM"] != null && long.TryParse(mo["AdapterRAM"].ToString(), out long vramBytes))
@@ -294,6 +294,8 @@ public class HardwareScanner : IHardwareScanner
                     bool isNvidia = name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase) || name.Contains("RTX", StringComparison.OrdinalIgnoreCase) || name.Contains("GTX", StringComparison.OrdinalIgnoreCase);
                     bool isAmd = name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase);
                     bool isIntel = name.Contains("Intel", StringComparison.OrdinalIgnoreCase) || name.Contains("Arc", StringComparison.OrdinalIgnoreCase);
+
+                    string driver = ParseDriverVersion(rawDriver, isNvidia);
 
                     bool hagsSupported = isNvidia || isAmd || isIntel;
                     bool hagsEnabled = DetectHagsStatus();
@@ -351,7 +353,7 @@ public class HardwareScanner : IHardwareScanner
                 {
                     using var subKey = key.OpenSubKey(sub, writable: false);
                     var desc = subKey?.GetValue("DriverDesc")?.ToString();
-                    var driver = subKey?.GetValue("DriverVersion")?.ToString() ?? "Standard";
+                    var rawDriver = subKey?.GetValue("DriverVersion")?.ToString() ?? "Standard";
                     if (!string.IsNullOrWhiteSpace(desc) && !desc.Contains("Basic Display", StringComparison.OrdinalIgnoreCase))
                     {
                         double vram = 4.0;
@@ -361,6 +363,8 @@ public class HardwareScanner : IHardwareScanner
                         bool isNvidia = desc.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || desc.Contains("GeForce", StringComparison.OrdinalIgnoreCase);
                         bool isAmd = desc.Contains("AMD", StringComparison.OrdinalIgnoreCase) || desc.Contains("Radeon", StringComparison.OrdinalIgnoreCase);
                         bool isIntel = desc.Contains("Intel", StringComparison.OrdinalIgnoreCase);
+
+                        string driver = ParseDriverVersion(rawDriver, isNvidia);
 
                         return new GpuInfo(
                             Name: desc,
@@ -380,6 +384,98 @@ public class HardwareScanner : IHardwareScanner
         }
         catch { }
         return null;
+    }
+
+    public static string ParseDriverVersion(string rawDriver, bool isNvidia)
+    {
+        if (string.IsNullOrWhiteSpace(rawDriver) || rawDriver.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+            return rawDriver;
+
+        if (isNvidia)
+        {
+            // Windows video driver version format for NVIDIA is usually XX.XX.1A.BCDE (e.g. 32.0.15.6094 -> 560.94, 32.0.16.1714 -> 617.14)
+            var match = Regex.Match(rawDriver, @"\b\d+\.\d+\.(1\d)\.(\d{4,5})\b");
+            if (match.Success)
+            {
+                var p1 = match.Groups[1].Value;
+                var p2 = match.Groups[2].Value;
+                if (p1.Length > 1)
+                {
+                    var combined = p1.Substring(1) + p2;
+                    if (combined.Length >= 3)
+                    {
+                        return combined.Insert(combined.Length - 2, ".");
+                    }
+                }
+            }
+
+            // Already formatted (e.g. "560.94" or "617.14")
+            if (Regex.IsMatch(rawDriver, @"^\d{3}\.\d{2}$"))
+            {
+                return rawDriver;
+            }
+
+            var parts = rawDriver.Split('.');
+            if (parts.Length == 4)
+            {
+                var p3 = parts[2];
+                var p4 = parts[3];
+                if (p3.StartsWith("1") && p3.Length > 1 && p4.Length >= 2)
+                {
+                    var combined = p3.Substring(1) + p4;
+                    if (combined.Length >= 3)
+                    {
+                        return combined.Insert(combined.Length - 2, ".");
+                    }
+                }
+            }
+        }
+
+        return rawDriver;
+    }
+
+    public static string DetermineDriveFormat(string model, uint busType, ushort mediaType, ulong spindleSpeed)
+    {
+        // 1. BusType 17 (NVMe) or Model contains "NVMe", "PCIe", "Samsung SSD 9", "WD_BLACK", "Kingston NV", etc. -> "M2 nvme"
+        if (busType == 17 ||
+            model.Contains("NVMe", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("PCIe", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("Samsung SSD 9", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("WD_BLACK", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("WD Black", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("Kingston NV", StringComparison.OrdinalIgnoreCase))
+        {
+            return "M2 nvme";
+        }
+
+        // 2. MediaType 4 (SSD) or Model contains "SSD" -> "SSD"
+        if (mediaType == 4 || model.Contains("SSD", StringComparison.OrdinalIgnoreCase))
+        {
+            return "SSD";
+        }
+
+        // 3. MediaType 3 (HDD) or SpindleSpeed > 0 or Model contains "HDD", "ST", "WDC WD", "Toshiba" -> "HDD"
+        if (mediaType == 3 ||
+            spindleSpeed > 0 ||
+            model.Contains("HDD", StringComparison.OrdinalIgnoreCase) ||
+            model.StartsWith("ST", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("WDC WD", StringComparison.OrdinalIgnoreCase) ||
+            model.Contains("Toshiba", StringComparison.OrdinalIgnoreCase))
+        {
+            return "HDD";
+        }
+
+        return "SSD";
+    }
+
+    private sealed class PhysicalDiskInfo
+    {
+        public string DeviceId { get; set; } = "";
+        public string FriendlyName { get; set; } = "";
+        public uint BusType { get; set; }
+        public ushort MediaType { get; set; }
+        public ulong SpindleSpeed { get; set; }
+        public string DriveFormat { get; set; } = "SSD";
     }
 
     private double? DetectDedicatedVramFromRegistry(string gpuName)
@@ -490,7 +586,7 @@ public class HardwareScanner : IHardwareScanner
     {
         return new List<DiskDriveInfo>
         {
-            new DiskDriveInfo("Системный накопитель (C:)", "PCIe / NVMe", "NVMe", 512, 256, "C:", true, true)
+            new DiskDriveInfo("Системный накопитель (C:)", "PCIe / NVMe", "NVMe", 512, 256, "C:", true, true, "M2 nvme")
         };
     }
 
@@ -602,40 +698,135 @@ public class HardwareScanner : IHardwareScanner
         try
         {
             var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
+            string systemLetter = (systemDrive.Length > 0 ? systemDrive[0].ToString() : "C").ToUpperInvariant();
 
-            // Pre-scan physical disk drives once
-            var physicalDisks = new List<(string Model, string InterfaceType, string MediaType)>();
+            var physicalDisks = new Dictionary<string, PhysicalDiskInfo>(StringComparer.OrdinalIgnoreCase);
+            var driveLetterToDiskId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // 1. Query MSFT_PhysicalDisk and MSFT_Partition from root\Microsoft\Windows\Storage
             try
             {
-                using var searcher = new ManagementObjectSearcher("SELECT Model, MediaType, InterfaceType FROM Win32_DiskDrive");
-                using var results = searcher.Get();
-                foreach (ManagementObject mo in results)
+                var scope = new ManagementScope(@"root\Microsoft\Windows\Storage");
+                scope.Connect();
+
+                using var diskSearcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT DeviceId, FriendlyName, Model, BusType, MediaType, SpindleSpeed FROM MSFT_PhysicalDisk"));
+                using var diskResults = diskSearcher.Get();
+                foreach (ManagementObject mo in diskResults)
                 {
                     using (mo)
                     {
-                        var m = mo["Model"]?.ToString();
-                        var iface = mo["InterfaceType"]?.ToString() ?? "";
-                        if (!string.IsNullOrEmpty(m))
+                        string deviceId = mo["DeviceId"]?.ToString()?.Trim() ?? "";
+                        string friendlyName = mo["FriendlyName"]?.ToString()?.Trim() ?? mo["Model"]?.ToString()?.Trim() ?? "";
+                        uint busType = 0;
+                        if (mo["BusType"] != null && uint.TryParse(mo["BusType"].ToString(), out uint bt)) busType = bt;
+                        ushort mediaType = 0;
+                        if (mo["MediaType"] != null && ushort.TryParse(mo["MediaType"].ToString(), out ushort mt)) mediaType = mt;
+                        ulong spindleSpeed = 0;
+                        if (mo["SpindleSpeed"] != null && ulong.TryParse(mo["SpindleSpeed"].ToString(), out ulong ss)) spindleSpeed = ss;
+
+                        string format = DetermineDriveFormat(friendlyName, busType, mediaType, spindleSpeed);
+                        if (!string.IsNullOrEmpty(deviceId))
                         {
-                            string mediaType = "SSD";
-                            if (m.Contains("NVMe", StringComparison.OrdinalIgnoreCase) || (iface.Contains("SCSI", StringComparison.OrdinalIgnoreCase) && m.Contains("SSD", StringComparison.OrdinalIgnoreCase)))
+                            physicalDisks[deviceId] = new PhysicalDiskInfo
                             {
-                                mediaType = "NVMe";
-                            }
-                            else if (m.Contains("SSD", StringComparison.OrdinalIgnoreCase))
+                                DeviceId = deviceId,
+                                FriendlyName = friendlyName,
+                                BusType = busType,
+                                MediaType = mediaType,
+                                SpindleSpeed = spindleSpeed,
+                                DriveFormat = format
+                            };
+                        }
+                    }
+                }
+
+                using var partSearcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT DiskNumber, DriveLetter FROM MSFT_Partition"));
+                using var partResults = partSearcher.Get();
+                foreach (ManagementObject mo in partResults)
+                {
+                    using (mo)
+                    {
+                        string diskNum = mo["DiskNumber"]?.ToString()?.Trim() ?? "";
+                        var dlObj = mo["DriveLetter"];
+                        if (dlObj != null && !string.IsNullOrWhiteSpace(diskNum))
+                        {
+                            string dlStr = dlObj.ToString()?.Trim() ?? "";
+                            if (!string.IsNullOrEmpty(dlStr) && dlStr != "\0" && dlStr != "0")
                             {
-                                mediaType = "SSD";
+                                char letter = dlStr[0];
+                                if (char.IsLetter(letter))
+                                {
+                                    driveLetterToDiskId[letter.ToString().ToUpperInvariant()] = diskNum;
+                                }
                             }
-                            else if (m.Contains("HDD", StringComparison.OrdinalIgnoreCase) || iface.Contains("IDE", StringComparison.OrdinalIgnoreCase))
-                            {
-                                mediaType = "HDD";
-                            }
-                            physicalDisks.Add((m, iface, mediaType));
                         }
                     }
                 }
             }
             catch { }
+
+            // 2. Fallback / supplement drive letter to partition mapping from root\cimv2 (Win32_LogicalDiskToPartition)
+            try
+            {
+                using var relSearcher = new ManagementObjectSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition");
+                using var relResults = relSearcher.Get();
+                foreach (ManagementObject mo in relResults)
+                {
+                    using (mo)
+                    {
+                        var ant = mo["Antecedent"]?.ToString() ?? "";
+                        var dep = mo["Dependent"]?.ToString() ?? "";
+                        var driveMatch = Regex.Match(dep, @"DeviceID\s*=\s*""([A-Za-z]):?""");
+                        var diskMatch = Regex.Match(ant, @"Disk\s*#(\d+)");
+                        if (driveMatch.Success && diskMatch.Success)
+                        {
+                            string dl = driveMatch.Groups[1].Value.ToUpperInvariant();
+                            string diskId = diskMatch.Groups[1].Value;
+                            if (!driveLetterToDiskId.ContainsKey(dl))
+                            {
+                                driveLetterToDiskId[dl] = diskId;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // 3. Fallback physical disks from Win32_DiskDrive if physicalDisks was empty
+            if (physicalDisks.Count == 0)
+            {
+                try
+                {
+                    using var diskSearcher = new ManagementObjectSearcher("SELECT Index, Model, InterfaceType, MediaType FROM Win32_DiskDrive");
+                    using var diskResults = diskSearcher.Get();
+                    foreach (ManagementObject mo in diskResults)
+                    {
+                        using (mo)
+                        {
+                            string index = mo["Index"]?.ToString()?.Trim() ?? "";
+                            string model = mo["Model"]?.ToString()?.Trim() ?? "";
+                            string iface = mo["InterfaceType"]?.ToString() ?? "";
+                            uint busType = (iface.Contains("NVMe", StringComparison.OrdinalIgnoreCase) || model.Contains("NVMe", StringComparison.OrdinalIgnoreCase)) ? 17u : 11u;
+                            ushort mediaType = (model.Contains("SSD", StringComparison.OrdinalIgnoreCase) || busType == 17) ? (ushort)4 : (ushort)3;
+                            ulong spindle = mediaType == 3 ? 7200UL : 0UL;
+                            string format = DetermineDriveFormat(model, busType, mediaType, spindle);
+                            if (!string.IsNullOrEmpty(index) && !physicalDisks.ContainsKey(index))
+                            {
+                                physicalDisks[index] = new PhysicalDiskInfo
+                                {
+                                    DeviceId = index,
+                                    FriendlyName = model,
+                                    BusType = busType,
+                                    MediaType = mediaType,
+                                    SpindleSpeed = spindle,
+                                    DriveFormat = format
+                                };
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
 
             DriveInfo[] drives;
             try
@@ -647,7 +838,6 @@ public class HardwareScanner : IHardwareScanner
                 drives = Array.Empty<DriveInfo>();
             }
 
-            int diskIdx = 0;
             foreach (var d in drives)
             {
                 try
@@ -655,32 +845,43 @@ public class HardwareScanner : IHardwareScanner
                     if (!d.IsReady || d.DriveType != DriveType.Fixed) continue;
 
                     string letter = d.Name.TrimEnd('\\');
-                    bool isSys = letter.Equals(systemDrive, StringComparison.OrdinalIgnoreCase);
+                    string charLetter = (letter.Length > 0 ? letter[0].ToString() : "C").ToUpperInvariant();
+                    bool isSys = charLetter.Equals(systemLetter, StringComparison.OrdinalIgnoreCase);
+
                     double totalGb = Math.Round(d.TotalSize / (1024.0 * 1024.0 * 1024.0), 1);
                     double freeGb = Math.Round(d.AvailableFreeSpace / (1024.0 * 1024.0 * 1024.0), 1);
 
                     string volLabel = "";
                     try { volLabel = d.VolumeLabel; } catch { }
-                    string model = string.IsNullOrWhiteSpace(volLabel) ? $"Локальный диск ({letter})" : $"{volLabel} ({letter})";
-                    string mediaType = "SSD";
 
-                    if (physicalDisks.Count > 0)
+                    PhysicalDiskInfo? diskInfo = null;
+                    if (driveLetterToDiskId.TryGetValue(charLetter, out string? diskId) && diskId != null)
                     {
-                        var disk = diskIdx < physicalDisks.Count ? physicalDisks[diskIdx] : physicalDisks[0];
-                        model = disk.Model;
-                        mediaType = disk.MediaType;
+                        physicalDisks.TryGetValue(diskId, out diskInfo);
                     }
-                    diskIdx++;
+
+                    if (diskInfo == null && physicalDisks.Count == 1)
+                    {
+                        diskInfo = physicalDisks.Values.First();
+                    }
+
+                    string model = diskInfo?.FriendlyName ?? (!string.IsNullOrWhiteSpace(volLabel) ? $"{volLabel} ({letter})" : $"Локальный диск ({letter})");
+                    string format = diskInfo?.DriveFormat ?? (model.Contains("NVMe", StringComparison.OrdinalIgnoreCase) ? "M2 nvme" : (model.Contains("SSD", StringComparison.OrdinalIgnoreCase) ? "SSD" : "HDD"));
+
+                    string ifaceType = format == "M2 nvme" ? "PCIe / NVMe" : (diskInfo?.BusType == 7 ? "USB" : "SATA");
+                    string mediaType = format == "M2 nvme" ? "NVMe" : format;
+                    bool supportsTrim = format != "HDD";
 
                     list.Add(new DiskDriveInfo(
                         Model: model,
-                        InterfaceType: mediaType == "NVMe" ? "PCIe / NVMe" : "SATA",
+                        InterfaceType: ifaceType,
                         MediaType: mediaType,
                         TotalSizeGb: totalGb,
                         FreeSpaceGb: freeGb,
                         DriveLetter: letter,
                         IsSystemDrive: isSys,
-                        SupportsTrim: mediaType != "HDD"
+                        SupportsTrim: supportsTrim,
+                        DriveFormatOverride: format
                     ));
                 }
                 catch { }
@@ -690,7 +891,7 @@ public class HardwareScanner : IHardwareScanner
 
         if (list.Count == 0)
         {
-            list.Add(new DiskDriveInfo("Системный накопитель (C:)", "PCIe / NVMe", "NVMe", 512, 256, "C:", true, true));
+            list.Add(new DiskDriveInfo("Системный накопитель (C:)", "PCIe / NVMe", "NVMe", 512, 256, "C:", true, true, "M2 nvme"));
         }
 
         return list;

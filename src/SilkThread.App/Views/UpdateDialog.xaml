@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     mc:Ignorable="d"
     Padding="24"
     CornerRadius="14"
@@ -92,7 +93,8 @@
         <StackPanel Grid.Row="2" Spacing="8">
             <TextBlock x:Name="WhatsNewHeaderText" Text="Что нового в этой версии:" FontSize="13" FontWeight="SemiBold" Foreground="#969CAB" />
             <Border Background="#121520" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14">
-                <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto"
+                              helpers:SmoothScroll.IsEnabled="True">
                     <TextBlock x:Name="DescriptionText" 
                                Text="• Полная переработка интерфейса в стиле Minimal Dark Bento Grid&#x0a;• Устранение дрожания плиток в игровой матрице задержек&#x0a;• Дистанционная доставка обновлений SilkThread Auto-Update" 
                                FontSize="13" LineHeight="20" Foreground="#F3F4F8" TextWrapping="Wrap" />

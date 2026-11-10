@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using SilkThread.Core.Execution;
 
 namespace SilkThread.Core.SystemOperations;
 
@@ -75,16 +76,41 @@ public static class CommandOperations
             if (completedTask != waitForExitTask)
             {
                 try { process.Kill(); } catch { }
+                if (fileName.Contains("powershell", StringComparison.OrdinalIgnoreCase))
+                {
+                    TweakExecutionService.Instance.LogPowerShell(arguments, -1, null, "Process timed out");
+                }
+                else
+                {
+                    TweakExecutionService.Instance.LogCommand(fileName, arguments, -1, null, "Process timed out");
+                }
                 return (-1, string.Empty, "Process timed out");
             }
 
             string stdout = await stdoutTask;
             string stderr = await stderrTask;
 
+            if (fileName.Contains("powershell", StringComparison.OrdinalIgnoreCase))
+            {
+                TweakExecutionService.Instance.LogPowerShell(arguments, process.ExitCode, stdout, stderr);
+            }
+            else
+            {
+                TweakExecutionService.Instance.LogCommand(fileName, arguments, process.ExitCode, stdout, stderr);
+            }
+
             return (process.ExitCode, stdout, stderr);
         }
         catch (Exception ex)
         {
+            if (fileName.Contains("powershell", StringComparison.OrdinalIgnoreCase))
+            {
+                TweakExecutionService.Instance.LogPowerShell(arguments, -1, null, ex.Message);
+            }
+            else
+            {
+                TweakExecutionService.Instance.LogCommand(fileName, arguments, -1, null, ex.Message);
+            }
             return (-1, string.Empty, ex.Message);
         }
     }

@@ -21,14 +21,18 @@ public partial class RestoreBackupViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StatusDescription))]
     [NotifyPropertyChangedFor(nameof(IsProtectionActive))]
+    [NotifyPropertyChangedFor(nameof(IsProtectionInactive))]
     [NotifyPropertyChangedFor(nameof(ProtectionStatusBadge))]
+    [NotifyPropertyChangedFor(nameof(EmptyTitleLabel))]
+    [NotifyPropertyChangedFor(nameof(EmptyDescriptionLabel))]
     private RestorePointStatus? _status;
 
     public string StatusDescription => Status?.StatusDescription ?? "Служба защиты системы готова к созданию контрольных точек.";
     public bool IsProtectionActive => Status?.SystemDriveProtected == true;
+    public bool IsProtectionInactive => !IsProtectionActive;
     public string ProtectionStatusBadge => Status?.SystemDriveProtected == true 
-        ? (_loc.CurrentLanguage == "ru" ? "ЗАЩИЩЕНА" : "PROTECTED") 
-        : (_loc.CurrentLanguage == "ru" ? "ВНИМАНИЕ" : "ATTENTION");
+        ? (_loc.CurrentLanguage == "ru" ? "ВКЛЮЧЕНА" : "ACTIVE") 
+        : (_loc.CurrentLanguage == "ru" ? "ВЫКЛЮЧЕНА" : "DISABLED");
     public int RestorePointsCount => RestorePoints.Count;
 
     [ObservableProperty]
@@ -65,7 +69,21 @@ public partial class RestoreBackupViewModel : ObservableObject
     public string RefreshListLabel => _loc["Rest_Refresh_Btn"];
     public string RollbackBtnLabel => _loc["Rest_Rollback_Btn"];
     public string DeleteBtnLabel => _loc["Rest_Delete_Btn"];
-    public string EmptyTitleLabel => _loc["Rest_Empty_Title"];
+
+    public string EmptyTitleLabel => Status?.SystemDriveProtected == false
+        ? (_loc.CurrentLanguage == "ru" ? "Защита системы выключена" : "System Protection is Disabled")
+        : (_loc.CurrentLanguage == "ru" ? "Точки восстановления не найдены" : "No Restore Points Found");
+
+    public string EmptyDescriptionLabel => Status?.SystemDriveProtected == false
+        ? (_loc.CurrentLanguage == "ru"
+            ? "Защита системного диска Windows отключена. Включите защиту системы для возможности создания контрольных точек."
+            : "System drive protection is disabled in Windows settings. Enable protection or create the first restore point.")
+        : (_loc.CurrentLanguage == "ru"
+            ? "В системе пока нет контрольных точек восстановления. Нажмите кнопку ниже, чтобы создать первую контрольную точку перед оптимизацией."
+            : "No system restore points found. Click below to create your first restore point before optimization.");
+
+    public string CreateFirstPointLabel => _loc.CurrentLanguage == "ru" ? "Создать первую точку восстановления" : "Create First Restore Point";
+    public string EnableProtectionLabel => _loc.CurrentLanguage == "ru" ? "Включить защиту диска C:" : "Enable System Protection (C:)";
 
     public RestoreBackupViewModel(
         IRestorePointManager restorePointManager,
@@ -90,6 +108,7 @@ public partial class RestoreBackupViewModel : ObservableObject
             OnPropertyChanged(nameof(CreateCardTitle));
             OnPropertyChanged(nameof(CreateCardDesc));
             OnPropertyChanged(nameof(StatusDescription));
+            OnPropertyChanged(nameof(ProtectionStatusBadge));
             OnPropertyChanged(nameof(SubProtectionLabel));
             OnPropertyChanged(nameof(SubStatusLabel));
             OnPropertyChanged(nameof(RstruiTooltip));
@@ -100,6 +119,9 @@ public partial class RestoreBackupViewModel : ObservableObject
             OnPropertyChanged(nameof(RollbackBtnLabel));
             OnPropertyChanged(nameof(DeleteBtnLabel));
             OnPropertyChanged(nameof(EmptyTitleLabel));
+            OnPropertyChanged(nameof(EmptyDescriptionLabel));
+            OnPropertyChanged(nameof(CreateFirstPointLabel));
+            OnPropertyChanged(nameof(EnableProtectionLabel));
             _ = LoadRestorePointsAsync();
         };
     }
@@ -124,9 +146,10 @@ public partial class RestoreBackupViewModel : ObservableObject
         {
             var points = await _restorePointManager.GetRestorePointsAsync();
             RestorePoints.Clear();
-            foreach (var p in points)
+            for (int i = 0; i < points.Count; i++)
             {
-                RestorePoints.Add(p);
+                var p = points[i];
+                RestorePoints.Add(p with { IsNewest = (i == 0) });
             }
             OnPropertyChanged(nameof(HasNoPoints));
             OnPropertyChanged(nameof(RestorePointsCount));
@@ -192,6 +215,24 @@ public partial class RestoreBackupViewModel : ObservableObject
         {
             var res = await _restorePointManager.DeleteRestorePointAsync(point.SequenceNumber);
             OperationMessage = res.Message;
+            await LoadRestorePointsAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task EnableProtectionAsync()
+    {
+        IsBusy = true;
+        OperationMessage = _loc.CurrentLanguage == "ru" ? "Включение защиты системы на диске C:..." : "Enabling system protection on drive C:...";
+        try
+        {
+            var res = await _restorePointManager.EnableProtectionAsync("C:\\");
+            OperationMessage = res.Message;
+            await RefreshStatusAsync();
             await LoadRestorePointsAsync();
         }
         finally

@@ -10,7 +10,7 @@ public static class InstallEngine
 {
     public const string AppName = "SilkThread";
     public const string AppDisplayName = "SilkThread — Windows Gaming Optimizer";
-    public const string AppVersion = "1.1.2";
+    public const string AppVersion = "1.2.0";
     public const string AppPublisher = "SilkThread";
     public const string RegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\SilkThread";
 
@@ -185,5 +185,16 @@ public static class InstallEngine
         catch { }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -89,6 +89,19 @@ public static class ServiceOperations
         }
     }
 
+    public static string GetServiceStatus(string serviceName)
+    {
+        try
+        {
+            using var sc = new ServiceController(serviceName);
+            return sc.Status.ToString();
+        }
+        catch
+        {
+            return "Unknown";
+        }
+    }
+
     public static bool StopServiceIfRunning(string serviceName, int timeoutSeconds = 5)
     {
         try

@@ -6,10 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:SilkThread.Core.Models"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <ScrollViewer Background="#0E1017" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="28,20,28,32">
+    <ScrollViewer Background="#0E1017" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="28,20,28,32"
+                  helpers:SmoothScroll.IsEnabled="True">
         <StackPanel Spacing="20" HorizontalAlignment="Stretch">
 
             <!-- Page Title & Subtitle -->
@@ -175,7 +177,8 @@
                                  Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <!-- Restore Points List -->
-                    <ListView ItemsSource="{x:Bind ViewModel.RestorePoints}" SelectionMode="None">
+                    <ListView ItemsSource="{x:Bind ViewModel.RestorePoints}" SelectionMode="None"
+                              helpers:SmoothScroll.IsEnabled="True">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -196,11 +199,27 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Sequence Number Badge -->
-                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8" 
-                                                Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{x:Bind SequenceNumber}" FontSize="12" FontWeight="Bold" FontFamily="Consolas" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
+                                        <!-- Sequence Number Badge with Active Anchor Pulsing Ring -->
+                                        <Grid Grid.Column="0" Width="44" Height="44" VerticalAlignment="Center">
+                                            <!-- Active Anchor Pulse Aura Ring (#22C55E newest restore point) -->
+                                            <Border x:Name="AnchorPulseRing" Width="44" Height="44" CornerRadius="10"
+                                                    BorderBrush="#22C55E" BorderThickness="2"
+                                                    Opacity="0.8"
+                                                    RenderTransformOrigin="0.5,0.5"
+                                                    Loaded="AnchorPulseRing_Loaded"
+                                                    Visibility="{x:Bind IsNewest, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                                                </Border.RenderTransform>
+                                            </Border>
+
+                                            <!-- Sequence Number Badge -->
+                                            <Border Width="38" Height="38" CornerRadius="8" 
+                                                    Background="#181B25" BorderBrush="#2B3040" BorderThickness="1"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind SequenceNumber}" FontSize="12" FontWeight="Bold" FontFamily="Consolas" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </Grid>
 
                                         <!-- Description & Meta -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
@@ -213,6 +232,15 @@
 
                                                 <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,1.5">
                                                     <TextBlock Text="{x:Bind EventTypeString}" FontSize="9.5" FontWeight="SemiBold" Foreground="#969CAB" />
+                                                </Border>
+
+                                                <!-- Active Anchor Safety Pill for Newest Point -->
+                                                <Border Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="4" Padding="6,1.5"
+                                                        Visibility="{x:Bind IsNewest, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                        <Ellipse Width="5" Height="5" Fill="#22C55E" />
+                                                        <TextBlock Text="АКТИВНАЯ ТОЧКА" FontSize="9" FontWeight="Bold" Foreground="#22C55E" />
+                                                    </StackPanel>
                                                 </Border>
                                             </StackPanel>
                                         </StackPanel>
@@ -248,14 +276,36 @@
                     <!-- Empty State -->
                     <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="28"
                             Visibility="{x:Bind ViewModel.HasNoPoints, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
                             <Border Width="64" Height="64" CornerRadius="32" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE90F;" FontSize="28" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.EmptyTitleLabel, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Center" />
-                                <TextBlock Text="{x:Bind ViewModel.EmptyLabel, Mode=OneWay}" 
-                                           FontSize="12" Foreground="#969CAB" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="460" LineHeight="17" />
+                            <StackPanel Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.EmptyTitleLabel, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="#F3F4F8" HorizontalAlignment="Center" />
+                                <TextBlock Text="{x:Bind ViewModel.EmptyDescriptionLabel, Mode=OneWay}" 
+                                           FontSize="12.5" Foreground="#969CAB" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="520" LineHeight="18" />
+                            </StackPanel>
+
+                            <!-- Action Buttons in Empty State -->
+                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                <Button Command="{x:Bind ViewModel.CreateRestorePointCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                        Style="{StaticResource SilkPrimaryButtonStyle}" Padding="18,9">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE710;" FontSize="13" />
+                                        <TextBlock Text="{x:Bind ViewModel.CreateFirstPointLabel, Mode=OneWay}" FontWeight="Bold" FontSize="12.5" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{x:Bind ViewModel.EnableProtectionCommand}"
+                                        Visibility="{x:Bind ViewModel.IsProtectionInactive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                        Style="{StaticResource SilkSecondaryButtonStyle}" Padding="16,9">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE73E;" FontSize="13" Foreground="#22C55E" />
+                                        <TextBlock Text="{x:Bind ViewModel.EnableProtectionLabel, Mode=OneWay}" FontWeight="SemiBold" FontSize="12.5" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </StackPanel>
                     </Border>

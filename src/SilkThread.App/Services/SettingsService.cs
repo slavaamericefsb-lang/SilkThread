@@ -15,11 +15,13 @@ public class AppSettingsModel
     public bool ShowRebootNotifications { get; set; } = true;
     public string OpenRouterApiKey { get; set; } = string.Empty;
     public string OpenRouterModel { get; set; } = "liquid/lfm-3-1.7b:free";
+    public int LastOptimizationProfileIndex { get; set; } = 0;
 }
 
 public interface ISettingsService
 {
     AppSettingsModel Settings { get; }
+    int LastOptimizationProfileIndex { get; set; }
     void Save();
     void SaveSettings() => Save();
     event EventHandler? SettingsChanged;
@@ -29,6 +31,12 @@ public class SettingsService : ISettingsService
 {
     private readonly string _settingsFilePath;
     public AppSettingsModel Settings { get; private set; }
+
+    public int LastOptimizationProfileIndex
+    {
+        get => Settings.LastOptimizationProfileIndex;
+        set => Settings.LastOptimizationProfileIndex = value;
+    }
 
     public event EventHandler? SettingsChanged;
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Win32;
+using SilkThread.Core.Execution;
 
 namespace SilkThread.Core.SystemOperations;
 
@@ -90,10 +91,18 @@ public static class RegistryOperations
         try
         {
             using var baseKey = GetHiveKey(hive);
-            if (baseKey == null) return false;
+            if (baseKey == null)
+            {
+                TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, "Registry hive not accessible");
+                return false;
+            }
 
             using var key = baseKey.CreateSubKey(subKey, writable: true);
-            if (key == null) return false;
+            if (key == null)
+            {
+                TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, "Cannot create or open subkey");
+                return false;
+            }
 
             // Preserve existing String type if Windows expects a string for this value
             try
@@ -101,16 +110,19 @@ public static class RegistryOperations
                 if (key.GetValue(valueName) != null && key.GetValueKind(valueName) == RegistryValueKind.String)
                 {
                     key.SetValue(valueName, value.ToString(), RegistryValueKind.String);
+                    TweakExecutionService.Instance.LogRegistry(hive, subKey, valueName, value.ToString(), "String");
                     return true;
                 }
             }
             catch { }
 
             key.SetValue(valueName, value, RegistryValueKind.DWord);
+            TweakExecutionService.Instance.LogRegistry(hive, subKey, valueName, value, "DWORD");
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, ex.Message);
             return false;
         }
     }
@@ -120,16 +132,26 @@ public static class RegistryOperations
         try
         {
             using var baseKey = GetHiveKey(hive);
-            if (baseKey == null) return false;
+            if (baseKey == null)
+            {
+                TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, "Registry hive not accessible");
+                return false;
+            }
 
             using var key = baseKey.CreateSubKey(subKey, writable: true);
-            if (key == null) return false;
+            if (key == null)
+            {
+                TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, "Cannot create or open subkey");
+                return false;
+            }
 
             key.SetValue(valueName, value, RegistryValueKind.String);
+            TweakExecutionService.Instance.LogRegistry(hive, subKey, valueName, value, "String");
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, ex.Message);
             return false;
         }
     }
@@ -147,11 +169,13 @@ public static class RegistryOperations
             if (key.GetValue(valueName) != null)
             {
                 key.DeleteValue(valueName, throwOnMissingValue: false);
+                TweakExecutionService.Instance.Log($"[REGISTRY] Delete {hive}:\\{subKey} -> {valueName}");
             }
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            TweakExecutionService.Instance.LogRegistryFailure(hive, subKey, valueName, $"Delete failed: {ex.Message}");
             return false;
         }
     }

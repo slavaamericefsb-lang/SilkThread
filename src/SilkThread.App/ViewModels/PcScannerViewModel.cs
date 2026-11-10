@@ -59,7 +59,10 @@ public partial class PcScannerViewModel : ObservableObject
     private string _ramUsedGb = "0 ГБ";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RamUsedPercentage))]
     private double _ramUsagePercent;
+
+    public double RamUsedPercentage => RamUsagePercent;
 
     [ObservableProperty]
     private string _ramSpeed = "0 МГц";
@@ -146,7 +149,7 @@ public partial class PcScannerViewModel : ObservableObject
     public string LblDirectX => "DirectX API";
     public string LblOsBuild => _loc.CurrentLanguage == "ru" ? "Номер сборки" : "Build Number";
     public string LblGameMode => _loc.CurrentLanguage == "ru" ? "Игровой режим" : "Windows Game Mode";
-    public string LblStorageSubtitle => _loc.CurrentLanguage == "ru" ? "Дисковые накопители, емкость и статус TRIM" : "Storage Drives, Capacity & TRIM";
+    public string LblStorageSubtitle => _loc.CurrentLanguage == "ru" ? "Накопители, емкость и статус TRIM" : "Drives, Capacity & TRIM";
     public string LblCpuSubtitle => _loc.CurrentLanguage == "ru" ? "АРХИТЕКТУРА И ВЫЧИСЛИТЕЛЬНЫЕ ЯДРА" : "ARCHITECTURE & COMPUTE CORES";
     public string LblRamSubtitle => _loc.CurrentLanguage == "ru" ? "СКОРОСТЬ И ЗАПОЛНЕНИЕ ПАМЯТИ" : "SPEED & MEMORY CAPACITY";
     public string LblGpuSubtitle => _loc.CurrentLanguage == "ru" ? "ГРАФИЧЕСКИЙ АДАПТЕР И ДРАЙВЕР" : "GRAPHICS ADAPTER & DRIVER";
@@ -415,6 +418,7 @@ public partial class PcScannerViewModel : ObservableObject
             OnPropertyChanged(nameof(RamAvailGb));
             OnPropertyChanged(nameof(RamUsedGb));
             OnPropertyChanged(nameof(RamUsagePercent));
+            OnPropertyChanged(nameof(RamUsedPercentage));
             OnPropertyChanged(nameof(RamSpeed));
             OnPropertyChanged(nameof(RamTypeModules));
             OnPropertyChanged(nameof(RamChannelMode));
@@ -509,7 +513,7 @@ public partial class PcScannerViewModel : ObservableObject
         sb.AppendLine("[НАКОПИТЕЛИ]:");
         foreach (var drive in Profile.Storage)
         {
-            sb.AppendLine($" - [{drive.DriveLetter}] {drive.Model} ({drive.MediaType}): {drive.FreeSpaceGb:F1} ГБ свободно из {drive.TotalSizeGb:F1} ГБ (TRIM: {(drive.SupportsTrim ? "Да" : "Нет")})");
+            sb.AppendLine($" - [{drive.DriveLetter}] {drive.Model} ({drive.DriveFormat}): {drive.FreeSpaceGb:F1} ГБ свободно из {drive.TotalSizeGb:F1} ГБ (TRIM: {(drive.SupportsTrim ? "Да" : "Нет")})");
         }
         sb.AppendLine();
         sb.AppendLine($"[ОС]: {OsEdition} (Сборка {Profile.Os.BuildNumber}), Game Mode: {(Profile.Os.GameModeEnabled ? "Вкл" : "Выкл")}, Изоляция ядра: {(Profile.Os.CoreIsolationEnabled ? "Вкл" : "Выкл")}, Схема питания: {Profile.Os.ActivePowerPlanName}");

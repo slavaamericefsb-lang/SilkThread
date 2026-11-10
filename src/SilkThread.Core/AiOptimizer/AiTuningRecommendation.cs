@@ -15,5 +15,7 @@ public record AiTuningRecommendation(
     List<string> RecommendedTweakIds,
     Dictionary<string, string> TweakJustifications,
     string EstimatedImpact,
-    string HardwareSummary
+    string HardwareSummary,
+    bool IsOnlineAiGenerated = false,
+    string? AiModelUsed = null
 );

@@ -28,6 +28,25 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
     public const string RefererHeader = "https://github.com/ColdLuv/SilkThread";
     public const string AppTitleHeader = "SilkThread Gaming Optimizer";
 
+    public static readonly string[] FallbackFreeModels = new[]
+    {
+        "openrouter/free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+    };
+
+    public static Action<string>? ExternalLog { get; set; }
+
+    private void Log(string message)
+    {
+        _logger?.LogInformation("{Message}", message);
+        try
+        {
+            ExternalLog?.Invoke(message);
+        }
+        catch { }
+    }
+
     private readonly HttpClient _httpClient;
     private readonly bool _disposeClient;
     private readonly IHardwareScanner? _hardwareScanner;
@@ -140,73 +159,120 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         var systemPrompt = BuildSystemPrompt(hardwareProfile, candidateTweaks);
         var userPrompt = BuildUserPrompt(preferences);
 
-        // 5. Build OpenRouter Request Body
-        var requestPayload = new
+        // 5. Build OpenRouter Request Body & Execute with Multi-Model Fallback
+        var modelsToTry = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_model))
         {
-            model = _model,
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt }
-            },
-            response_format = new { type = "json_object" },
-            temperature = 0.2
-        };
-
-        var requestJson = JsonSerializer.Serialize(requestPayload, JsonOptions);
-
-        try
+            modelsToTry.Add(_model.Trim());
+        }
+        else
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
+            modelsToTry.Add(DefaultModel);
+        }
+
+        foreach (var fb in FallbackFreeModels)
+        {
+            if (!modelsToTry.Any(m => string.Equals(m, fb, StringComparison.OrdinalIgnoreCase)))
             {
-                Content = new StringContent(requestJson, Encoding.UTF8, "application/json")
+                modelsToTry.Add(fb);
+            }
+        }
+
+        string? lastFailureReason = null;
+
+        foreach (var currentModel in modelsToTry)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+
+            var requestPayload = new
+            {
+                model = currentModel,
+                messages = new[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userPrompt }
+                },
+                response_format = new { type = "json_object" },
+                temperature = 0.2,
+                max_tokens = 4000
             };
 
-            // Ensure headers are populated even if custom HttpClient without default headers was passed
-            if (!string.IsNullOrWhiteSpace(_apiKey) && !request.Headers.Contains("Authorization") && !_httpClient.DefaultRequestHeaders.Contains("Authorization"))
+            var requestJson = JsonSerializer.Serialize(requestPayload, JsonOptions);
+
+            try
             {
-                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {_apiKey}");
+                using var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
+                {
+                    Content = new StringContent(requestJson, Encoding.UTF8, "application/json")
+                };
+
+                // Ensure headers are populated even if custom HttpClient without default headers was passed
+                if (!string.IsNullOrWhiteSpace(_apiKey) && !request.Headers.Contains("Authorization") && !_httpClient.DefaultRequestHeaders.Contains("Authorization"))
+                {
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {_apiKey}");
+                }
+                if (!request.Headers.Contains("HTTP-Referer") && !_httpClient.DefaultRequestHeaders.Contains("HTTP-Referer"))
+                {
+                    request.Headers.TryAddWithoutValidation("HTTP-Referer", RefererHeader);
+                }
+                if (!request.Headers.Contains("X-Title") && !_httpClient.DefaultRequestHeaders.Contains("X-Title"))
+                {
+                    request.Headers.TryAddWithoutValidation("X-Title", AppTitleHeader);
+                }
+
+                Log($"[IOST AI] Отправка запроса к модели {currentModel}...");
+
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
+                Log($"[IOST AI] Ответ от {currentModel}: HTTP {response.StatusCode}");
+
+                if ((int)response.StatusCode == 429)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger?.LogWarning("OpenRouter model {Model} returned HTTP 429: {ErrorBody}. Retrying with fallback model...", currentModel, errorBody);
+                    lastFailureReason = $"OpenRouter API HTTP 429 (Rate Limit)";
+                    continue;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger?.LogWarning("OpenRouter API returned HTTP {StatusCode}: {ErrorBody}. Triggering heuristic fallback.",
+                        (int)response.StatusCode, errorBody);
+
+                    return GenerateHeuristicFallback(
+                        preferences,
+                        hardwareProfile,
+                        availableTweaks,
+                        $"OpenRouter API HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
+                }
+
+                var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger?.LogInformation("Received successful response from OpenRouter API.");
+
+                var result = ParseAiResponse(responseBody, hardwareProfile, availableTweaks, preferences, currentModel);
+                if (result != null && !result.AnalysisSummary.Contains("Heuristic Engine"))
+                {
+                    Log($"[IOST AI] Успешно получено {result.RecommendedTweakIds.Count} рекомендаций от нейросети!");
+                    return result;
+                }
+                else
+                {
+                    lastFailureReason = result?.AnalysisSummary ?? "AI returned 0 matching recommendations";
+                }
             }
-            if (!request.Headers.Contains("HTTP-Referer") && !_httpClient.DefaultRequestHeaders.Contains("HTTP-Referer"))
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                request.Headers.TryAddWithoutValidation("HTTP-Referer", RefererHeader);
+                throw;
             }
-            if (!request.Headers.Contains("X-Title") && !_httpClient.DefaultRequestHeaders.Contains("X-Title"))
+            catch (Exception ex)
             {
-                request.Headers.TryAddWithoutValidation("X-Title", AppTitleHeader);
+                _logger?.LogWarning(ex, "Exception while communicating with OpenRouter API. Engaging local heuristic fallback.");
+                return GenerateHeuristicFallback(preferences, hardwareProfile, availableTweaks, $"Network error: {ex.Message}");
             }
-
-            _logger?.LogInformation("Sending optimization request to OpenRouter ({Model})...", _model);
-
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger?.LogWarning("OpenRouter API returned HTTP {StatusCode}: {ErrorBody}. Triggering heuristic fallback.",
-                    (int)response.StatusCode, errorBody);
-
-                return GenerateHeuristicFallback(
-                    preferences,
-                    hardwareProfile,
-                    availableTweaks,
-                    $"OpenRouter API HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger?.LogInformation("Received successful response from OpenRouter API.");
-
-            return ParseAiResponse(responseBody, hardwareProfile, availableTweaks, preferences);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Exception while communicating with OpenRouter API. Engaging local heuristic fallback.");
-            return GenerateHeuristicFallback(preferences, hardwareProfile, availableTweaks, $"Network error: {ex.Message}");
-        }
+
+        Log("[IOST AI] Не удалось получить ответ от моделей из-за лимитов запросов (HTTP 429). Запуск локального эвристического анализа...");
+        return GenerateHeuristicFallback(preferences, hardwareProfile, availableTweaks, lastFailureReason ?? "Rate limit exceeded on all free models");
     }
 
     /// <inheritdoc />
@@ -263,6 +329,13 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         }
 
         sb.AppendLine();
+        sb.AppendLine("### ARCHITECTURAL TWEAK SELECTION CRITERIA:");
+        sb.AppendLine("1. You MUST generate a deep, comprehensive optimization profile containing between 60 and 130+ tweaks (scaled by risk tolerance: ~60–80 for SafeOnly, ~85–120 for Moderate, ~120–160+ for Experimental).");
+        sb.AppendLine("2. The selection MUST be evenly distributed across ALL key categories: CPU & Schedulers, GPU & Graphics, RAM & Memory, Network, Input & Latency, Gaming & DirectX, Services Debloat, Telemetry & Privacy, Storage & NVMe, Power & Maintenance, Windows Performance & UI, Advanced.");
+        sb.AppendLine("3. Do NOT limit recommendations to a small handful (such as 10-20 tweaks). The user expects a complete, full-system optimization profile.");
+        sb.AppendLine("4. Under no circumstances invent or hallucinate tweak IDs. Only select IDs from the candidate list below.");
+        sb.AppendLine("5. For every selected tweak ID, provide a clear, technical justification tailored to the user's specific CPU, GPU, RAM, and gaming scenario.");
+        sb.AppendLine();
         sb.AppendLine("### STRICT JSON OUTPUT REQUIREMENTS:");
         sb.AppendLine("Respond with pure JSON only matching this schema without markdown fences or extraneous text:");
         sb.AppendLine("{");
@@ -289,7 +362,13 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         sb.AppendLine($"- Display Refresh Rate: {preferences.DisplayRefreshRate}");
         sb.AppendLine($"- Mouse Polling Rate: {preferences.MousePollingRate}");
         sb.AppendLine();
-        sb.AppendLine("Please analyze my hardware profile, eliminate latency and frame pacing jitter for my target scenario, adhere strictly to my risk tolerance, and output your recommendation set in the required JSON schema.");
+        string targetCountDescription = preferences.RiskTolerance switch
+        {
+            "SafeOnly" => "a comprehensive profile of 60 to 80 tweaks",
+            "Moderate" => "a comprehensive profile of 85 to 120 tweaks",
+            _ => "a comprehensive profile of 120 to 160+ tweaks"
+        };
+        sb.AppendLine($"Please analyze my hardware profile, eliminate latency and frame pacing jitter for my target scenario, adhere strictly to my risk tolerance, and output {targetCountDescription} distributed across all categories in the required JSON schema.");
         return sb.ToString();
     }
 
@@ -298,7 +377,8 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         string responseContent,
         HardwareProfile hardwareProfile,
         IReadOnlyList<TweakDefinition> availableTweaks,
-        UserOptimizationPreferences? preferences = null)
+        UserOptimizationPreferences? preferences = null,
+        string? modelName = null)
     {
         if (string.IsNullOrWhiteSpace(responseContent))
         {
@@ -320,6 +400,44 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
             }
 
             var tweakMap = availableTweaks.ToDictionary(t => t.Id, t => t, StringComparer.OrdinalIgnoreCase);
+
+            // If recommendedTweakIds is empty or null, check if tweaks array element was returned
+            if ((dto.RecommendedTweakIds == null || dto.RecommendedTweakIds.Count == 0) && dto.TweaksElement.HasValue)
+            {
+                var tweaksElem = dto.TweaksElement.Value;
+                if (tweaksElem.ValueKind == JsonValueKind.Array)
+                {
+                    dto.RecommendedTweakIds = new List<string>();
+                    dto.TweakJustifications ??= new Dictionary<string, string>();
+
+                    foreach (var item in tweaksElem.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.Object)
+                        {
+                            if (item.TryGetProperty("id", out var idProp))
+                            {
+                                string id = idProp.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(id))
+                                {
+                                    dto.RecommendedTweakIds.Add(id);
+                                    if (item.TryGetProperty("rationale", out var rProp) && !string.IsNullOrWhiteSpace(rProp.GetString()))
+                                    {
+                                        dto.TweakJustifications[id] = rProp.GetString()!;
+                                    }
+                                }
+                            }
+                        }
+                        else if (item.ValueKind == JsonValueKind.String)
+                        {
+                            string id = item.GetString() ?? "";
+                            if (!string.IsNullOrWhiteSpace(id))
+                            {
+                                dto.RecommendedTweakIds.Add(id);
+                            }
+                        }
+                    }
+                }
+            }
 
             // Filter recommended tweaks to only valid, non-hallucinated IDs
             var validTweakIds = new List<string>();
@@ -372,7 +490,9 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
 
             var analysisSummary = !string.IsNullOrWhiteSpace(dto.AnalysisSummary)
                 ? dto.AnalysisSummary.Trim()
-                : "SilkThread AI Optimization completed successfully.";
+                : (!string.IsNullOrWhiteSpace(dto.Summary)
+                    ? dto.Summary.Trim()
+                    : "SilkThread AI Optimization completed successfully.");
 
             var estimatedImpact = !string.IsNullOrWhiteSpace(dto.EstimatedImpact)
                 ? dto.EstimatedImpact.Trim()
@@ -385,7 +505,9 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
                 RecommendedTweakIds: validTweakIds,
                 TweakJustifications: justifications,
                 EstimatedImpact: estimatedImpact,
-                HardwareSummary: hardwareSummary
+                HardwareSummary: hardwareSummary,
+                IsOnlineAiGenerated: true,
+                AiModelUsed: modelName ?? _model
             );
         }
         catch (Exception ex)
@@ -547,9 +669,80 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         .ThenBy(x => x.Tweak.Title)
         .ToList();
 
-        // 4. Select top tweaks (12 to 18 recommended tweaks)
-        var selectedCount = Math.Min(16, scoredTweaks.Count);
-        var selectedTweaks = scoredTweaks.Take(selectedCount).Select(x => x.Tweak).ToList();
+        // 4. Dynamic scaling and category distribution
+        int targetCount = preferences.RiskTolerance switch
+        {
+            "SafeOnly" => 70,
+            "Moderate" => 98,
+            _ => 135
+        };
+
+        if (string.Equals(scenario, "AAA_Visuals", StringComparison.OrdinalIgnoreCase)) targetCount += 4;
+        else if (string.Equals(scenario, "Streaming", StringComparison.OrdinalIgnoreCase)) targetCount += 3;
+        else if (string.Equals(scenario, "Esports", StringComparison.OrdinalIgnoreCase)) targetCount += 2;
+        else targetCount -= 3;
+
+        if (string.Equals(priority, "MaxFps", StringComparison.OrdinalIgnoreCase)) targetCount += 3;
+        else if (string.Equals(priority, "LowestLatency", StringComparison.OrdinalIgnoreCase)) targetCount += 2;
+        else if (string.Equals(priority, "SmoothFrametime", StringComparison.OrdinalIgnoreCase)) targetCount += 1;
+
+        if (hardwareProfile.PrimaryGpu.IsNvidia || hardwareProfile.PrimaryGpu.IsAmd) targetCount += 1;
+        if (hardwareProfile.Storage.Any(s => s.IsSsd)) targetCount += 1;
+        if (!hardwareProfile.Power.IsLaptop) targetCount += 1;
+        if (hardwareProfile.Ram.TotalGb >= 32) targetCount += 1;
+
+        int minTargetBound = preferences.RiskTolerance switch
+        {
+            "SafeOnly" => 60,
+            "Moderate" => 85,
+            _ => 120
+        };
+        int maxTargetBound = preferences.RiskTolerance switch
+        {
+            "SafeOnly" => 78,
+            "Moderate" => 118,
+            _ => 160
+        };
+        targetCount = Math.Clamp(targetCount, minTargetBound, maxTargetBound);
+
+        // Group by category to ensure comprehensive category breadth across all 15 tweak categories
+        var categoryGroups = scoredTweaks
+            .GroupBy(x => x.Tweak.Category)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var selectedTweaks = new List<TweakDefinition>();
+        var selectedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // First pass: Guarantee base depth in every available category
+        int minPerCat = preferences.RiskTolerance switch
+        {
+            "SafeOnly" => 3,
+            "Moderate" => 5,
+            _ => 7
+        };
+
+        foreach (var group in categoryGroups.Values)
+        {
+            if (selectedTweaks.Count >= targetCount) break;
+            foreach (var item in group.Take(minPerCat))
+            {
+                if (selectedTweaks.Count >= targetCount) break;
+                if (selectedIds.Add(item.Tweak.Id))
+                {
+                    selectedTweaks.Add(item.Tweak);
+                }
+            }
+        }
+
+        // Second pass: Fill remaining quota from the top scored tweaks overall
+        foreach (var item in scoredTweaks)
+        {
+            if (selectedTweaks.Count >= targetCount) break;
+            if (selectedIds.Add(item.Tweak.Id))
+            {
+                selectedTweaks.Add(item.Tweak);
+            }
+        }
 
         // 5. Build Technical Justifications
         var justifications = new Dictionary<string, string>();
@@ -573,7 +766,9 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
             RecommendedTweakIds: selectedTweaks.Select(t => t.Id).ToList(),
             TweakJustifications: justifications,
             EstimatedImpact: estimatedImpact,
-            HardwareSummary: hardwareSummary
+            HardwareSummary: hardwareSummary,
+            IsOnlineAiGenerated: false,
+            AiModelUsed: "Local IOST Heuristic Engine"
         );
     }
 
@@ -682,6 +877,7 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
 
     private static string ExtractJsonContent(string raw)
     {
+        if (string.IsNullOrWhiteSpace(raw)) return "{}";
         var text = raw.Trim();
 
         // 1. If it's an OpenRouter response envelope with "choices", extract the assistant message content
@@ -692,13 +888,21 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
                 using var doc = JsonDocument.Parse(text);
                 if (doc.RootElement.TryGetProperty("choices", out var choices) &&
                     choices.GetArrayLength() > 0 &&
-                    choices[0].TryGetProperty("message", out var msg) &&
-                    msg.TryGetProperty("content", out var contentProp))
+                    choices[0].TryGetProperty("message", out var msg))
                 {
-                    var extracted = contentProp.GetString();
-                    if (!string.IsNullOrWhiteSpace(extracted))
+                    string? messageContent = null;
+                    if (msg.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.String)
                     {
-                        text = extracted.Trim();
+                        messageContent = contentProp.GetString();
+                    }
+                    if (string.IsNullOrWhiteSpace(messageContent) && msg.TryGetProperty("reasoning", out var reasoningProp) && reasoningProp.ValueKind == JsonValueKind.String)
+                    {
+                        messageContent = reasoningProp.GetString();
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(messageContent))
+                    {
+                        text = messageContent.Trim();
                     }
                 }
             }
@@ -708,32 +912,167 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
             }
         }
 
-        // 2. Strip Markdown code fences if present (```json ... ``` or ``` ... ```)
-        if (text.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+        // 2. Check for Markdown code fences (```json ... ``` or ``` ... ```)
+        var fenceMatch = System.Text.RegularExpressions.Regex.Match(text, @"```(?:json)?\s*([\s\S]*?)\s*```", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (fenceMatch.Success)
         {
-            text = text[7..];
-        }
-        else if (text.StartsWith("```", StringComparison.OrdinalIgnoreCase))
-        {
-            text = text[3..];
-        }
-
-        if (text.EndsWith("```", StringComparison.OrdinalIgnoreCase))
-        {
-            text = text[..^3];
+            var fencedContent = fenceMatch.Groups[1].Value.Trim();
+            var extractedFromFence = TryExtractBalancedJson(fencedContent);
+            if (!string.IsNullOrEmpty(extractedFromFence))
+            {
+                return extractedFromFence;
+            }
         }
 
-        text = text.Trim();
+        // 3. Try extracting balanced JSON object directly (handles conversational prefix/postfix)
+        var directExtraction = TryExtractBalancedJson(text);
+        if (!string.IsNullOrEmpty(directExtraction))
+        {
+            return directExtraction;
+        }
 
-        // 3. Extract JSON object substring between outer '{' and '}'
+        // 4. Fallback: match "recommendedTweakIds" or "tweaks" array directly using Regex
+        var arrayMatch = System.Text.RegularExpressions.Regex.Match(text, @"""(?:recommendedTweakIds|tweaks)""\s*:\s*\[", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (arrayMatch.Success)
+        {
+            int openBracketIndex = text.IndexOf('[', arrayMatch.Index);
+            if (openBracketIndex >= 0)
+            {
+                var extractedArray = ExtractBalancedBracketString(text, openBracketIndex, '[', ']');
+                if (!string.IsNullOrEmpty(extractedArray))
+                {
+                    return $"{{\"analysisSummary\":\"AI System Optimization Analysis\",\"tweaks\":{extractedArray}}}";
+                }
+            }
+        }
+
+        // 5. Fallback: match any top-level JSON array
+        int firstBracket = text.IndexOf('[');
+        if (firstBracket >= 0)
+        {
+            var extractedArray = ExtractBalancedBracketString(text, firstBracket, '[', ']');
+            if (!string.IsNullOrEmpty(extractedArray))
+            {
+                return $"{{\"analysisSummary\":\"AI System Optimization Analysis\",\"tweaks\":{extractedArray}}}";
+            }
+        }
+
+        // 6. Index matching between first { and last }
         var firstBrace = text.IndexOf('{');
         var lastBrace = text.LastIndexOf('}');
         if (firstBrace >= 0 && lastBrace > firstBrace)
         {
-            text = text.Substring(firstBrace, lastBrace - firstBrace + 1);
+            return text.Substring(firstBrace, lastBrace - firstBrace + 1);
         }
 
         return text;
+    }
+
+    private static bool IsValidRecommendationObject(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object) return false;
+        return root.TryGetProperty("recommendedTweakIds", out _) ||
+               root.TryGetProperty("tweaks", out _) ||
+               root.TryGetProperty("analysisSummary", out _) ||
+               root.TryGetProperty("summary", out _);
+    }
+
+    private static string? TryExtractBalancedJson(string text)
+    {
+        // First try standard first '{' and last '}' if it produces valid JSON immediately
+        int firstBrace = text.IndexOf('{');
+        int lastBrace = text.LastIndexOf('}');
+        if (firstBrace >= 0 && lastBrace > firstBrace)
+        {
+            string candidate = text.Substring(firstBrace, lastBrace - firstBrace + 1);
+            try
+            {
+                using var doc = JsonDocument.Parse(candidate);
+                if (IsValidRecommendationObject(doc.RootElement))
+                {
+                    return candidate;
+                }
+            }
+            catch
+            {
+                // May have failed due to conversational text after a closing brace or before an opening brace
+            }
+        }
+
+        // Balanced brace scan to find the first valid complete JSON object
+        int searchStart = 0;
+        while ((searchStart = text.IndexOf('{', searchStart)) >= 0)
+        {
+            var candidate = ExtractBalancedBracketString(text, searchStart, '{', '}');
+            if (!string.IsNullOrEmpty(candidate))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(candidate);
+                    if (IsValidRecommendationObject(doc.RootElement))
+                    {
+                        return candidate;
+                    }
+                }
+                catch
+                {
+                    // Continue searching next '{'
+                }
+            }
+            searchStart++;
+        }
+
+        return null;
+    }
+
+    private static string? ExtractBalancedBracketString(string text, int startIndex, char openChar, char closeChar)
+    {
+        if (startIndex < 0 || startIndex >= text.Length || text[startIndex] != openChar)
+            return null;
+
+        int depth = 0;
+        bool inString = false;
+        bool escape = false;
+
+        for (int i = startIndex; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (escape)
+            {
+                escape = false;
+                continue;
+            }
+
+            if (c == '\\')
+            {
+                escape = true;
+                continue;
+            }
+
+            if (c == '"')
+            {
+                inString = !inString;
+                continue;
+            }
+
+            if (!inString)
+            {
+                if (c == openChar)
+                {
+                    depth++;
+                }
+                else if (c == closeChar)
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        return text.Substring(startIndex, i - startIndex + 1);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private static HardwareProfile CreateFallbackHardwareProfile()
@@ -769,8 +1108,14 @@ public class OpenRouterAiService : IAiOptimizerService, IDisposable
         [JsonPropertyName("analysisSummary")]
         public string? AnalysisSummary { get; set; }
 
+        [JsonPropertyName("summary")]
+        public string? Summary { get; set; }
+
         [JsonPropertyName("recommendedTweakIds")]
         public List<string>? RecommendedTweakIds { get; set; }
+
+        [JsonPropertyName("tweaks")]
+        public JsonElement? TweaksElement { get; set; }
 
         [JsonPropertyName("tweakJustifications")]
         public Dictionary<string, string>? TweakJustifications { get; set; }

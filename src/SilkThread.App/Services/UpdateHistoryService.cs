@@ -36,6 +36,23 @@ public sealed class UpdateHistoryService : IUpdateHistoryService
         return new List<UpdateReleaseEntry>
         {
             new(
+                Version: "v1.2.0",
+                Date: _loc["UpdHist_v12_Date"],
+                Title: _loc["UpdHist_v12_Title"],
+                Highlights: new[]
+                {
+                    _loc["UpdHist_v12_Item1"],
+                    _loc["UpdHist_v12_Item2"],
+                    _loc["UpdHist_v12_Item3"],
+                    _loc["UpdHist_v12_Item4"],
+                    _loc["UpdHist_v12_Item5"],
+                    _loc["UpdHist_v12_Item6"],
+                    _loc["UpdHist_v12_Item7"],
+                    _loc["UpdHist_v12_Item8"]
+                },
+                IsLatest: true
+            ),
+            new(
                 Version: "v1.1.0",
                 Date: _loc["UpdHist_v11_Date"],
                 Title: _loc["UpdHist_v11_Title"],
@@ -48,7 +65,7 @@ public sealed class UpdateHistoryService : IUpdateHistoryService
                     _loc["UpdHist_v11_Item5"],
                     _loc["UpdHist_v11_Item6"]
                 },
-                IsLatest: true
+                IsLatest: false
             ),
             new(
                 Version: "v1.0.5",

@@ -81,4 +81,51 @@ public sealed partial class RestoreBackupPage : Page, IStaggeredPage
             }
         }
     }
+
+    private void AnchorPulseRing_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe)
+        {
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard 
+            { 
+                RepeatBehavior = Microsoft.UI.Xaml.Media.Animation.RepeatBehavior.Forever, 
+                AutoReverse = true 
+            };
+
+            var scaleX = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = 1.0,
+                To = 1.15,
+                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleX, fe);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleX, "(UIElement.RenderTransform).(ScaleTransform.ScaleX)");
+
+            var scaleY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = 1.0,
+                To = 1.15,
+                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleY, fe);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleY, "(UIElement.RenderTransform).(ScaleTransform.ScaleY)");
+
+            var opacity = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = 0.85,
+                To = 0.25,
+                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(opacity, fe);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(opacity, "Opacity");
+
+            sb.Children.Add(scaleX);
+            sb.Children.Add(scaleY);
+            sb.Children.Add(opacity);
+            sb.Begin();
+        }
+    }
 }

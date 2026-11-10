@@ -119,6 +119,71 @@ public static class FilePickerHelper
         return ShowWin32SaveFileDialog(suggestedFileName, windowHandle);
     }
 
+    public static async Task<string?> PickSaveLogFileAsync(string suggestedFileName = "SilkThread_Debug_Logs.txt", nint? hwnd = null)
+    {
+        var windowHandle = hwnd ?? App.MainWindowHandle;
+
+        if (!ElevationHelper.IsAdministrator())
+        {
+            try
+            {
+                var picker = new FileSavePicker();
+                picker.SuggestedStartLocation = PickerLocationId.Desktop;
+                picker.FileTypeChoices.Add("Текстовый документ (*.txt)", new[] { ".txt" });
+                picker.FileTypeChoices.Add("Все файлы (*.*)", new[] { "." });
+                picker.DefaultFileExtension = ".txt";
+                picker.SuggestedFileName = suggestedFileName;
+
+                if (windowHandle != 0)
+                {
+                    WinRT.Interop.InitializeWithWindow.Initialize(picker, windowHandle);
+                }
+
+                var file = await picker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    return file.Path;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                App.Log($"[FilePickerHelper] WinRT SaveLogPicker failed: {ex.Message}. Falling back to Win32.");
+            }
+        }
+
+        return ShowWin32SaveLogFileDialog(suggestedFileName, windowHandle);
+    }
+
+    private static string? ShowWin32SaveLogFileDialog(string defaultName, IntPtr hwndOwner)
+    {
+        const int maxFile = 2048;
+        string initialBuf = defaultName.PadRight(maxFile, '\0');
+        IntPtr pFile = Marshal.StringToCoTaskMemUni(initialBuf);
+        try
+        {
+            var ofn = new OPENFILENAME();
+            ofn.lStructSize = Marshal.SizeOf<OPENFILENAME>();
+            ofn.hwndOwner = hwndOwner;
+            ofn.lpstrFilter = "Текстовые файлы (*.txt)\0*.txt\0Все файлы (*.*)\0*.*\0\0";
+            ofn.lpstrFile = pFile;
+            ofn.nMaxFile = maxFile;
+            ofn.lpstrTitle = "Сохранить логи SilkThread";
+            ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+            ofn.lpstrDefExt = "txt";
+
+            if (GetSaveFileNameW(ref ofn))
+            {
+                return Marshal.PtrToStringUni(pFile);
+            }
+            return null;
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(pFile);
+        }
+    }
+
     private static string? ShowWin32OpenFileDialog(IntPtr hwndOwner)
     {
         const int maxFile = 2048;

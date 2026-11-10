@@ -6,10 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:SilkThread.Core.Models"
+    xmlns:helpers="using:SilkThread.App.Helpers"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32"
+                  helpers:SmoothScroll.IsEnabled="True">
         <StackPanel Spacing="20" HorizontalAlignment="Stretch">
 
             <!-- 0: Page Title & Top Actions -->
@@ -62,16 +64,16 @@
             </StackPanel>
 
             <!-- 2: Minimal Dark Bento Hardware Grid -->
-            <Grid ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.15*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <Grid x:Name="HardwareGrid" ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.15*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
                 <!-- ================= BENTO CARD 1: CPU VITALS ================= -->
                 <Border x:Name="CardCpu" Grid.Row="0" Grid.Column="0" Style="{StaticResource SilkMinimalCardStyle}">
@@ -206,12 +208,12 @@
                                 <TextBlock Text="{x:Bind ViewModel.RamTotalGb, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="#806BFF" LineHeight="30" />
 
                                 <!-- Thin readable progress bar without glow -->
-                                <ProgressBar Value="{x:Bind ViewModel.RamUsagePercent, Mode=OneWay}" Maximum="100" Height="4" CornerRadius="2">
-                                    <ProgressBar.Resources>
-                                        <SolidColorBrush x:Key="ProgressBarForeground" Color="#806BFF" />
-                                        <SolidColorBrush x:Key="ProgressBarBackground" Color="#181B25" />
-                                    </ProgressBar.Resources>
-                                </ProgressBar>
+                                <ProgressBar Value="{x:Bind ViewModel.RamUsedPercentage, Mode=OneWay}"
+                                             Maximum="100"
+                                             Height="4"
+                                             CornerRadius="2"
+                                             Background="#202431"
+                                             Foreground="#806BFF" />
 
                                 <Grid>
                                     <TextBlock Text="{x:Bind ViewModel.RamUsedGb, Mode=OneWay}" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Left" />
@@ -259,7 +261,8 @@
                         </Grid>
 
                         <!-- GPUs Bento Modules List -->
-                        <ListView ItemsSource="{x:Bind ViewModel.Gpus}" SelectionMode="None">
+                        <ListView ItemsSource="{x:Bind ViewModel.Gpus}" SelectionMode="None"
+                                  helpers:SmoothScroll.IsEnabled="True">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:GpuInfo">
                                     <Border Background="#202431" 
@@ -300,7 +303,7 @@
                                                 <Border Grid.Column="0" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="10,6">
                                                     <StackPanel Spacing="2">
                                                         <TextBlock Text="ВЕРСИЯ ДРАЙВЕРА" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
-                                                        <TextBlock Text="{x:Bind DriverVersion}" FontSize="11" Foreground="#CBD5E1" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind FormattedDriverVersion}" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1" TextTrimming="CharacterEllipsis" />
                                                     </StackPanel>
                                                 </Border>
 
@@ -455,7 +458,8 @@
                         </Grid>
 
                         <!-- Storage Drives List -->
-                        <ListView ItemsSource="{x:Bind ViewModel.StorageDrives}" SelectionMode="None">
+                        <ListView ItemsSource="{x:Bind ViewModel.StorageDrives}" SelectionMode="None"
+                                  helpers:SmoothScroll.IsEnabled="True">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:DiskDriveInfo">
                                     <Border Background="#202431" 
@@ -478,9 +482,9 @@
                                                     <!-- Model -->
                                                     <TextBlock Text="{x:Bind Model}" FontSize="13" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
 
-                                                    <!-- Type Badge (NVMe/SSD/HDD) -->
-                                                    <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                                        <TextBlock Text="{x:Bind MediaType}" FontSize="9" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    <!-- Prominent Drive Format Badge (M2 nvme / SSD / HDD) -->
+                                                    <Border Background="#201D38" BorderBrush="#806BFF" BorderThickness="1" CornerRadius="4" Padding="7,2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{x:Bind DriveFormat}" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
                                                     </Border>
 
                                                     <!-- TRIM Support Badge -->
@@ -499,12 +503,12 @@
                                             </Grid>
 
                                             <!-- Progress Bar of Used Space (Thin 4px, without glow) -->
-                                            <ProgressBar Value="{x:Bind UsedPercent}" Maximum="100" Height="4" CornerRadius="2">
-                                                <ProgressBar.Resources>
-                                                    <SolidColorBrush x:Key="ProgressBarForeground" Color="#806BFF" />
-                                                    <SolidColorBrush x:Key="ProgressBarBackground" Color="#181B25" />
-                                                </ProgressBar.Resources>
-                                            </ProgressBar>
+                                            <ProgressBar Value="{x:Bind UsedPercentage}"
+                                                         Maximum="100"
+                                                         Height="4"
+                                                         CornerRadius="2"
+                                                         Background="#202431"
+                                                         Foreground="#806BFF" />
 
                                             <!-- Bottom Info Row -->
                                             <Grid>
@@ -523,7 +527,6 @@
                         </ListView>
                     </StackPanel>
                 </Border>
-
             </Grid>
         </StackPanel>
     </ScrollViewer>

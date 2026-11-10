@@ -18,6 +18,7 @@ public sealed partial class PresetReviewDialog : ContentDialog
     public PresetReviewDialog(EvaluatedPreset evaluated, ITweakEngine tweakEngine)
     {
         ViewModel = new PresetReviewViewModel(evaluated, tweakEngine);
+        DataContext = ViewModel;
         InitializeComponent();
     }
 

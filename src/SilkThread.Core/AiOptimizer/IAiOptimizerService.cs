@@ -40,7 +40,8 @@ public interface IAiOptimizerService
         string responseContent,
         HardwareProfile hardwareProfile,
         IReadOnlyList<TweakDefinition> availableTweaks,
-        UserOptimizationPreferences? preferences = null);
+        UserOptimizationPreferences? preferences = null,
+        string? modelName = null);
 
     /// <summary>
     /// Fallback rule-based heuristic optimizer executed when the AI API is unreachable or returns invalid data.
