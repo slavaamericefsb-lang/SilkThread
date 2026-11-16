@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -7,29 +7,29 @@ public static class InputLatencyTweaks
 {
     public static IEnumerable<TweakDefinition> GetTweaks()
     {
-        yield return TweakBuilder.CreateMultiRegistry(
+        yield return TweakBuilder.CreateMultiRegistryMixed(
             id: "input_mouse_acceleration_disable",
             title: "Disable Windows Mouse Acceleration (Enhance Pointer Precision)",
             description: "Completely disables non-linear OS pointer acceleration for pure 1:1 raw hardware mouse movement.",
-            howItWorks: "Sets MouseSpeed = 0, MouseThreshold1 = 0, and MouseThreshold2 = 0 in HKCU\\Control Panel\\Mouse.",
+            howItWorks: "Sets MouseSpeed = \"0\", MouseThreshold1 = \"0\", and MouseThreshold2 = \"0\" in HKCU\\Control Panel\\Mouse.",
             problemSolved: "Windows dynamically alters cursor travel distance based on swipe speed, destroying muscle memory and aim consistency.",
             expectedResult: "Flawless, deterministic 1:1 mouse movement translation in desktop and game menus.",
             category: TweakCategory.InputAndLatency,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
+            entries: new (string Hive, string SubKey, string ValueName, object AppliedValue)[]
             {
-                ("HKCU", @"Control Panel\Mouse", "MouseSpeed", 0),
-                ("HKCU", @"Control Panel\Mouse", "MouseThreshold1", 0),
-                ("HKCU", @"Control Panel\Mouse", "MouseThreshold2", 0)
+                ("HKCU", @"Control Panel\Mouse", "MouseSpeed", "0"),
+                ("HKCU", @"Control Panel\Mouse", "MouseThreshold1", "0"),
+                ("HKCU", @"Control Panel\Mouse", "MouseThreshold2", "0")
             }
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_keyboard_repeat_rate_max",
             title: "Maximize Keyboard Character Repeat Rate",
             description: "Sets the keyboard autorepeat speed to maximum hardware limit (30 characters per second).",
-            howItWorks: "Sets 'KeyboardSpeed' to 31 in HKCU\\Control Panel\\Keyboard.",
+            howItWorks: "Sets 'KeyboardSpeed' to '31' in HKCU\\Control Panel\\Keyboard.",
             problemSolved: "Default rate causes sluggish repeated keystrokes when holding down movement or weapon switch keys.",
             expectedResult: "Instant, rapid response when holding down keys for continuous in-game actions.",
             category: TweakCategory.InputAndLatency,
@@ -38,15 +38,15 @@ public static class InputLatencyTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Keyboard",
             valueName: "KeyboardSpeed",
-            appliedValue: 31,
-            fallbackDefaultValue: 31
+            appliedValue: "31",
+            fallbackDefaultValue: "31"
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_keyboard_repeat_delay_min",
             title: "Minimize Keyboard Repeat Initial Delay",
             description: "Reduces the latency delay before key autorepeat engages to the minimum threshold (250ms).",
-            howItWorks: "Sets 'KeyboardDelay' to 0 in HKCU\\Control Panel\\Keyboard.",
+            howItWorks: "Sets 'KeyboardDelay' to '0' in HKCU\\Control Panel\\Keyboard.",
             problemSolved: "Eliminates hesitation between pressing a key and repeated action triggering.",
             expectedResult: "Fastest possible reaction for held-key mechanics (strafe tapping, continuous fire).",
             category: TweakCategory.InputAndLatency,
@@ -55,11 +55,11 @@ public static class InputLatencyTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Keyboard",
             valueName: "KeyboardDelay",
-            appliedValue: 0,
-            fallbackDefaultValue: 1
+            appliedValue: "0",
+            fallbackDefaultValue: "1"
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_sticky_keys_prompt_disable",
             title: "Disable StickyKeys 5x Shift Trigger Popup",
             description: "Completely disables the popup dialog and beep triggered when tapping Shift 5 times in rapid succession.",
@@ -72,11 +72,11 @@ public static class InputLatencyTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Accessibility\StickyKeys",
             valueName: "Flags",
-            appliedValue: 506,
-            fallbackDefaultValue: 510
+            appliedValue: "506",
+            fallbackDefaultValue: "510"
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_toggle_keys_prompt_disable",
             title: "Disable ToggleKeys NumLock Beep & Prompt",
             description: "Disables the ToggleKeys audio cue and holding shortcut when pressing NumLock/CapsLock for 5 seconds.",
@@ -89,25 +89,25 @@ public static class InputLatencyTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Accessibility\ToggleKeys",
             valueName: "Flags",
-            appliedValue: 58,
-            fallbackDefaultValue: 62
+            appliedValue: "58",
+            fallbackDefaultValue: "62"
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_filter_keys_disable",
             title: "Disable FilterKeys Key-Drop Mechanism",
             description: "Disables FilterKeys latency delays which ignore repeated or brief keystrokes.",
             howItWorks: "Sets 'Flags' to 122 in HKCU\\Control Panel\\Accessibility\\Keyboard Response.",
             problemSolved: "FilterKeys can drop brief micro-taps essential for competitive counter-strafing.",
-            expectedResult: "Guaranteed registration of every quick key press.",
+            expectedResult: "Disables FilterKeys filtering; applications still control how input is handled.",
             category: TweakCategory.InputAndLatency,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
             hive: "HKCU",
             subKey: @"Control Panel\Accessibility\Keyboard Response",
             valueName: "Flags",
-            appliedValue: 122,
-            fallbackDefaultValue: 126
+            appliedValue: "122",
+            fallbackDefaultValue: "126"
         );
 
         yield return TweakBuilder.CreateRegistryDword(
@@ -161,7 +161,7 @@ public static class InputLatencyTweaks
             fallbackDefaultValue: 1
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_mouse_hover_time_decrease",
             title: "Reduce Mouse Hover Time to 10ms",
             description: "Shortens the time the pointer must pause over a control before generating a hover event.",
@@ -174,25 +174,25 @@ public static class InputLatencyTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Mouse",
             valueName: "MouseHoverTime",
-            appliedValue: 10,
-            fallbackDefaultValue: 400
+            appliedValue: "10",
+            fallbackDefaultValue: "400"
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "input_double_click_time_standard",
             title: "Optimize Double-Click Detection Window",
             description: "Calibrates the maximum interval between clicks for double-click recognition to 450ms.",
             howItWorks: "Sets 'DoubleClickSpeed' to 450 in HKCU\\Control Panel\\Mouse.",
             problemSolved: "Overly long intervals register fast consecutive single-clicks (e.g. semi-auto gun taps) as unintended double-clicks.",
-            expectedResult: "Accurate single-tap weapon burst registration in competitive shooters.",
+            expectedResult: "Changes Windows double-click recognition timing; does not alter raw game input or weapon timing.",
             category: TweakCategory.InputAndLatency,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
             hive: "HKCU",
             subKey: @"Control Panel\Mouse",
             valueName: "DoubleClickSpeed",
-            appliedValue: 450,
-            fallbackDefaultValue: 500
+            appliedValue: "450",
+            fallbackDefaultValue: "500"
         );
 
         yield return TweakBuilder.CreateRegistryDword(
@@ -282,19 +282,19 @@ public static class InputLatencyTweaks
             fallbackDefaultValue: 0
         );
 
-        yield return TweakBuilder.CreateMultiRegistry(
+        yield return TweakBuilder.CreateMultiRegistryMixed(
             id: "input_pointer_trails_force_disable",
             title: "Disable Software Pointer Trails and Sonar Rings",
             description: "Ensures software cursor trailing and Ctrl-key location sonar rings are completely deactivated.",
             howItWorks: "Sets MouseTrails = 0 and MouseSonar = 0 in HKCU\\Control Panel\\Mouse.",
             problemSolved: "Software cursor trails force software rendering of mouse cursor instead of hardware GPU cursor plane.",
-            expectedResult: "Zero DWM cursor compositing delay and lowest mouse latency.",
+            expectedResult: "Pointer trails and the Ctrl-key cursor locator are disabled; no latency reduction is guaranteed.",
             category: TweakCategory.InputAndLatency,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
+            entries: new (string Hive, string SubKey, string ValueName, object AppliedValue)[]
             {
-                ("HKCU", @"Control Panel\Mouse", "MouseTrails", 0),
+                ("HKCU", @"Control Panel\Mouse", "MouseTrails", "0"),
                 ("HKCU", @"Control Panel\Mouse", "MouseSonar", 0)
             }
         );

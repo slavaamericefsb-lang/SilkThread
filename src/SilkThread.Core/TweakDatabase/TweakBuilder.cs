@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SilkThread.Core.Execution;
@@ -39,6 +39,7 @@ public static class TweakBuilder
     {
         return new TweakDefinition
         {
+            RegistryWrites = new[] { new RegistryWrite(hive, subKey, valueName, appliedValue) },
             Id = id,
             Title = title,
             Description = description,
@@ -63,7 +64,7 @@ public static class TweakBuilder
 
             CheckCurrentStateAsync = () =>
             {
-                var current = RegistryOperations.GetDword(hive, subKey, valueName);
+                var current = RegistryOperations.GetDword(hive, subKey, valueName, requireExactKind: true);
                 if (current.HasValue && current.Value == appliedValue)
                 {
                     return Task.FromResult(TweakStatus.Applied);
@@ -74,6 +75,8 @@ public static class TweakBuilder
             ApplyAsync = () =>
             {
                 var snapshot = RegistryOperations.SnapshotValue(hive, subKey, valueName);
+                if (!snapshot.ReadSucceeded)
+                    return Task.FromResult(TweakOperationResult.Fail("Cannot read original registry value; no changes were made."));
                 bool ok = RegistryOperations.SetDword(hive, subKey, valueName, appliedValue);
                 if (ok)
                 {
@@ -99,18 +102,22 @@ public static class TweakBuilder
                         {
                             return Task.FromResult(TweakOperationResult.Ok($"Successfully restored original state for {title}.", null, null, requiresReboot));
                         }
+                        return Task.FromResult(TweakOperationResult.Fail("Could not restore original registry value."));
                     }
+                    return Task.FromResult(TweakOperationResult.Fail("Invalid registry snapshot."));
                 }
 
                 // Fallback rollback: if fallbackDefaultValue specified, write it; otherwise delete value
+                bool fallbackOk;
                 if (fallbackDefaultValue.HasValue)
                 {
-                    RegistryOperations.SetDword(hive, subKey, valueName, fallbackDefaultValue.Value);
+                    fallbackOk = RegistryOperations.SetDword(hive, subKey, valueName, fallbackDefaultValue.Value);
                 }
                 else
                 {
-                    RegistryOperations.DeleteValue(hive, subKey, valueName);
+                    fallbackOk = RegistryOperations.DeleteValue(hive, subKey, valueName);
                 }
+                if (!fallbackOk) return Task.FromResult(TweakOperationResult.Fail("Failed to restore registry default."));
 
                 return Task.FromResult(TweakOperationResult.Ok($"Reverted {title} to default.", null, null, requiresReboot));
             }
@@ -138,10 +145,121 @@ public static class TweakBuilder
         bool requiresSsdOrNvme = false,
         bool desktopOnly = false,
         bool laptopOnly = false,
+        int minWindowsBuild = 0,
+        Func<HardwareProfile, CompatibilityResult>? customCompatibility = null)
+    {
+        return new TweakDefinition
+        {
+            RegistryWrites = dwords.Select(e => new RegistryWrite(e.Hive, e.SubKey, e.ValueName, e.AppliedValue)).ToArray(),
+            Id = id,
+            Title = title,
+            Description = description,
+            HowItWorks = howItWorks,
+            ProblemSolved = problemSolved,
+            ExpectedResult = expectedResult,
+            Category = category,
+            Risk = risk,
+            Recommendation = recommendation,
+            RequiresReboot = requiresReboot,
+            ConflictsWith = conflictsWith ?? Array.Empty<string>(),
+            RequiresNvidiaGpu = requiresNvidiaGpu,
+            RequiresAmdGpu = requiresAmdGpu,
+            RequiresIntelGpu = requiresIntelGpu,
+            RequiresIntelCpu = requiresIntelCpu,
+            RequiresAmdCpu = requiresAmdCpu,
+            RequiresSsdOrNvme = requiresSsdOrNvme,
+            DesktopOnly = desktopOnly,
+            LaptopOnly = laptopOnly,
+            MinWindowsBuild = minWindowsBuild,
+            CustomCompatibilityCheck = customCompatibility,
+
+            CheckCurrentStateAsync = () =>
+            {
+                foreach (var item in dwords)
+                {
+                    var cur = RegistryOperations.GetDword(item.Hive, item.SubKey, item.ValueName, requireExactKind: true);
+                    if (!cur.HasValue || cur.Value != item.AppliedValue)
+                    {
+                        return Task.FromResult(TweakStatus.NotApplied);
+                    }
+                }
+                return Task.FromResult(TweakStatus.Applied);
+            },
+
+            ApplyAsync = () =>
+            {
+                var multi = new RegistryMultiSnapshot();
+                bool allOk = true;
+
+                foreach (var item in dwords)
+                {
+                    var captured = RegistryOperations.SnapshotValue(item.Hive, item.SubKey, item.ValueName);
+                    if (!captured.ReadSucceeded)
+                        return Task.FromResult(TweakOperationResult.Fail("Cannot read original registry values; no changes were made."));
+                    multi.Snapshots.Add(captured);
+                }
+                foreach (var item in dwords)
+                {
+                    if (!RegistryOperations.SetDword(item.Hive, item.SubKey, item.ValueName, item.AppliedValue))
+                    {
+                        allOk = false;
+                    }
+                }
+
+                if (allOk)
+                {
+                    return Task.FromResult(TweakOperationResult.Ok($"Successfully applied {title}.", multi.ToJson(), "applied", requiresReboot));
+                }
+                bool recovered = RegistryOperations.RestoreFromMultiSnapshot(multi);
+                return Task.FromResult(new TweakOperationResult(false,
+                    recovered ? $"Failed to apply {title}; original values restored." : $"Failed to apply {title}; rollback incomplete.",
+                    multi.ToJson()));
+            },
+
+            RollbackAsync = (savedStateJson) =>
+            {
+                if (!string.IsNullOrEmpty(savedStateJson))
+                {
+                    var multi = RegistryMultiSnapshot.FromJson(savedStateJson);
+                    if (multi != null)
+                    {
+                        if (!RegistryOperations.RestoreFromMultiSnapshot(multi))
+                            return Task.FromResult(TweakOperationResult.Fail("Could not restore all original registry values."));
+                        return Task.FromResult(TweakOperationResult.Ok($"Successfully restored original state for {title}.", null, null, requiresReboot));
+                    }
+                }
+
+                return Task.FromResult(TweakOperationResult.Fail("Original snapshot is missing; registry values were not deleted."));
+            }
+        };
+    }
+
+    public static TweakDefinition CreateMultiRegistryMixed(
+        string id,
+        string title,
+        string description,
+        string howItWorks,
+        string problemSolved,
+        string expectedResult,
+        TweakCategory category,
+        RiskLevel risk,
+        RecommendationLevel recommendation,
+        (string Hive, string SubKey, string ValueName, object AppliedValue)[] entries,
+        bool requiresReboot = false,
+        string[]? conflictsWith = null,
+        bool requiresNvidiaGpu = false,
+        bool requiresAmdGpu = false,
+        bool requiresIntelGpu = false,
+        bool requiresIntelCpu = false,
+        bool requiresAmdCpu = false,
+        bool requiresSsdOrNvme = false,
+        bool desktopOnly = false,
+        bool laptopOnly = false,
         int minWindowsBuild = 0)
     {
         return new TweakDefinition
         {
+            RegistryWrites = entries.Select(e => new RegistryWrite(e.Hive, e.SubKey, e.ValueName, e.AppliedValue)).ToArray(),
             Id = id,
             Title = title,
             Description = description,
@@ -165,12 +283,23 @@ public static class TweakBuilder
 
             CheckCurrentStateAsync = () =>
             {
-                foreach (var item in dwords)
+                foreach (var item in entries)
                 {
-                    var cur = RegistryOperations.GetDword(item.Hive, item.SubKey, item.ValueName);
-                    if (!cur.HasValue || cur.Value != item.AppliedValue)
+                    if (item.AppliedValue is int intVal)
                     {
-                        return Task.FromResult(TweakStatus.NotApplied);
+                        var cur = RegistryOperations.GetDword(item.Hive, item.SubKey, item.ValueName, requireExactKind: true);
+                        if (!cur.HasValue || cur.Value != intVal)
+                        {
+                            return Task.FromResult(TweakStatus.NotApplied);
+                        }
+                    }
+                    else if (item.AppliedValue is string strVal)
+                    {
+                        var cur = RegistryOperations.GetString(item.Hive, item.SubKey, item.ValueName, requireExactKind: true);
+                        if (cur == null || !string.Equals(cur, strVal, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return Task.FromResult(TweakStatus.NotApplied);
+                        }
                     }
                 }
                 return Task.FromResult(TweakStatus.Applied);
@@ -181,10 +310,23 @@ public static class TweakBuilder
                 var multi = new RegistryMultiSnapshot();
                 bool allOk = true;
 
-                foreach (var item in dwords)
+                foreach (var item in entries)
                 {
-                    multi.Snapshots.Add(RegistryOperations.SnapshotValue(item.Hive, item.SubKey, item.ValueName));
-                    if (!RegistryOperations.SetDword(item.Hive, item.SubKey, item.ValueName, item.AppliedValue))
+                    var captured = RegistryOperations.SnapshotValue(item.Hive, item.SubKey, item.ValueName);
+                    if (!captured.ReadSucceeded)
+                        return Task.FromResult(TweakOperationResult.Fail("Cannot read original registry values; no changes were made."));
+                    multi.Snapshots.Add(captured);
+                }
+                foreach (var item in entries)
+                {
+                    bool ok = item.AppliedValue switch
+                    {
+                        int intVal => RegistryOperations.SetDword(item.Hive, item.SubKey, item.ValueName, intVal),
+                        string strVal => RegistryOperations.SetString(item.Hive, item.SubKey, item.ValueName, strVal),
+                        _ => false
+                    };
+
+                    if (!ok)
                     {
                         allOk = false;
                     }
@@ -194,7 +336,10 @@ public static class TweakBuilder
                 {
                     return Task.FromResult(TweakOperationResult.Ok($"Successfully applied {title}.", multi.ToJson(), "applied", requiresReboot));
                 }
-                return Task.FromResult(TweakOperationResult.Fail($"Failed to apply all registry settings for {title}."));
+                bool recovered = RegistryOperations.RestoreFromMultiSnapshot(multi);
+                return Task.FromResult(new TweakOperationResult(false,
+                    recovered ? $"Failed to apply {title}; original values restored." : $"Failed to apply {title}; rollback incomplete.",
+                    multi.ToJson()));
             },
 
             RollbackAsync = (savedStateJson) =>
@@ -204,16 +349,13 @@ public static class TweakBuilder
                     var multi = RegistryMultiSnapshot.FromJson(savedStateJson);
                     if (multi != null)
                     {
-                        RegistryOperations.RestoreFromMultiSnapshot(multi);
+                        if (!RegistryOperations.RestoreFromMultiSnapshot(multi))
+                            return Task.FromResult(TweakOperationResult.Fail("Could not restore all original registry values."));
                         return Task.FromResult(TweakOperationResult.Ok($"Successfully restored original state for {title}.", null, null, requiresReboot));
                     }
                 }
 
-                foreach (var item in dwords)
-                {
-                    RegistryOperations.DeleteValue(item.Hive, item.SubKey, item.ValueName);
-                }
-                return Task.FromResult(TweakOperationResult.Ok($"Reverted {title}.", null, null, requiresReboot));
+                return Task.FromResult(TweakOperationResult.Fail("Original snapshot is missing; registry values were not deleted."));
             }
         };
     }
@@ -309,13 +451,15 @@ public static class TweakBuilder
                     var snapshot = ServiceStateSnapshot.FromJson(savedStateJson);
                     if (snapshot != null)
                     {
-                        ServiceOperations.RestoreFromSnapshot(snapshot);
+                        if (!ServiceOperations.RestoreFromSnapshot(snapshot))
+                            return Task.FromResult(TweakOperationResult.Fail("Could not restore original service configuration."));
                         return Task.FromResult(TweakOperationResult.Ok($"Restored original configuration for service '{serviceName}'.", null, null, requiresReboot));
                     }
                 }
 
                 // Fallback: restore to Automatic (2) or Manual (3)
-                ServiceOperations.SetServiceStartType(serviceName, 3);
+                if (!ServiceOperations.SetServiceStartType(serviceName, 3))
+                    return Task.FromResult(TweakOperationResult.Fail("Failed to restore service start type."));
                 return Task.FromResult(TweakOperationResult.Ok($"Restored service '{serviceName}' to Manual.", null, null, requiresReboot));
             }
         };
@@ -351,6 +495,7 @@ public static class TweakBuilder
     {
         return new TweakDefinition
         {
+            RegistryWrites = new[] { new RegistryWrite(hive, subKey, valueName, appliedValue) },
             Id = id,
             Title = title,
             Description = description,
@@ -375,7 +520,7 @@ public static class TweakBuilder
 
             CheckCurrentStateAsync = () =>
             {
-                var current = RegistryOperations.GetString(hive, subKey, valueName);
+                var current = RegistryOperations.GetString(hive, subKey, valueName, requireExactKind: true);
                 if (current != null && string.Equals(current, appliedValue, StringComparison.OrdinalIgnoreCase))
                 {
                     return Task.FromResult(TweakStatus.Applied);
@@ -386,6 +531,8 @@ public static class TweakBuilder
             ApplyAsync = () =>
             {
                 var snapshot = RegistryOperations.SnapshotValue(hive, subKey, valueName);
+                if (!snapshot.ReadSucceeded)
+                    return Task.FromResult(TweakOperationResult.Fail("Cannot read original registry value; no changes were made."));
                 bool ok = RegistryOperations.SetString(hive, subKey, valueName, appliedValue);
                 if (ok)
                 {
@@ -411,17 +558,21 @@ public static class TweakBuilder
                         {
                             return Task.FromResult(TweakOperationResult.Ok($"Successfully restored original state for {title}.", null, null, requiresReboot));
                         }
+                        return Task.FromResult(TweakOperationResult.Fail("Could not restore original registry value."));
                     }
+                    return Task.FromResult(TweakOperationResult.Fail("Invalid registry snapshot."));
                 }
 
+                bool fallbackOk;
                 if (fallbackDefaultValue != null)
                 {
-                    RegistryOperations.SetString(hive, subKey, valueName, fallbackDefaultValue);
+                    fallbackOk = RegistryOperations.SetString(hive, subKey, valueName, fallbackDefaultValue);
                 }
                 else
                 {
-                    RegistryOperations.DeleteValue(hive, subKey, valueName);
+                    fallbackOk = RegistryOperations.DeleteValue(hive, subKey, valueName);
                 }
+                if (!fallbackOk) return Task.FromResult(TweakOperationResult.Fail("Failed to restore registry default."));
 
                 return Task.FromResult(TweakOperationResult.Ok($"Reverted {title} to default.", null, null, requiresReboot));
             }

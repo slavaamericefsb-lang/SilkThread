@@ -14,8 +14,13 @@ using SilkThread.Core.SystemOperations;
 
 namespace SilkThread.Core.HardwareDetection;
 
+/// <summary>A completed observation for read-only previews; it is never a substitute for an execution-time scan.</summary>
+public sealed record HardwareObservation(HardwareProfile Profile, DateTimeOffset CheckedAtUtc);
+
 public interface IHardwareScanner
 {
+    // Existing implementations and test doubles need not provide cached observations.
+    HardwareObservation? LastObservation => null;
     Task<HardwareProfile> ScanAsync();
     Task<CpuInfo> ScanCpuAsync();
     Task<RamInfo> ScanRamAsync();
@@ -28,6 +33,27 @@ public interface IHardwareScanner
 
 public class HardwareScanner : IHardwareScanner
 {
+    private HardwareObservation? _lastObservation;
+    public HardwareObservation? LastObservation => System.Threading.Volatile.Read(ref _lastObservation);
+
+    private static ManagementObjectSearcher CreateSearcher(string query, ManagementScope? scope = null, int timeoutSeconds = 5)
+    {
+        var options = new System.Management.EnumerationOptions
+        {
+            ReturnImmediately = true,
+            Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+        };
+        if (scope != null)
+        {
+            return new ManagementObjectSearcher(scope, new ObjectQuery(query), options);
+        }
+        var connectionOptions = new ConnectionOptions
+        {
+            Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+        };
+        var defaultScope = new ManagementScope(@"\\.\root\cimv2", connectionOptions);
+        return new ManagementObjectSearcher(defaultScope, new ObjectQuery(query), options);
+    }
     private readonly IRestorePointManager _restorePointManager;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -123,7 +149,7 @@ public class HardwareScanner : IHardwareScanner
         var restoreTask = Task.Run(async () =>
         {
             try { return await _restorePointManager.CheckStatusAsync(); }
-            catch { return new RestorePointStatus(false, false, "Status unavailable"); }
+            catch { return new RestorePointStatus(false, false, "Status unavailable") { ProtectionStateKnown = false }; }
         });
 
         await Task.WhenAll(cpuTask, gpuTask, ramTask, storageTask, osTask, powerTask, processTask, restoreTask);
@@ -138,7 +164,7 @@ public class HardwareScanner : IHardwareScanner
         var processes = await processTask;
         var restore = await restoreTask;
 
-        return new HardwareProfile(
+        var profile = new HardwareProfile(
             cpu,
             gpus,
             primaryGpu,
@@ -149,6 +175,11 @@ public class HardwareScanner : IHardwareScanner
             processes,
             restore
         );
+        // Publish the profile and timestamp together only after the aggregate has completed.
+        // ScanAsync itself always performs fresh reads, including when this observation exists.
+        System.Threading.Interlocked.Exchange(ref _lastObservation,
+            new HardwareObservation(profile, DateTimeOffset.UtcNow));
+        return profile;
     }
 
     private CpuInfo ScanCpu()
@@ -193,7 +224,7 @@ public class HardwareScanner : IHardwareScanner
         // 2. Query WMI for additional processor details
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, L3CacheSize FROM Win32_Processor");
+            using var searcher = CreateSearcher("SELECT Name, Manufacturer, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, L3CacheSize FROM Win32_Processor");
             using var results = searcher.Get();
             foreach (ManagementObject mo in results)
             {
@@ -269,7 +300,7 @@ public class HardwareScanner : IHardwareScanner
 
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT Name, AdapterRAM, DriverVersion, VideoProcessor FROM Win32_VideoController");
+            using var searcher = CreateSearcher("SELECT Name, AdapterRAM, DriverVersion, VideoProcessor FROM Win32_VideoController");
             using var results = searcher.Get();
             foreach (ManagementObject mo in results)
             {
@@ -598,8 +629,8 @@ public class HardwareScanner : IHardwareScanner
             BuildNumber: 22631,
             Edition: "Pro",
             Architecture: "64-bit",
-            ActivePowerPlanName: "Сбалансированная",
-            ActivePowerPlanGuid: PowerOperations.BalancedGuid,
+            ActivePowerPlanName: "N/A",
+            ActivePowerPlanGuid: string.Empty,
             GameModeEnabled: true,
             CoreIsolationEnabled: false,
             IsWindows11: true
@@ -639,7 +670,7 @@ public class HardwareScanner : IHardwareScanner
         // 2. Query WMI for module details, frequencies and DIMM configuration
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT BankLabel, Capacity, Speed, Manufacturer, PartNumber FROM Win32_PhysicalMemory");
+            using var searcher = CreateSearcher("SELECT BankLabel, Capacity, Speed, Manufacturer, PartNumber FROM Win32_PhysicalMemory");
             using var results = searcher.Get();
             foreach (ManagementObject mo in results)
             {
@@ -706,10 +737,10 @@ public class HardwareScanner : IHardwareScanner
             // 1. Query MSFT_PhysicalDisk and MSFT_Partition from root\Microsoft\Windows\Storage
             try
             {
-                var scope = new ManagementScope(@"root\Microsoft\Windows\Storage");
+                var scope = new ManagementScope(@"root\Microsoft\Windows\Storage", new ConnectionOptions { Timeout = TimeSpan.FromSeconds(5) });
                 scope.Connect();
 
-                using var diskSearcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT DeviceId, FriendlyName, Model, BusType, MediaType, SpindleSpeed FROM MSFT_PhysicalDisk"));
+                using var diskSearcher = CreateSearcher("SELECT DeviceId, FriendlyName, Model, BusType, MediaType, SpindleSpeed FROM MSFT_PhysicalDisk", scope);
                 using var diskResults = diskSearcher.Get();
                 foreach (ManagementObject mo in diskResults)
                 {
@@ -740,7 +771,7 @@ public class HardwareScanner : IHardwareScanner
                     }
                 }
 
-                using var partSearcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT DiskNumber, DriveLetter FROM MSFT_Partition"));
+                using var partSearcher = CreateSearcher("SELECT DiskNumber, DriveLetter FROM MSFT_Partition", scope);
                 using var partResults = partSearcher.Get();
                 foreach (ManagementObject mo in partResults)
                 {
@@ -768,7 +799,7 @@ public class HardwareScanner : IHardwareScanner
             // 2. Fallback / supplement drive letter to partition mapping from root\cimv2 (Win32_LogicalDiskToPartition)
             try
             {
-                using var relSearcher = new ManagementObjectSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition");
+                using var relSearcher = CreateSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition");
                 using var relResults = relSearcher.Get();
                 foreach (ManagementObject mo in relResults)
                 {
@@ -797,7 +828,7 @@ public class HardwareScanner : IHardwareScanner
             {
                 try
                 {
-                    using var diskSearcher = new ManagementObjectSearcher("SELECT Index, Model, InterfaceType, MediaType FROM Win32_DiskDrive");
+                    using var diskSearcher = CreateSearcher("SELECT Index, Model, InterfaceType, MediaType FROM Win32_DiskDrive");
                     using var diskResults = diskSearcher.Get();
                     foreach (ManagementObject mo in diskResults)
                     {
@@ -948,8 +979,8 @@ public class HardwareScanner : IHardwareScanner
         }
         catch { }
 
-        string activePlanGuid = PowerOperations.BalancedGuid;
-        string activePlanName = "Сбалансированная";
+        string activePlanGuid = string.Empty;
+        string activePlanName = "N/A";
         try
         {
             var plan = await PowerOperations.GetActiveSchemeAsync();
@@ -1000,7 +1031,7 @@ public class HardwareScanner : IHardwareScanner
         // 2. Query WMI ChassisTypes
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT ChassisTypes FROM Win32_SystemEnclosure");
+            using var searcher = CreateSearcher("SELECT ChassisTypes FROM Win32_SystemEnclosure");
             using var results = searcher.Get();
             foreach (ManagementObject mo in results)
             {

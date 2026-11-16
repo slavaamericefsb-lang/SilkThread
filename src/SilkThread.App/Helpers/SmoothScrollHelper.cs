@@ -1,16 +1,14 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
 namespace SilkThread.App.Helpers;
 
 /// <summary>
-/// Provides inertial smooth scrolling with physical deceleration (braking effect)
-/// for WinUI 3 ScrollViewer, ListView, and other scrollable containers.
+/// Preserves native ScrollViewer wheel/touch behavior and exposes animated programmatic scrolling.
+/// The legacy physics parameters remain available for source compatibility.
 /// </summary>
 public static class SmoothScroll
 {
@@ -18,6 +16,15 @@ public static class SmoothScroll
     public const double DefaultDecelerationFriction = 0.88;
     public const double StopVelocityThreshold = 0.1;
     public const double MaxVelocity = 250.0;
+
+    /// <summary>Integrates one decay interval in units of a 60 Hz frame, independent of refresh rate.</summary>
+    public static (double Travel, double Velocity) IntegrateDecay(double velocity, double friction, double frameRatio)
+    {
+        if (!double.IsFinite(velocity) || !double.IsFinite(frameRatio) || frameRatio <= 0) return (0, 0);
+        if (!double.IsFinite(friction) || friction <= 0 || friction >= 1) friction = DefaultDecelerationFriction;
+        double decay = Math.Pow(friction, frameRatio);
+        return (velocity * (1 - decay) / (1 - friction), velocity * decay);
+    }
 
     private static readonly ConditionalWeakTable<ScrollViewer, SmoothScrollController> Controllers = new();
 
@@ -64,31 +71,24 @@ public static class SmoothScroll
     {
         if (d is not FrameworkElement fe) return;
 
-        bool isEnabled = (bool)e.NewValue;
-        if (isEnabled)
+        fe.Loaded -= ElementLoaded;
+        fe.Unloaded -= ElementUnloaded;
+        if ((bool)e.NewValue)
         {
-            if (fe.IsLoaded)
-            {
-                Attach(fe);
-            }
-            else
-            {
-                RoutedEventHandler? loadedHandler = null;
-                loadedHandler = (s, args) =>
-                {
-                    fe.Loaded -= loadedHandler;
-                    if (GetIsEnabled(fe))
-                    {
-                        Attach(fe);
-                    }
-                };
-                fe.Loaded += loadedHandler;
-            }
+            fe.Loaded += ElementLoaded;
+            fe.Unloaded += ElementUnloaded;
+            if (fe.IsLoaded) Attach(fe);
         }
-        else
-        {
-            Detach(fe);
-        }
+        else Detach(fe);
+    }
+
+    private static void ElementLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && GetIsEnabled(fe)) Attach(fe);
+    }
+    private static void ElementUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe) Detach(fe);
     }
 
     public static SmoothScrollController? Register(ScrollViewer scrollViewer)
@@ -138,7 +138,7 @@ public static class SmoothScroll
         return null;
     }
 
-    private static SmoothScrollController? Attach(FrameworkElement fe)
+    private static SmoothScrollController? Attach(FrameworkElement fe, FrameworkElement? optionsOwner = null)
     {
         if (fe is ScrollViewer sv)
         {
@@ -147,7 +147,7 @@ public static class SmoothScroll
                 return existing;
             }
 
-            var controller = new SmoothScrollController(sv);
+            var controller = new SmoothScrollController(sv, optionsOwner ?? fe);
             Controllers.AddOrUpdate(sv, controller);
             return controller;
         }
@@ -160,16 +160,16 @@ public static class SmoothScroll
         var descendantSv = FindDescendant<ScrollViewer>(fe);
         if (descendantSv != null)
         {
-            return Attach(descendantSv);
+            return Attach(descendantSv, fe);
         }
 
         fe.DispatcherQueue?.TryEnqueue(() =>
         {
-            if (!GetIsEnabled(fe)) return;
+            if (!fe.IsLoaded || !GetIsEnabled(fe)) return;
             var lateSv = FindDescendant<ScrollViewer>(fe);
             if (lateSv != null)
             {
-                Attach(lateSv);
+                Attach(lateSv, fe);
             }
         });
 
@@ -220,326 +220,23 @@ public static class SmoothScrollHelper
 }
 
 /// <summary>
-/// Manages the physics animation loop and pointer wheel event interception for a ScrollViewer.
+/// Compatibility controller for programmatic arrows. Wheel/touch/trackpad scrolling stays
+/// entirely owned by ScrollViewer so nested controls and layout changes have one scroll owner.
 /// </summary>
 public sealed class SmoothScrollController : IDisposable
 {
-    private readonly ScrollViewer _scrollViewer;
-    private readonly PointerEventHandler _wheelHandler;
-    private UIElement? _registeredContent;
-
-    private double _currentVerticalOffset;
-    private double _verticalVelocity;
-    private double _currentHorizontalOffset;
-    private double _horizontalVelocity;
-
-    private bool _isRenderingHooked;
-    private readonly Stopwatch _stopwatch = new();
-    private TimeSpan _lastElapsed;
-    private PointerRoutedEventArgs? _lastHandledArgs;
-
-    public SmoothScrollController(ScrollViewer scrollViewer)
-    {
-        _scrollViewer = scrollViewer;
-        _wheelHandler = new PointerEventHandler(OnPointerWheelChanged);
-
-        _scrollViewer.AddHandler(UIElement.PointerWheelChangedEvent, _wheelHandler, handledEventsToo: true);
-
-        HookContent();
-
-        _scrollViewer.Loaded += OnScrollViewerLoaded;
-        _scrollViewer.Unloaded += OnScrollViewerUnloaded;
-    }
-
-    private void HookContent()
-    {
-        if (_scrollViewer.Content is UIElement content && !ReferenceEquals(_registeredContent, content))
-        {
-            if (_registeredContent != null)
-            {
-                _registeredContent.RemoveHandler(UIElement.PointerWheelChangedEvent, _wheelHandler);
-            }
-            _registeredContent = content;
-            _registeredContent.AddHandler(UIElement.PointerWheelChangedEvent, _wheelHandler, handledEventsToo: true);
-        }
-    }
-
-    private void OnScrollViewerLoaded(object sender, RoutedEventArgs e)
-    {
-        HookContent();
-    }
-
-    private void OnScrollViewerUnloaded(object sender, RoutedEventArgs e)
-    {
-        StopTicker();
-    }
+    private readonly ScrollViewer _viewer;
+    private bool _disposed;
+    public SmoothScrollController(ScrollViewer viewer) { _viewer = viewer; }
+    internal SmoothScrollController(ScrollViewer viewer, FrameworkElement optionsOwner) : this(viewer) { }
 
     public void AddImpulse(double deltaX, double deltaY)
     {
-        double friction = SmoothScroll.GetDecelerationFriction(_scrollViewer);
-        double factor = Math.Max(0.01, 1.0 - friction);
-
-        if (Math.Abs(deltaX) > 0.01)
-        {
-            _currentHorizontalOffset = _scrollViewer.HorizontalOffset;
-            _horizontalVelocity += deltaX * factor;
-            _horizontalVelocity = Math.Clamp(_horizontalVelocity, -SmoothScroll.MaxVelocity, SmoothScroll.MaxVelocity);
-        }
-
-        if (Math.Abs(deltaY) > 0.01)
-        {
-            _currentVerticalOffset = _scrollViewer.VerticalOffset;
-            _verticalVelocity += deltaY * factor;
-            _verticalVelocity = Math.Clamp(_verticalVelocity, -SmoothScroll.MaxVelocity, SmoothScroll.MaxVelocity);
-        }
-
-        StartTicker();
+        if (_disposed || !double.IsFinite(deltaX) || !double.IsFinite(deltaY)) return;
+        double? x = Math.Abs(deltaX) > 0.01 ? Math.Clamp(_viewer.HorizontalOffset + deltaX, 0, Math.Max(0, _viewer.ScrollableWidth)) : null;
+        double? y = Math.Abs(deltaY) > 0.01 ? Math.Clamp(_viewer.VerticalOffset + deltaY, 0, Math.Max(0, _viewer.ScrollableHeight)) : null;
+        _viewer.ChangeView(x, y, null, disableAnimation: !MotionPreferences.AnimationsEnabled);
     }
 
-    private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        if (!SmoothScroll.GetIsEnabled(_scrollViewer)) return;
-        if (ReferenceEquals(e, _lastHandledArgs)) return;
-
-        var point = e.GetCurrentPoint(_scrollViewer);
-        var props = point.Properties;
-        int wheelDelta = props.MouseWheelDelta;
-        if (wheelDelta == 0) return;
-
-        bool isHorizontalOnly = IsHorizontalOnlyScrollViewer(_scrollViewer);
-        bool isHorizontal = props.IsHorizontalMouseWheel ||
-                            e.KeyModifiers.HasFlag(Windows.System.VirtualKeyModifiers.Shift) ||
-                            isHorizontalOnly;
-
-        double multiplier = SmoothScroll.GetScrollMultiplier(_scrollViewer);
-
-        if (isHorizontal)
-        {
-            double maxH = Math.Max(0, _scrollViewer.ScrollableWidth);
-            if (maxH <= 0.5) return; // Not horizontally scrollable, bubble up
-
-            double dir = props.IsHorizontalMouseWheel ? 1.0 : -1.0;
-            double delta = wheelDelta * dir;
-
-            bool isAtLeft = _scrollViewer.HorizontalOffset <= 0.5;
-            bool isAtRight = _scrollViewer.HorizontalOffset >= maxH - 0.5;
-
-            // If at bounds and not already moving, allow bubble to parent
-            if (Math.Abs(_horizontalVelocity) < 0.1 && ((isAtLeft && delta < 0) || (isAtRight && delta > 0)))
-            {
-                return;
-            }
-
-            if (Math.Abs(_horizontalVelocity) < 0.1 || Math.Abs(_scrollViewer.HorizontalOffset - _currentHorizontalOffset) > 40)
-            {
-                _currentHorizontalOffset = _scrollViewer.HorizontalOffset;
-            }
-
-            _horizontalVelocity += delta * multiplier;
-            _horizontalVelocity = Math.Clamp(_horizontalVelocity, -SmoothScroll.MaxVelocity, SmoothScroll.MaxVelocity);
-
-            _lastHandledArgs = e;
-            e.Handled = true;
-            StartTicker();
-        }
-        else
-        {
-            double maxV = Math.Max(0, _scrollViewer.ScrollableHeight);
-            if (maxV <= 0.5) return; // Not vertically scrollable, bubble up
-
-            // Wheel down (delta < 0) -> list moves down (offset increases)
-            // Wheel up (delta > 0) -> list moves up (offset decreases)
-            double delta = -wheelDelta;
-
-            bool isAtTop = _scrollViewer.VerticalOffset <= 0.5;
-            bool isAtBottom = _scrollViewer.VerticalOffset >= maxV - 0.5;
-
-            // If at bounds and not already moving, allow bubble to parent
-            if (Math.Abs(_verticalVelocity) < 0.1 && ((isAtTop && delta < 0) || (isAtBottom && delta > 0)))
-            {
-                return;
-            }
-
-            if (Math.Abs(_verticalVelocity) < 0.1 || Math.Abs(_scrollViewer.VerticalOffset - _currentVerticalOffset) > 40)
-            {
-                _currentVerticalOffset = _scrollViewer.VerticalOffset;
-            }
-
-            _verticalVelocity += delta * multiplier;
-            _verticalVelocity = Math.Clamp(_verticalVelocity, -SmoothScroll.MaxVelocity, SmoothScroll.MaxVelocity);
-
-            _lastHandledArgs = e;
-            e.Handled = true;
-            StartTicker();
-        }
-    }
-
-    private void StartTicker()
-    {
-        if (!_isRenderingHooked)
-        {
-            _stopwatch.Restart();
-            _lastElapsed = TimeSpan.Zero;
-            CompositionTarget.Rendering += OnRendering;
-            _isRenderingHooked = true;
-        }
-    }
-
-    private void StopTicker()
-    {
-        if (_isRenderingHooked)
-        {
-            CompositionTarget.Rendering -= OnRendering;
-            _isRenderingHooked = false;
-            _stopwatch.Stop();
-        }
-        _verticalVelocity = 0;
-        _horizontalVelocity = 0;
-    }
-
-    private void OnRendering(object? sender, object e)
-    {
-        var now = _stopwatch.Elapsed;
-        double dt = (now - _lastElapsed).TotalSeconds;
-        _lastElapsed = now;
-
-        if (dt <= 0 || dt > 0.05)
-        {
-            dt = 0.01667;
-        }
-
-        double frameRatio = dt / 0.01667;
-        double friction = SmoothScroll.GetDecelerationFriction(_scrollViewer);
-        double currentFriction = Math.Pow(friction, frameRatio);
-
-        bool isMovingV = false;
-        bool isMovingH = false;
-
-        // Vertical physics
-        if (Math.Abs(_verticalVelocity) >= SmoothScroll.StopVelocityThreshold)
-        {
-            if (Math.Abs(_scrollViewer.VerticalOffset - _currentVerticalOffset) > 40)
-            {
-                _verticalVelocity = 0;
-                _currentVerticalOffset = _scrollViewer.VerticalOffset;
-            }
-            else
-            {
-                _currentVerticalOffset += _verticalVelocity * frameRatio;
-                _verticalVelocity *= currentFriction;
-
-                double maxV = Math.Max(0, _scrollViewer.ScrollableHeight);
-                if (_currentVerticalOffset <= 0)
-                {
-                    _currentVerticalOffset = 0;
-                    _verticalVelocity = 0;
-                }
-                else if (_currentVerticalOffset >= maxV)
-                {
-                    _currentVerticalOffset = maxV;
-                    _verticalVelocity = 0;
-                }
-
-                if (Math.Abs(_verticalVelocity) >= SmoothScroll.StopVelocityThreshold)
-                {
-                    isMovingV = true;
-                }
-                else
-                {
-                    _verticalVelocity = 0;
-                }
-            }
-        }
-        else
-        {
-            _verticalVelocity = 0;
-        }
-
-        // Horizontal physics
-        if (Math.Abs(_horizontalVelocity) >= SmoothScroll.StopVelocityThreshold)
-        {
-            if (Math.Abs(_scrollViewer.HorizontalOffset - _currentHorizontalOffset) > 40)
-            {
-                _horizontalVelocity = 0;
-                _currentHorizontalOffset = _scrollViewer.HorizontalOffset;
-            }
-            else
-            {
-                _currentHorizontalOffset += _horizontalVelocity * frameRatio;
-                _horizontalVelocity *= currentFriction;
-
-                double maxH = Math.Max(0, _scrollViewer.ScrollableWidth);
-                if (_currentHorizontalOffset <= 0)
-                {
-                    _currentHorizontalOffset = 0;
-                    _horizontalVelocity = 0;
-                }
-                else if (_currentHorizontalOffset >= maxH)
-                {
-                    _currentHorizontalOffset = maxH;
-                    _horizontalVelocity = 0;
-                }
-
-                if (Math.Abs(_horizontalVelocity) >= SmoothScroll.StopVelocityThreshold)
-                {
-                    isMovingH = true;
-                }
-                else
-                {
-                    _horizontalVelocity = 0;
-                }
-            }
-        }
-        else
-        {
-            _horizontalVelocity = 0;
-        }
-
-        double? targetH = isMovingH || Math.Abs(_scrollViewer.HorizontalOffset - _currentHorizontalOffset) > 0.01
-            ? _currentHorizontalOffset
-            : null;
-
-        double? targetV = isMovingV || Math.Abs(_scrollViewer.VerticalOffset - _currentVerticalOffset) > 0.01
-            ? _currentVerticalOffset
-            : null;
-
-        if (targetH.HasValue || targetV.HasValue)
-        {
-            _scrollViewer.ChangeView(targetH, targetV, null, disableAnimation: true);
-        }
-
-        if (!isMovingV && !isMovingH)
-        {
-            StopTicker();
-        }
-    }
-
-    private static bool IsHorizontalOnlyScrollViewer(ScrollViewer sv)
-    {
-        if (sv.VerticalScrollMode == ScrollMode.Disabled) return true;
-        if (sv.VerticalScrollBarVisibility == ScrollBarVisibility.Disabled && sv.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled) return true;
-        if (sv.ScrollableHeight <= 0.5 && sv.ScrollableWidth > 0.5) return true;
-        return false;
-    }
-
-    public void Dispose()
-    {
-        StopTicker();
-
-        try
-        {
-            _scrollViewer.RemoveHandler(UIElement.PointerWheelChangedEvent, _wheelHandler);
-            if (_registeredContent != null)
-            {
-                _registeredContent.RemoveHandler(UIElement.PointerWheelChangedEvent, _wheelHandler);
-                _registeredContent = null;
-            }
-            _scrollViewer.Loaded -= OnScrollViewerLoaded;
-            _scrollViewer.Unloaded -= OnScrollViewerUnloaded;
-        }
-        catch
-        {
-            // Ignore during teardown
-        }
-    }
+    public void Dispose() => _disposed = true;
 }

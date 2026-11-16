@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -308,6 +308,41 @@ public static class BackgroundProcessesTweaks
             valueName: "DisableSoftLanding",
             appliedValue: 1,
             fallbackDefaultValue: 0
+        );
+
+        yield return TweakBuilder.CreateRegistryDword(
+            id: "bg_recall_disable_24h2",
+            title: "Disable Windows Recall & AI Data Analysis (24H2)",
+            description: "Completely disables Microsoft Recall screen capture indexing and background neural AI analysis in Windows 11 24H2+.",
+            howItWorks: "Sets 'DisableAIDataAnalysis' to 1 in HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI.",
+            problemSolved: "Windows Recall continuously takes screenshots of active windows and runs background OCR/AI processing, consuming CPU, NPU, memory bandwidth, and disk I/O.",
+            expectedResult: "Zero background AI indexing overhead and total privacy protection with no Recall snapshots captured.",
+            category: TweakCategory.BackgroundProcesses,
+            risk: RiskLevel.Low,
+            recommendation: RecommendationLevel.Recommended,
+            hive: "HKLM",
+            subKey: @"SOFTWARE\Policies\Microsoft\Windows\WindowsAI",
+            valueName: "DisableAIDataAnalysis",
+            appliedValue: 1,
+            fallbackDefaultValue: 0,
+            minWindowsBuild: 26100
+        );
+
+        yield return TweakBuilder.CreateRegistryDword(
+            id: "bg_edge_startup_boost_disable",
+            title: "Disable Microsoft Edge Startup Boost",
+            description: "Prevents Microsoft Edge from launching background processes at system boot and keeping processes resident in memory after closing.",
+            howItWorks: "Sets 'StartupBoostEnabled' to 0 in HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge.",
+            problemSolved: "Edge Startup Boost pre-launches multiple Chromium processes in the background that consume memory and CPU cycles even when the browser is not in use.",
+            expectedResult: "Frees hundreds of megabytes of RAM and stops unnecessary background Edge activity.",
+            category: TweakCategory.BackgroundProcesses,
+            risk: RiskLevel.Low,
+            recommendation: RecommendationLevel.Recommended,
+            hive: "HKLM",
+            subKey: @"SOFTWARE\Policies\Microsoft\Edge",
+            valueName: "StartupBoostEnabled",
+            appliedValue: 0,
+            fallbackDefaultValue: 1
         );
     }
 }

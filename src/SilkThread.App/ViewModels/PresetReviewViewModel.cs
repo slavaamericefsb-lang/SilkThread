@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,25 +26,23 @@ public partial class PresetTweakItemViewModel : ObservableObject
     public RiskLevel Risk { get; }
     public string LocalizedRisk => LocalizationService.Instance.GetRiskName(Risk);
     public bool RequiresReboot { get; }
+    public string RebootBadgeText => LocalizationService.Instance["Tweaks_RebootBadge"];
     public bool IsCompatible { get; }
     public bool IsIncompatible => !IsCompatible;
     public string IncompatibilityReason { get; }
     public string? AiRationale { get; }
     public bool HasAiRationale => !string.IsNullOrWhiteSpace(AiRationale);
 
-    public string IncompatibilityReasonHeader => LocalizationService.Instance.CurrentLanguage == "ru"
-        ? "Причина несовместимости:"
-        : "Incompatibility Reason:";
+    public string IncompatibilityReasonHeader => LocalizationService.Instance["PresetReview_ReasonHeader"];
 
-    public string AiRationaleHeader => LocalizationService.Instance.CurrentLanguage == "ru"
-        ? "Обоснование ИИ-ассистента:"
-        : "AI Assistant Rationale:";
+    public string AiRationaleHeader => LocalizationService.Instance["PresetReview_RationaleHeader"];
 
     [ObservableProperty]
     private bool _isSelected;
 
     partial void OnIsSelectedChanged(bool value)
     {
+        if (value && !IsCompatible) { IsSelected = false; return; }
         _onSelectionChanged?.Invoke();
     }
 
@@ -103,8 +101,8 @@ public partial class PresetTweakItemViewModel : ObservableObject
 
     public string StatusIcon => IsIncompatible ? "\uE7BA" : "\uE73E";
     public string CompatibilityBadgeText => IsIncompatible
-        ? (LocalizationService.Instance.CurrentLanguage == "ru" ? "Не совместим" : "Incompatible")
-        : (LocalizationService.Instance.CurrentLanguage == "ru" ? "Совместим" : "Compatible");
+        ? LocalizationService.Instance["PresetReview_IncompatibleBadge"]
+        : LocalizationService.Instance["PresetReview_CompatibleBadge"];
 
     public PresetTweakItemViewModel(PresetTweakEvaluation evaluation, Action? onSelectionChanged = null)
     {
@@ -127,9 +125,7 @@ public partial class PresetTweakItemViewModel : ObservableObject
         else
         {
             Title = evaluation.TweakId;
-            Description = LocalizationService.Instance.CurrentLanguage == "ru"
-                ? "Пользовательский или неизвестный твик."
-                : "Custom or unrecognized tweak.";
+            Description = LocalizationService.Instance["PresetReview_CustomTweakDesc"];
             Category = TweakCategory.AdvancedTweaks;
             Risk = RiskLevel.Medium;
             RequiresReboot = false;
@@ -138,7 +134,7 @@ public partial class PresetTweakItemViewModel : ObservableObject
         IsCompatible = evaluation.IsCompatible;
         IncompatibilityReason = evaluation.IncompatibilityReason;
         AiRationale = SanitizeAiText(evaluation.AiRationale);
-        _isSelected = evaluation.IsSelected;
+        _isSelected = evaluation.IsSelected && IsCompatible;
     }
 
     private static string? SanitizeAiText(string? text)
@@ -178,14 +174,16 @@ public partial class PresetReviewViewModel : ObservableObject
     public string PresetName => SanitizeText(_evaluated.Preset.Name);
 
     public string PresetDescription => string.IsNullOrWhiteSpace(_evaluated.Preset.Description)
-        ? (LocalizationService.Instance.CurrentLanguage == "ru" ? "Без описания" : "No description")
+        ? LocalizationService.Instance["PresetReview_NoDesc"]
         : SanitizeText(_evaluated.Preset.Description);
 
     public string PresetAuthor
     {
         get
         {
-            var author = string.IsNullOrWhiteSpace(_evaluated.Preset.Author) ? "Unknown" : _evaluated.Preset.Author;
+            var author = string.IsNullOrWhiteSpace(_evaluated.Preset.Author) 
+                ? LocalizationService.Instance["PresetReview_UnknownAuthor"] 
+                : _evaluated.Preset.Author;
             return SanitizeText(author);
         }
     }
@@ -214,7 +212,7 @@ public partial class PresetReviewViewModel : ObservableObject
     private static SolidColorBrush OfflineBadgeFg => s_offlineBadgeFg ??= new(Color.FromArgb(255, 150, 156, 171));
 
     public string GenerationSource => _evaluated.Preset?.GenerationSource 
-        ?? (_evaluated.Preset?.Author == "SilkThread IOST" ? "Локальный эксперт IOST" : "");
+        ?? (_evaluated.Preset?.Author == "SilkThread IOST" ? LocalizationService.Instance["PresetReview_Source_Local"] : "");
 
     public bool IsOnlineAiGenerated => (_evaluated.Preset?.IsOnlineAiGenerated ?? false) || (_evaluated.Preset?.UsedOnlineModel ?? false);
     public string? AiModelUsed => _evaluated.Preset?.AiModelUsed;
@@ -242,20 +240,28 @@ public partial class PresetReviewViewModel : ObservableObject
                 {
                     var inner = src.Substring("Нейросеть OpenRouter (".Length);
                     inner = inner.Substring(0, inner.Length - 1);
-                    return $"Нейросеть: {inner}";
+                    return LocalizationService.Instance.Format("PresetReview_Source_Neural", inner);
                 }
                 if (src.StartsWith("AI (") && src.EndsWith(")"))
                 {
                     var inner = src.Substring(4, src.Length - 5);
-                    return $"Нейросеть: {inner}";
+                    return LocalizationService.Instance.Format("PresetReview_Source_Neural", inner);
                 }
                 if (src.StartsWith("Нейросеть:", StringComparison.OrdinalIgnoreCase))
-                    return src;
+                {
+                    var inner = src.Substring("Нейросеть:".Length).Trim();
+                    return LocalizationService.Instance.Format("PresetReview_Source_Neural", inner);
+                }
+                if (src.StartsWith("Neural Model:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var inner = src.Substring("Neural Model:".Length).Trim();
+                    return LocalizationService.Instance.Format("PresetReview_Source_Neural", inner);
+                }
 
-                return $"Нейросеть: {src}";
+                return LocalizationService.Instance.Format("PresetReview_Source_Neural", src);
             }
 
-            return "Локальный эксперт IOST";
+            return LocalizationService.Instance["PresetReview_Source_Local"];
         }
     }
 
@@ -293,44 +299,40 @@ public partial class PresetReviewViewModel : ObservableObject
     private int _appliedCount;
 
     // Localized helper properties for UI
-    public string TotalLabel => LocalizationService.Instance.CurrentLanguage == "ru" ? "Всего твиков:" : "Total tweaks:";
-    public string CompatibleBadgeSummary => LocalizationService.Instance.CurrentLanguage == "ru" ? "совместимо" : "compatible";
-    public string IncompatibleBadgeSummary => LocalizationService.Instance.CurrentLanguage == "ru" ? "не совместимо" : "incompatible";
-    public string SelectedLabel => LocalizationService.Instance.CurrentLanguage == "ru" ? "Выбрано для применения:" : "Selected to apply:";
-    public string QuickCompatibleOnlyText => LocalizationService.Instance.CurrentLanguage == "ru" ? "Только совместимые" : "Compatible only";
-    public string QuickSelectAllText => LocalizationService.Instance.CurrentLanguage == "ru" ? "Выбрать все" : "Select all";
-    public string QuickDeselectAllText => LocalizationService.Instance.CurrentLanguage == "ru" ? "Снять все" : "Deselect all";
-    public string RejectBtnText => LocalizationService.Instance.CurrentLanguage == "ru" ? "Отклонить" : "Reject";
-    public string ApplyBtnText => LocalizationService.Instance.CurrentLanguage == "ru" ? "Применить" : "Apply";
-    public string WarningBannerBadge => LocalizationService.Instance.CurrentLanguage == "ru" ? "ВНИМАНИЕ" : "ATTENTION";
-    public string WarningBannerTitle => LocalizationService.Instance.CurrentLanguage == "ru"
-        ? "Некоторые параметры не совместимы с вашей системой"
-        : "Some tweaks are incompatible with your system";
-    public string WarningBannerDesc => LocalizationService.Instance.CurrentLanguage == "ru"
-        ? "Часть твиков в пресете не поддерживается конфигурацией оборудования (GPU, CPU или типом накопителя). Они помещены в начало списка и по умолчанию отключены. Вы можете включить их принудительно на свой страх и риск."
-        : "Some tweaks in this preset are unsupported by your PC hardware (GPU, CPU or storage type). They are placed at the top and disabled by default. You may manually enable them at your own risk.";
+    public string TotalLabel => LocalizationService.Instance["PresetReview_TotalLabel"];
+    public string CompatibleBadgeSummary => LocalizationService.Instance["PresetReview_CompatibleSummary"];
+    public string IncompatibleBadgeSummary => LocalizationService.Instance["PresetReview_IncompatibleSummary"];
+    public string SelectedLabel => LocalizationService.Instance["PresetReview_SelectedLabel"];
+    public string QuickCompatibleOnlyText => LocalizationService.Instance["PresetReview_CompatibleOnlyBtn"];
+    public string QuickSelectAllText => LocalizationService.Instance["PresetReview_SelectAllBtn"];
+    public string QuickDeselectAllText => LocalizationService.Instance["PresetReview_DeselectAllBtn"];
+    public string RejectBtnText => LocalizationService.Instance["PresetReview_RejectBtn"];
+    public string ApplyBtnText => LocalizationService.Instance["PresetReview_ApplyBtn"];
+    public string WarningBannerBadge => LocalizationService.Instance["PresetReview_WarningBadge"];
+    public string WarningBannerTitle => LocalizationService.Instance["PresetReview_WarningTitle"];
+    public string WarningBannerDesc => LocalizationService.Instance["PresetReview_WarningDesc"];
 
     public PresetReviewViewModel(EvaluatedPreset evaluated, ITweakEngine tweakEngine)
     {
         _evaluated = evaluated;
         _tweakEngine = tweakEngine;
 
-        foreach (var item in _evaluated.Tweaks)
+        foreach (var item in _evaluated.Tweaks.OrderBy(t => t.IsCompatible).ThenBy(t => t.Tweak?.Title ?? t.TweakId))
         {
             Tweaks.Add(new PresetTweakItemViewModel(item, UpdateSelectedCount));
         }
 
         // Group tweaks by Category for structured review
         var grouped = Tweaks
-            .GroupBy(t => t.Category)
-            .OrderBy(g => g.Any(t => t.IsIncompatible) ? 0 : 1)
-            .ThenBy(g => g.Key.ToString());
+            .GroupBy(t => (t.IsCompatible, t.Category))
+            .OrderBy(g => g.Key.IsCompatible)
+            .ThenBy(g => g.Key.Category.ToString());
 
         foreach (var g in grouped)
         {
-            string catName = LocalizationService.Instance.GetCategoryName(g.Key);
-            string catIcon = GetCategoryGlyph(g.Key);
-            var groupVm = new PresetCategoryGroupViewModel(g.Key, catName, catIcon, g.OrderBy(t => t.IsCompatible ? 1 : 0).ThenBy(t => t.Title));
+            string catName = LocalizationService.Instance.GetCategoryName(g.Key.Category);
+            string catIcon = GetCategoryGlyph(g.Key.Category);
+            var groupVm = new PresetCategoryGroupViewModel(g.Key.Category, catName, catIcon, g.OrderBy(t => t.IsCompatible ? 1 : 0).ThenBy(t => t.Title));
             CategoryGroups.Add(groupVm);
         }
 
@@ -359,13 +361,13 @@ public partial class PresetReviewViewModel : ObservableObject
 
     private void UpdateSelectedCount()
     {
-        SelectedCount = Tweaks.Count(t => t.IsSelected);
+        SelectedCount = Tweaks.Count(t => t.IsSelected && t.IsCompatible);
     }
 
     [RelayCommand]
     public void SelectAll()
     {
-        foreach (var t in Tweaks) t.IsSelected = true;
+        foreach (var t in Tweaks) t.IsSelected = t.IsCompatible;
         UpdateSelectedCount();
     }
 
@@ -385,7 +387,7 @@ public partial class PresetReviewViewModel : ObservableObject
 
     public async Task<int> ApplySelectedTweaksAsync()
     {
-        var targetTweaks = Tweaks.Where(t => t.IsSelected).ToList();
+        var targetTweaks = Tweaks.Where(t => t.IsSelected && t.IsCompatible).ToList();
         if (targetTweaks.Count == 0) return 0;
 
         IsApplying = true;
@@ -397,9 +399,7 @@ public partial class PresetReviewViewModel : ObservableObject
             for (int i = 0; i < targetTweaks.Count; i++)
             {
                 var tweak = targetTweaks[i];
-                ProgressText = LocalizationService.Instance.CurrentLanguage == "ru"
-                    ? $"Применение ({i + 1}/{targetTweaks.Count}): {tweak.Title}..."
-                    : $"Applying ({i + 1}/{targetTweaks.Count}): {tweak.Title}...";
+                ProgressText = LocalizationService.Instance.Format("PresetReview_ApplyingProgress", i + 1, targetTweaks.Count, tweak.Title);
                 ProgressPercent = (double)(i) / targetTweaks.Count * 100.0;
 
                 var result = await _tweakEngine.ApplyTweakAsync(tweak.Id);
@@ -413,9 +413,7 @@ public partial class PresetReviewViewModel : ObservableObject
 
             AppliedCount = successful;
             IsCompleted = true;
-            ProgressText = LocalizationService.Instance.CurrentLanguage == "ru"
-                ? $"✓ Успешно применено {successful} из {targetTweaks.Count} выбранных твиков!"
-                : $"✓ Successfully applied {successful} of {targetTweaks.Count} selected tweaks!";
+            ProgressText = LocalizationService.Instance.Format("PresetReview_ApplySuccess", successful, targetTweaks.Count);
 
             await Task.Delay(600);
             return successful;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace SilkThread.App.Services;
@@ -36,6 +36,40 @@ public sealed class UpdateHistoryService : IUpdateHistoryService
         return new List<UpdateReleaseEntry>
         {
             new(
+                Version: "v1.5.0",
+                Date: _loc["UpdHist_v150_Date"],
+                Title: _loc["UpdHist_v150_Title"],
+                Highlights: new[]
+                {
+                    _loc["UpdHist_v150_Item1"],
+                    _loc["UpdHist_v150_Item2"],
+                    _loc["UpdHist_v150_Item3"],
+                    _loc["UpdHist_v150_Item4"],
+                    _loc["UpdHist_v150_Item5"],
+                    _loc["UpdHist_v150_Item6"],
+                    _loc["UpdHist_v150_Item7"],
+                    _loc["UpdHist_v150_Item8"]
+                },
+                IsLatest: true
+            ),
+            new(
+                Version: "v1.3.0",
+                Date: _loc["UpdHist_v13_Date"],
+                Title: _loc["UpdHist_v13_Title"],
+                Highlights: new[]
+                {
+                    _loc["UpdHist_v13_Item1"],
+                    _loc["UpdHist_v13_Item2"],
+                    _loc["UpdHist_v13_Item3"],
+                    _loc["UpdHist_v13_Item4"],
+                    _loc["UpdHist_v13_Item5"],
+                    _loc["UpdHist_v13_Item6"],
+                    _loc["UpdHist_v13_Item7"],
+                    _loc["UpdHist_v13_Item8"]
+                },
+                IsLatest: false
+            ),
+            new(
                 Version: "v1.2.0",
                 Date: _loc["UpdHist_v12_Date"],
                 Title: _loc["UpdHist_v12_Title"],
@@ -50,7 +84,7 @@ public sealed class UpdateHistoryService : IUpdateHistoryService
                     _loc["UpdHist_v12_Item7"],
                     _loc["UpdHist_v12_Item8"]
                 },
-                IsLatest: true
+                IsLatest: false
             ),
             new(
                 Version: "v1.1.0",

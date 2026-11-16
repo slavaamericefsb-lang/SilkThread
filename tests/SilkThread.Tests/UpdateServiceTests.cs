@@ -8,6 +8,119 @@ namespace SilkThread.Tests;
 
 public class UpdateServiceTests
 {
+    [Fact]
+    public void UpdateTransaction_RollsBackReplacementsAndNewFilesAfterLockedFileFailure()
+    {
+        string sandbox = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SilkThread-test-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(sandbox);
+        try
+        {
+            string root = System.IO.Path.Combine(sandbox, "app");
+            System.IO.Directory.CreateDirectory(root);
+            string replaced = System.IO.Path.Combine(root, "b-existing.dll");
+            string locked = System.IO.Path.Combine(root, "z-locked.dll");
+            System.IO.File.WriteAllText(replaced, "original");
+            System.IO.File.WriteAllText(locked, "locked-original");
+            string patch = System.IO.Path.Combine(sandbox, "patch.zip");
+            using (var archive = System.IO.Compression.ZipFile.Open(patch, System.IO.Compression.ZipArchiveMode.Create))
+                foreach (string name in new[] { "a-new.dll", "b-existing.dll", "z-locked.dll" })
+                {
+                    using var writer = new System.IO.StreamWriter(archive.CreateEntry(name).Open());
+                    writer.Write("updated");
+                }
+            using (var held = new System.IO.FileStream(locked, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read))
+                Assert.Equal(1, RunTransaction(patch, root));
+            Assert.Equal("original", System.IO.File.ReadAllText(replaced));
+            Assert.Equal("locked-original", System.IO.File.ReadAllText(locked));
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(root, "a-new.dll")));
+            string recovery = Assert.Single(System.IO.Directory.GetDirectories(sandbox, "SilkThread-recovery-*"));
+            Assert.Equal("original", System.IO.File.ReadAllText(System.IO.Path.Combine(recovery, "backup", "b-existing.dll")));
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(recovery, "journal.json")));
+            Assert.True(System.IO.File.Exists(patch));
+        }
+        finally { System.IO.Directory.Delete(sandbox, true); }
+    }
+
+    [Fact]
+    public void UpdateTransaction_CommitsNestedFilesAndRemovesRecoveryAfterSuccess()
+    {
+        string sandbox = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SilkThread-test-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(sandbox);
+        try
+        {
+            string root = System.IO.Path.Combine(sandbox, "O'Brien % app");
+            System.IO.Directory.CreateDirectory(root);
+            string patch = System.IO.Path.Combine(sandbox, "patch.zip");
+            using (var archive = System.IO.Compression.ZipFile.Open(patch, System.IO.Compression.ZipArchiveMode.Create))
+            {
+                using var writer = new System.IO.StreamWriter(archive.CreateEntry("Assets/test.txt").Open());
+                writer.Write("updated");
+            }
+            Assert.Equal(0, RunTransaction(patch, root));
+            Assert.Equal("updated", System.IO.File.ReadAllText(System.IO.Path.Combine(root, "Assets", "test.txt")));
+            Assert.Empty(System.IO.Directory.GetDirectories(sandbox, "SilkThread-recovery-*"));
+        }
+        finally { System.IO.Directory.Delete(sandbox, true); }
+    }
+
+    private static int RunTransaction(string patch, string root)
+    {
+        string script = UpdateService.GeneratePatchTransactionScript(patch, root);
+        string encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script));
+        using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "powershell.exe", Arguments = "-NoProfile -NonInteractive -EncodedCommand " + encoded,
+            UseShellExecute = false, CreateNoWindow = true
+        })!;
+        Assert.True(process.WaitForExit(30000));
+        return process.ExitCode;
+    }
+
+    [Theory]
+    [InlineData("../escape.dll")]
+    [InlineData("..\\escape.dll")]
+    [InlineData("C:/escape.dll")]
+    [InlineData("/escape.dll")]
+    [InlineData("app.dll:stream")]
+    public void ValidatePatchArchive_RejectsUnsafeDestinations(string name)
+    {
+        using var buffer = new System.IO.MemoryStream();
+        using var zip = new System.IO.Compression.ZipArchive(buffer, System.IO.Compression.ZipArchiveMode.Update);
+        zip.CreateEntry(name);
+        Assert.Throws<System.IO.InvalidDataException>(() =>
+            UpdateService.ValidatePatchArchive(zip, @"C:\SilkThread"));
+    }
+
+    [Fact]
+    public void ValidatePatchArchive_RejectsLinksAndDirectoryOnlyArchives()
+    {
+        using var buffer = new System.IO.MemoryStream();
+        using var zip = new System.IO.Compression.ZipArchive(buffer, System.IO.Compression.ZipArchiveMode.Update);
+        zip.CreateEntry("Assets/");
+        Assert.Throws<System.IO.InvalidDataException>(() => UpdateService.ValidatePatchArchive(zip, @"C:\SilkThread"));
+        zip.CreateEntry("link.dll").ExternalAttributes = unchecked((int)0xA1FF0000);
+        Assert.Throws<System.IO.InvalidDataException>(() => UpdateService.ValidatePatchArchive(zip, @"C:\SilkThread"));
+    }
+
+    [Fact]
+    public void ValidatePatchArchive_AcceptsNestedFiles()
+    {
+        using var buffer = new System.IO.MemoryStream();
+        using var zip = new System.IO.Compression.ZipArchive(buffer, System.IO.Compression.ZipArchiveMode.Update);
+        zip.CreateEntry("Assets/icon.png");
+        UpdateService.ValidatePatchArchive(zip, @"C:\SilkThread");
+    }
+
+    [Fact]
+    public void UpdateScript_AbortsBeforeRestartAndCleanupOnExtractionFailure()
+    {
+        string script = UpdateService.GenerateInPlaceUpdateScript(@"C:\patch.zip", @"C:\SilkThread", @"C:\SilkThread\app.exe");
+        int guard = script.IndexOf("if errorlevel 1 exit /b 1", StringComparison.Ordinal);
+        Assert.True(guard >= 0);
+        Assert.True(guard < script.IndexOf("start \"\"", StringComparison.Ordinal));
+        Assert.True(guard < script.IndexOf("del /f", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData("1.1.0", "1.0.0", true)]
     [InlineData("1.0.0", "1.1.0", false)]
@@ -213,8 +326,8 @@ public class UpdateServiceTests
 
         Assert.Contains("@echo off", script);
         Assert.Contains("timeout /t 1 /nobreak", script);
-        Assert.Contains("tar -xf \"" + patchZip + "\" -C \"" + appDir + "\"", script);
-        Assert.Contains("Expand-Archive", script);
+        Assert.Contains("SILK_UPDATE_PAYLOAD", script);
+        Assert.Contains("Expand-Archive", UpdateService.GeneratePatchTransactionScript(patchZip, appDir));
         Assert.Contains("start \"\" \"" + appExe + "\"", script);
         Assert.Contains("del /f /q \"" + patchZip + "\"", script);
         Assert.Contains("(goto) 2>nul & del \"%~f0\"", script);
@@ -229,9 +342,7 @@ public class UpdateServiceTests
 
         string script = UpdateService.GenerateInPlaceUpdateScript(patchZip, appDirWithBackslash, appExe);
 
-        // Crucial verification: Must NOT have trailing backslash right before closing quote `\"`
-        // which causes Windows C runtime / tar argument parsing failure
-        Assert.Contains("-C \"C:\\Program Files\\SilkThread\"", script);
+        Assert.Contains("$root = 'C:\\Program Files\\SilkThread'", UpdateService.GeneratePatchTransactionScript(patchZip, appDirWithBackslash));
         Assert.DoesNotContain("-C \"C:\\Program Files\\SilkThread\\\"", script);
     }
 

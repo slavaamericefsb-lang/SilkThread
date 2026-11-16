@@ -41,7 +41,7 @@ public sealed partial class UpdateDialog : ContentDialog
             : $"v{update.Version}";
 
         ReleaseTitleText.Text = string.IsNullOrWhiteSpace(update.Title)
-            ? (isRu ? $"Обновление {update.Version}" : $"Update {update.Version}")
+            ? string.Format(loc["Update_DefaultTitle"], update.Version)
             : update.Title;
 
         // Clean size display: e.g. "Размер: 3.2 МБ" / "Size: 3.2 MB"
@@ -75,7 +75,7 @@ public sealed partial class UpdateDialog : ContentDialog
         }
 
         DescriptionText.Text = string.IsNullOrWhiteSpace(update.Description)
-            ? (isRu ? "Улучшения производительности и исправления стабильности." : "Performance improvements and stability enhancements.")
+            ? loc["Update_DefaultDesc"]
             : update.Description;
 
         var cleanCurrent = _updateService.CurrentVersion?.TrimStart('v', 'V') ?? "1.0.0";
@@ -113,49 +113,51 @@ public sealed partial class UpdateDialog : ContentDialog
         var loc = LocalizationService.Instance;
         bool isRu = loc.CurrentLanguage == "ru";
 
-        BtnUpdate.IsEnabled = false;
-        BtnLater.IsEnabled = false;
-        ErrorMessageText.Text = string.Empty;
-        DownloadProgressPanel.Visibility = Visibility.Visible;
-        DownloadStatusText.Text = isRu
-            ? "Загрузка обновления..."
-            : "Downloading update...";
-
-        var progress = new Progress<UpdateDownloadProgress>(p =>
-        {
-            DownloadProgressBar.Value = p.Percentage;
-            DownloadPercentText.Text = $"{(int)p.Percentage}%";
-
-            string mbUnit = isRu ? "МБ" : "MB";
-            string downloadWord = isRu ? "Загрузка" : "Downloading";
-            if (p.TotalBytes.HasValue && p.TotalBytes.Value > 0)
-            {
-                double receivedMb = p.BytesReceived / 1048576.0;
-                double totalMb = p.TotalBytes.Value / 1048576.0;
-                DownloadStatusText.Text = $"{downloadWord}: {receivedMb:F1} {mbUnit} / {totalMb:F1} {mbUnit}";
-            }
-            else
-            {
-                double receivedMb = p.BytesReceived / 1048576.0;
-                DownloadStatusText.Text = $"{downloadWord}: {receivedMb:F1} {mbUnit}...";
-            }
-        });
-
         try
         {
+            BtnUpdate.IsEnabled = false;
+            BtnLater.IsEnabled = false;
+            ErrorMessageText.Text = string.Empty;
+            DownloadProgressPanel.Visibility = Visibility.Visible;
+            DownloadStatusText.Text = loc["Update_Downloading"];
+
+            var progress = new Progress<UpdateDownloadProgress>(p =>
+            {
+                try
+                {
+                    DownloadProgressBar.Value = p.Percentage;
+                    DownloadPercentText.Text = $"{(int)p.Percentage}%";
+
+                    string mbUnit = isRu ? "МБ" : "MB";
+                    string downloadWord = loc["Update_DownloadWord"];
+                    if (p.TotalBytes.HasValue && p.TotalBytes.Value > 0)
+                    {
+                        double receivedMb = p.BytesReceived / 1048576.0;
+                        double totalMb = p.TotalBytes.Value / 1048576.0;
+                        DownloadStatusText.Text = string.Format(loc["Update_DownloadProgress"], downloadWord, receivedMb, mbUnit, totalMb);
+                    }
+                    else
+                    {
+                        double receivedMb = p.BytesReceived / 1048576.0;
+                        DownloadStatusText.Text = string.Format(loc["Update_DownloadProgressSimple"], downloadWord, receivedMb, mbUnit);
+                    }
+                }
+                catch { }
+            });
+
             await _updateService.DownloadAndInstallUpdateAsync(_update, progress, _cts.Token);
         }
         catch (OperationCanceledException)
         {
-            DownloadStatusText.Text = isRu ? "Загрузка отменена" : "Download cancelled";
+            DownloadStatusText.Text = loc["Update_DownloadCancelled"];
             BtnLater.IsEnabled = true;
             BtnUpdate.IsEnabled = true;
         }
         catch (Exception ex)
         {
             App.Log($"[UpdateDialog] Download error: {ex.Message}");
-            ErrorMessageText.Text = isRu ? $"Ошибка: {ex.Message}" : $"Error: {ex.Message}";
-            DownloadStatusText.Text = isRu ? "Не удалось завершить загрузку." : "Failed to complete download.";
+            ErrorMessageText.Text = string.Format(loc["Update_DownloadError"], ex.Message);
+            DownloadStatusText.Text = loc["Update_DownloadFailed"];
             BtnLater.IsEnabled = true;
             BtnUpdate.IsEnabled = true;
         }

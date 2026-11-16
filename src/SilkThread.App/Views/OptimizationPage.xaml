@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="SilkThread.App.Views.OptimizationPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -10,12 +10,12 @@
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,32"
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="{StaticResource SilkBackgroundDarkBrush}" Padding="24,20,24,28"
                   helpers:SmoothScroll.IsEnabled="True">
         <StackPanel Spacing="20" HorizontalAlignment="Stretch">
 
             <!-- 0: Page Title & Custom Preset Actions -->
-            <Grid x:Name="HeaderGrid">
+            <Border Style="{StaticResource SilkTechHeroStyle}"><Grid RowSpacing="12" helpers:ResponsiveColumns.Breakpoint="880" x:Name="HeaderGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -23,14 +23,14 @@
 
                 <StackPanel Grid.Column="0" Spacing="3">
                     <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" Style="{StaticResource SilkPageTitleStyle}" />
-                    <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" />
+                    <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <Button Command="{x:Bind ViewModel.CreatePresetCommand}"
                             Style="{StaticResource SilkMinimalSecondaryButtonStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon Glyph="&#xE74E;" FontSize="12" Foreground="#806BFF" />
+                            <FontIcon Glyph="&#xE74E;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.CreatePresetLabel, Mode=OneWay}" FontSize="12" />
                         </StackPanel>
                     </Button>
@@ -38,15 +38,15 @@
                     <Button Command="{x:Bind ViewModel.ActivatePresetCommand}"
                             Style="{StaticResource SilkMinimalSecondaryButtonStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon Glyph="&#xE8B7;" FontSize="12" Foreground="#806BFF" />
+                            <FontIcon Glyph="&#xE8B7;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.ActivatePresetLabel, Mode=OneWay}" FontSize="12" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
-            </Grid>
+            </Grid></Border>
 
             <!-- 1: Minimal Dark Grid Layout -->
-            <Grid ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch">
+            <Grid ColumnSpacing="16" RowSpacing="16" HorizontalAlignment="Stretch" helpers:ResponsiveColumns.Breakpoint="1100">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.2*" />
                     <ColumnDefinition Width="*" />
@@ -66,22 +66,22 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                    <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                                        <FontIcon Glyph="&#xE7FC;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Border Width="34" Height="34" CornerRadius="8" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
+                                        <FontIcon Glyph="&#xE7FC;" FontSize="15" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Spacing="1">
-                                        <TextBlock Text="{x:Bind ViewModel.ProfilesCardTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
-                                        <TextBlock Text="{x:Bind ViewModel.ProfilesCardSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProfilesCardTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProfilesCardSubtitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" CharacterSpacing="30" />
                                     </StackPanel>
                                 </StackPanel>
 
-                                <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind ViewModel.ProfilesCountBadge, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#806BFF" />
+                                <Border Grid.Column="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind ViewModel.ProfilesCountBadge, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                 </Border>
                             </Grid>
 
                             <!-- 4 Profile Cards GridView -->
-                            <GridView ItemsSource="{x:Bind ViewModel.Presets}"
+                            <GridView helpers:ItemsEntrance.IsEnabled="True" ItemsSource="{x:Bind ViewModel.Presets}"
                                       SelectedItem="{x:Bind ViewModel.SelectedPreset, Mode=TwoWay}"
                                       SelectedIndex="{x:Bind ViewModel.SelectedProfileIndex, Mode=TwoWay}"
                                       SelectionMode="Single"
@@ -110,9 +110,10 @@
                                 </GridView.ItemContainerStyle>
                                 <GridView.ItemTemplate>
                                     <DataTemplate x:DataType="vm:OptimizationPreset">
-                                        <Grid Width="254" Height="142">
+                                        <Grid Width="244" MinHeight="152">
                                             <!-- Card Background Surface (#181B25, Border #2B3040 1px, CornerRadius 12) -->
-                                            <Border CornerRadius="12" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" Padding="14,12">
+                                            <Border CornerRadius="12" Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" Padding="14,12"
+                                                    helpers:HoverAnimation.IsEnabled="True" helpers:HoverAnimation.HoverBorderColor="#806BFF">
                                                 <Grid RowSpacing="8">
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -128,21 +129,21 @@
                                                         </Grid.ColumnDefinitions>
 
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <Border Width="30" Height="30" CornerRadius="6" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                                                                <FontIcon Glyph="{x:Bind Icon}" FontSize="13" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            <Border Width="30" Height="30" CornerRadius="6" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
+                                                                <FontIcon Glyph="{x:Bind Icon}" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                             </Border>
 
-                                                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                <TextBlock Text="{x:Bind Badge}" FontSize="9" FontWeight="Bold" Foreground="#806BFF" />
+                                                            <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                <TextBlock Text="{x:Bind Badge}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                                             </Border>
                                                         </StackPanel>
 
                                                         <!-- Custom Radio Marker (#806BFF) -->
                                                         <Grid Grid.Column="1" Width="18" Height="18" VerticalAlignment="Center">
                                                             <!-- Inactive radio circle -->
-                                                            <Border Width="18" Height="18" CornerRadius="9" BorderBrush="#2B3040" BorderThickness="1.5" Background="Transparent" />
+                                                            <Border Width="18" Height="18" CornerRadius="9" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1.5" Background="Transparent" />
                                                             <!-- Active radio marker -->
-                                                            <Border Width="18" Height="18" CornerRadius="9" Background="#806BFF" BorderBrush="#806BFF" BorderThickness="1.5"
+                                                            <Border Width="18" Height="18" CornerRadius="9" Background="{StaticResource SilkBrandBrush}" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1.5"
                                                                     Visibility="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                 <Ellipse Width="6" Height="6" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                             </Border>
@@ -150,15 +151,15 @@
                                                     </Grid>
 
                                                     <!-- Title -->
-                                                    <TextBlock Grid.Row="1" Text="{x:Bind Name}" FontSize="13" FontWeight="Bold" Foreground="#F8FAFC" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Grid.Row="1" Text="{x:Bind Name}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
 
                                                     <!-- Description -->
-                                                    <TextBlock Grid.Row="2" Text="{x:Bind Description}" FontSize="11" Foreground="#94A3B8" MaxLines="3" TextTrimming="CharacterEllipsis" LineHeight="15" />
+                                                    <TextBlock Grid.Row="2" Text="{x:Bind Description}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" MaxLines="3" TextTrimming="CharacterEllipsis" LineHeight="15" />
                                                 </Grid>
                                             </Border>
 
                                             <!-- Profile Cards Selected Border with Smooth Transition & Glow -->
-                                            <Border CornerRadius="12" BorderThickness="1.5" BorderBrush="#806BFF" 
+                                            <Border CornerRadius="12" BorderThickness="1.5" BorderBrush="{StaticResource SilkBrandBrush}" 
                                                     Opacity="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToGlowOpacityConverter}}"
                                                     IsHitTestVisible="False" />
                                         </Grid>
@@ -179,33 +180,33 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                    <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
+                                    <Border Width="34" Height="34" CornerRadius="8" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
                                         <FontIcon Glyph="&#xE72E;" FontSize="15" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Spacing="1">
-                                        <TextBlock Text="{x:Bind ViewModel.ControlCardTitle, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" />
-                                        <TextBlock Text="{x:Bind ViewModel.ControlCardSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                        <TextBlock Text="{x:Bind ViewModel.ControlCardTitle, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ControlCardSubtitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" CharacterSpacing="30" />
                                     </StackPanel>
                                 </StackPanel>
 
-                                <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                <Border Grid.Column="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
                                         <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#10B981" />
-                                        <TextBlock Text="{x:Bind ViewModel.ProtectionActiveBadge, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#10B981" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProtectionActiveBadge, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
 
                             <!-- Safeguard Restore Point Option Block (ToggleSwitch #806BFF) -->
-                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                            <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="16,14">
                                 <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind ViewModel.CreateRestorePointLabel, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="#F8FAFC" />
-                                        <TextBlock Text="{x:Bind ViewModel.RestorePointSubtitle, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind ViewModel.CreateRestorePointLabel, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.RestorePointSubtitle, Mode=OneWay}" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                     </StackPanel>
 
                                     <!-- WinUI 3 ToggleSwitch with custom #806BFF accent colors -->
@@ -232,16 +233,16 @@
                             </Border>
 
                             <!-- Selected Profile Summary -->
-                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,10">
+                            <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedProfilePrefix, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedPreset.Name, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedProfilePrefix, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedPreset.Name, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind ViewModel.ProgressTotal, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="#806BFF" />
-                                        <TextBlock Text="{x:Bind ViewModel.TweaksCountSuffix, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProgressTotal, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.TweaksCountSuffix, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -308,26 +309,26 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                <Border Width="34" Height="34" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                                    <FontIcon Glyph="&#xE756;" FontSize="15" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Border Width="34" Height="34" CornerRadius="8" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
+                                    <FontIcon Glyph="&#xE756;" FontSize="15" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Spacing="1">
-                                    <TextBlock Text="{x:Bind ViewModel.ExecutionLogTitle, Mode=OneWay}" FontSize="13" FontWeight="Bold" Foreground="#F8FAFC" />
-                                    <TextBlock Text="{x:Bind ViewModel.AuditSubtitle, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#64748B" CharacterSpacing="60" />
+                                    <TextBlock Text="{x:Bind ViewModel.ExecutionLogTitle, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.AuditSubtitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" CharacterSpacing="30" />
                                 </StackPanel>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Button Command="{x:Bind ViewModel.ClearLogsCommand}" 
-                                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="10,4">
+                                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="10,4">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <FontIcon Glyph="&#xE74D;" FontSize="10" Foreground="#94A3B8" />
+                                        <FontIcon Glyph="&#xE74D;" FontSize="10" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                         <TextBlock Text="{x:Bind ViewModel.ClearLogsLabel, Mode=OneWay}" FontSize="11" Foreground="#CBD5E1" />
                                     </StackPanel>
                                 </Button>
 
                                 <!-- Terminal Live Badge with Pulsing Emerald Glow -->
-                                <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <Grid VerticalAlignment="Center">
                                             <!-- Pulsing emerald aura when live / executing -->
@@ -343,7 +344,7 @@
                                             <Border Width="6" Height="6" CornerRadius="3" Background="#10B981"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Grid>
-                                        <TextBlock Text="LIVE" FontSize="9" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" />
+                                        <TextBlock Text="LIVE" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -356,27 +357,27 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                            <Border Grid.Column="0" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{x:Bind ViewModel.ProgressHeader, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{x:Bind ViewModel.ProgressCurrent, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#806BFF" />
-                                        <TextBlock Text="/" FontSize="11" Foreground="#64748B" VerticalAlignment="Center" />
-                                        <TextBlock Text="{x:Bind ViewModel.ProgressTotal, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProgressCurrent, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
+                                        <TextBlock Text="/" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind ViewModel.ProgressTotal, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                            <Border Grid.Column="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{x:Bind ViewModel.SystemStatusHeader, Mode=OneWay}" Style="{StaticResource SilkSectionHeaderStyle}" FontSize="8" />
-                                    <TextBlock Text="{x:Bind ViewModel.CurrentStatusText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{x:Bind ViewModel.CurrentStatusText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Border>
                         </Grid>
 
                         <!-- Live Terminal Container (#11141D, Border #2B3040, Consolas font) -->
-                        <Border Grid.Row="2" Background="#11141D" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14" MinHeight="390">
+                        <Border Grid.Row="2" Background="#11141D" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14" MinHeight="390">
                             <Grid RowSpacing="10">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -392,7 +393,7 @@
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="silkthread-audit ~ powershell/registry" FontSize="11" FontFamily="Consolas" Foreground="#64748B" VerticalAlignment="Center" />
+                                        <TextBlock Text="silkthread-audit ~ powershell/registry" FontSize="11" FontFamily="Consolas" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" />
                                         <TextBlock x:Name="TerminalCursor" Text="█" FontSize="11" FontFamily="Consolas" Foreground="#10B981" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Grid>

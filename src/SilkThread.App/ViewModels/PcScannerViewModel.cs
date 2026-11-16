@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +47,7 @@ public partial class PcScannerViewModel : ObservableObject
     private string _cpuArch = "x64";
 
     [ObservableProperty]
-    private string _cpuCache = "32 МБ L3";
+    private string _cpuCache = "—";
 
     [ObservableProperty]
     private string _ramTotalGb = "0 ГБ";
@@ -71,7 +71,7 @@ public partial class PcScannerViewModel : ObservableObject
     private string _ramTypeModules = "DDR4";
 
     [ObservableProperty]
-    private string _ramChannelMode = "Двухканальный режим (Dual-Channel)";
+    private string _ramChannelMode = "—";
 
     [ObservableProperty]
     private string _osName = "Windows 11";
@@ -156,12 +156,15 @@ public partial class PcScannerViewModel : ObservableObject
     public string LblOsSubtitle => _loc.CurrentLanguage == "ru" ? "ОПЕРАЦИОННАЯ СИСТЕМА И СЛУЖБЫ" : "OPERATING SYSTEM & SERVICES";
     public string LblOsEditionHeader => _loc.CurrentLanguage == "ru" ? "РЕДАКЦИЯ WINDOWS 11" : "WINDOWS 11 EDITION";
     public string LblHvciSubtitle => _loc.CurrentLanguage == "ru" ? "Изоляция ядра (HVCI / VBS)" : "Core Isolation (HVCI / VBS)";
+    public string LblGameBarGpuPriority => _loc["Scan_Lbl_GameBarGpuPriority"];
     public string UsedOfTotalLabel => _loc.CurrentLanguage == "ru" ? "занято из" : "used of";
 
     private CpuInfo? _lastCpu;
     private RamInfo? _lastRam;
     private OsInfo? _lastOs;
     private PowerAndChassisInfo? _lastPower;
+    private List<GpuInfo>? _lastGpus;
+    private List<DiskDriveInfo>? _lastStorage;
 
     public PcScannerViewModel(IHardwareScanner hardwareScanner, ILocalizationService localizationService)
     {
@@ -210,17 +213,21 @@ public partial class PcScannerViewModel : ObservableObject
             OnPropertyChanged(nameof(LblOsSubtitle));
             OnPropertyChanged(nameof(LblOsEditionHeader));
             OnPropertyChanged(nameof(LblHvciSubtitle));
+            OnPropertyChanged(nameof(LblGameBarGpuPriority));
             OnPropertyChanged(nameof(UsedOfTotalLabel));
 
             if (_lastCpu != null) ApplyCpuInfo(_lastCpu);
             if (_lastRam != null) ApplyRamInfo(_lastRam);
             if (_lastOs != null && _lastPower != null) ApplyOsAndPowerInfo(_lastOs, _lastPower);
+            if (_lastGpus != null) ApplyGpuInfo(_lastGpus);
+            if (_lastStorage != null) ApplyStorageInfo(_lastStorage);
         };
     }
 
     public async Task InitializeAsync()
     {
-        await ScanAsync();
+        // Retain the last displayed snapshot while navigating; the scan button always refreshes.
+        if (Profile == null) await ScanAsync();
     }
 
     [RelayCommand]
@@ -231,108 +238,18 @@ public partial class PcScannerViewModel : ObservableObject
 
         try
         {
-            // Launch parallel asynchronous scans for each hardware subsystem with real-time UI updates
-            var cpuTask = Task.Run(async () =>
-            {
-                try
-                {
-                    var cpu = await _hardwareScanner.ScanCpuAsync();
-                    ApplyCpuInfo(cpu);
-                    return cpu;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] CPU scan error: {ex.Message}");
-                    return null;
-                }
-            });
-
-            var ramTask = Task.Run(async () =>
-            {
-                try
-                {
-                    var ram = await _hardwareScanner.ScanRamAsync();
-                    ApplyRamInfo(ram);
-                    return ram;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] RAM scan error: {ex.Message}");
-                    return null;
-                }
-            });
-
-            var gpuTask = Task.Run(async () =>
-            {
-                try
-                {
-                    var gpus = await _hardwareScanner.ScanGpusAsync();
-                    ApplyGpuInfo(gpus);
-                    return gpus;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] GPU scan error: {ex.Message}");
-                    return new List<GpuInfo>();
-                }
-            });
-
-            var storageTask = Task.Run(async () =>
-            {
-                try
-                {
-                    var storage = await _hardwareScanner.ScanStorageAsync();
-                    ApplyStorageInfo(storage);
-                    return storage;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] Storage scan error: {ex.Message}");
-                    return new List<DiskDriveInfo>();
-                }
-            });
-
-            var osAndPowerTask = Task.Run<(OsInfo?, PowerAndChassisInfo?)>(async () =>
-            {
-                try
-                {
-                    var os = await _hardwareScanner.ScanOsAsync();
-                    var power = await _hardwareScanner.ScanPowerAsync();
-                    ApplyOsAndPowerInfo(os, power);
-                    return (os, power);
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] OS/Power scan error: {ex.Message}");
-                    return (null, null);
-                }
-            });
-
-            var processTask = Task.Run(async () =>
-            {
-                try
-                {
-                    var procs = await _hardwareScanner.ScanProcessesAsync();
-                    RunOnUI(() =>
-                    {
-                        GamingProcesses.Clear();
-                        foreach (var p in procs.RunningGamingProcesses) GamingProcesses.Add(p);
-                        GamingProcessesCount = GamingProcesses.Count;
-                        OnPropertyChanged(nameof(GamingProcessesCount));
-                    });
-                    return procs;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[PcScanner] Process scan error: {ex.Message}");
-                    return null;
-                }
-            });
-
-            await Task.WhenAll(cpuTask, ramTask, gpuTask, storageTask, osAndPowerTask, processTask);
-
-            // Assemble complete profile for CopyReport
-            Profile = await _hardwareScanner.ScanAsync();
+            // HardwareScanner already scans independent subsystems concurrently. Previously
+            // this page repeated that entire scan a second time just to assemble CopyReport.
+            var profile = await _hardwareScanner.ScanAsync();
+            Profile = profile;
+            ApplyCpuInfo(profile.Cpu);
+            ApplyRamInfo(profile.Ram);
+            ApplyGpuInfo(profile.Gpus);
+            ApplyStorageInfo(profile.Storage);
+            ApplyOsAndPowerInfo(profile.Os, profile.Power);
+            GamingProcesses.Clear();
+            foreach (var process in profile.Processes.RunningGamingProcesses) GamingProcesses.Add(process);
+            GamingProcessesCount = GamingProcesses.Count;
         }
         catch (Exception ex)
         {
@@ -346,14 +263,26 @@ public partial class PcScannerViewModel : ObservableObject
 
     private void RunOnUI(Action action)
     {
-        var dispatcher = App.MainWindowInstance?.DispatcherQueue;
-        if (dispatcher != null && !dispatcher.HasThreadAccess)
+        var dispatcher = App.MainDispatcherQueue ?? App.MainWindowInstance?.DispatcherQueue;
+        if (dispatcher != null)
         {
-            dispatcher.TryEnqueue(() => action());
+            if (!dispatcher.HasThreadAccess)
+            {
+                dispatcher.TryEnqueue(() =>
+                {
+                    try { action(); }
+                    catch (Exception ex) { App.Log($"[PcScanner RunOnUI Exception]: {ex}"); }
+                });
+            }
+            else
+            {
+                try { action(); }
+                catch (Exception ex) { App.Log($"[PcScanner RunOnUI Exception]: {ex}"); }
+            }
         }
         else
         {
-            action();
+            App.Log("[PcScanner RunOnUI] Warning: DispatcherQueue is null, operation dropped to prevent cross-thread crash.");
         }
     }
 
@@ -376,9 +305,7 @@ public partial class PcScannerViewModel : ObservableObject
             CpuArch = string.IsNullOrWhiteSpace(cpu.Architecture) ? "x64" : cpu.Architecture;
             CpuCache = cpu.L3CacheMb > 0
                 ? (_loc.CurrentLanguage == "ru" ? $"{cpu.L3CacheMb} МБ L3" : $"{cpu.L3CacheMb} MB L3")
-                : (cpu.CoreCount >= 8 
-                    ? (_loc.CurrentLanguage == "ru" ? "32 МБ L3" : "32 MB L3") 
-                    : (_loc.CurrentLanguage == "ru" ? "16 МБ L3" : "16 MB L3"));
+                : (_loc.CurrentLanguage == "ru" ? "Нет данных" : "Unknown");
 
             OnPropertyChanged(nameof(CpuName));
             OnPropertyChanged(nameof(CpuCoresThreads));
@@ -408,11 +335,8 @@ public partial class PcScannerViewModel : ObservableObject
             RamUsagePercent = ram.TotalGb > 0 ? Math.Clamp((usedGb / ram.TotalGb) * 100.0, 0, 100) : 0;
             RamSpeed = $"{ram.SpeedMhz} {mhzUnit}";
             RamTypeModules = $"{ram.MemoryType} ({ram.ModuleCount} {modulesText})";
-            RamChannelMode = ram.ModuleCount >= 4
-                ? (_loc.CurrentLanguage == "ru" ? "Четырехканальный (Quad-Channel)" : "Quad-Channel (4 DIMM)")
-                : ram.ModuleCount == 2
-                    ? (_loc.CurrentLanguage == "ru" ? "Двухканальный режим (Dual-Channel)" : "Dual-Channel (2 DIMM)")
-                    : (_loc.CurrentLanguage == "ru" ? "Одноканальный режим (Single-Channel)" : "Single-Channel (1 DIMM)");
+            // DIMM count does not establish channel topology (four DIMMs can be dual-channel).
+            RamChannelMode = _loc.CurrentLanguage == "ru" ? "Нет данных" : "Unknown";
 
             OnPropertyChanged(nameof(RamTotalGb));
             OnPropertyChanged(nameof(RamAvailGb));
@@ -427,6 +351,7 @@ public partial class PcScannerViewModel : ObservableObject
 
     private void ApplyGpuInfo(List<GpuInfo> gpus)
     {
+        _lastGpus = gpus;
         RunOnUI(() =>
         {
             Gpus.Clear();
@@ -437,6 +362,7 @@ public partial class PcScannerViewModel : ObservableObject
 
     private void ApplyStorageInfo(List<DiskDriveInfo> storage)
     {
+        _lastStorage = storage;
         RunOnUI(() =>
         {
             StorageDrives.Clear();
@@ -492,32 +418,65 @@ public partial class PcScannerViewModel : ObservableObject
     {
         if (Profile == null) return;
 
+        bool isRu = _loc.CurrentLanguage == "ru";
         var sb = new StringBuilder();
-        sb.AppendLine("==================================================");
-        sb.AppendLine("SILKTHREAD — АППАРАТНЫЙ ДИАГНОСТИЧЕСКИЙ ОТЧЕТ ПК");
-        sb.AppendLine("==================================================");
-        sb.AppendLine($"Дата сканирования: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        sb.AppendLine($"Платформа: {(Profile.Power.IsLaptop ? "Ноутбук" : "Настольный ПК")}, Питание: {(Profile.Power.IsAcConnected ? "Сеть" : "Батарея")}");
-        sb.AppendLine();
-        sb.AppendLine($"[ЦП]: {Profile.Cpu.Name}");
-        sb.AppendLine($"Ядра / Потоки: {Profile.Cpu.CoreCount} / {Profile.Cpu.LogicalProcessorCount}, Частота: {Profile.Cpu.MaxClockSpeedGhz:F2} ГГц, Кэш: {CpuCache}, Архитектура: {CpuArch}, VBS: {(Profile.Cpu.SupportsVbs ? "Да" : "Нет")}");
-        sb.AppendLine();
-        sb.AppendLine($"[ОЗУ]: {Profile.Ram.TotalGb:F1} ГБ {Profile.Ram.MemoryType} @ {Profile.Ram.SpeedMhz} МГц ({Profile.Ram.ModuleCount} модулей, {RamChannelMode})");
-        sb.AppendLine();
-        sb.AppendLine("[ВИДЕОКАРТЫ]:");
-        foreach (var gpu in Profile.Gpus)
+
+        if (isRu)
         {
-            sb.AppendLine($" - {gpu.Name} ({gpu.VramGb:F1} ГБ, DirectX: {gpu.DirectXVersion}, Драйвер: {gpu.DriverVersion}, HAGS: {(gpu.HagsEnabled ? "Вкл" : "Выкл")})");
+            sb.AppendLine("==================================================");
+            sb.AppendLine("SILKTHREAD — АППАРАТНЫЙ ДИАГНОСТИЧЕСКИЙ ОТЧЕТ ПК");
+            sb.AppendLine("==================================================");
+            sb.AppendLine($"Дата сканирования: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"Платформа: {(Profile.Power.IsLaptop ? "Ноутбук" : "Настольный ПК")}, Питание: {(Profile.Power.IsAcConnected ? "Сеть" : "Батарея")}");
+            sb.AppendLine();
+            sb.AppendLine($"[ЦП]: {Profile.Cpu.Name}");
+            sb.AppendLine($"Ядра / Потоки: {Profile.Cpu.CoreCount} / {Profile.Cpu.LogicalProcessorCount}, Частота: {Profile.Cpu.MaxClockSpeedGhz:F2} ГГц, Кэш: {CpuCache}, Архитектура: {CpuArch}, VBS: {(Profile.Cpu.SupportsVbs ? "Да" : "Нет")}");
+            sb.AppendLine();
+            sb.AppendLine($"[ОЗУ]: {Profile.Ram.TotalGb:F1} ГБ {Profile.Ram.MemoryType} @ {Profile.Ram.SpeedMhz} МГц ({Profile.Ram.ModuleCount} модулей, {RamChannelMode})");
+            sb.AppendLine();
+            sb.AppendLine("[ВИДЕОКАРТЫ]:");
+            foreach (var gpu in Profile.Gpus)
+            {
+                sb.AppendLine($" - {gpu.Name} ({gpu.VramGb:F1} ГБ, DirectX: {gpu.DirectXVersion}, Драйвер: {gpu.DriverVersion}, HAGS: {(gpu.HagsEnabled ? "Вкл" : "Выкл")})");
+            }
+            sb.AppendLine();
+            sb.AppendLine("[НАКОПИТЕЛИ]:");
+            foreach (var drive in Profile.Storage)
+            {
+                sb.AppendLine($" - [{drive.DriveLetter}] {drive.Model} ({drive.DriveFormat}): {drive.FreeSpaceGb:F1} ГБ свободно из {drive.TotalSizeGb:F1} ГБ (TRIM: {(drive.SupportsTrim ? "Да" : "Нет")})");
+            }
+            sb.AppendLine();
+            sb.AppendLine($"[ОС]: {OsEdition} (Сборка {Profile.Os.BuildNumber}), Game Mode: {(Profile.Os.GameModeEnabled ? "Вкл" : "Выкл")}, Изоляция ядра: {(Profile.Os.CoreIsolationEnabled ? "Вкл" : "Выкл")}, Схема питания: {Profile.Os.ActivePowerPlanName}");
+            sb.AppendLine("==================================================");
         }
-        sb.AppendLine();
-        sb.AppendLine("[НАКОПИТЕЛИ]:");
-        foreach (var drive in Profile.Storage)
+        else
         {
-            sb.AppendLine($" - [{drive.DriveLetter}] {drive.Model} ({drive.DriveFormat}): {drive.FreeSpaceGb:F1} ГБ свободно из {drive.TotalSizeGb:F1} ГБ (TRIM: {(drive.SupportsTrim ? "Да" : "Нет")})");
+            sb.AppendLine("==================================================");
+            sb.AppendLine("SILKTHREAD — HARDWARE DIAGNOSTIC REPORT");
+            sb.AppendLine("==================================================");
+            sb.AppendLine($"Scan Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"Platform: {(Profile.Power.IsLaptop ? "Laptop" : "Desktop PC")}, Power Source: {(Profile.Power.IsAcConnected ? "AC Power" : "Battery")}");
+            sb.AppendLine();
+            sb.AppendLine($"[CPU]: {Profile.Cpu.Name}");
+            sb.AppendLine($"Cores / Threads: {Profile.Cpu.CoreCount} / {Profile.Cpu.LogicalProcessorCount}, Frequency: {Profile.Cpu.MaxClockSpeedGhz:F2} GHz, Cache: {CpuCache}, Arch: {CpuArch}, VBS: {(Profile.Cpu.SupportsVbs ? "Yes" : "No")}");
+            sb.AppendLine();
+            sb.AppendLine($"[RAM]: {Profile.Ram.TotalGb:F1} GB {Profile.Ram.MemoryType} @ {Profile.Ram.SpeedMhz} MHz ({Profile.Ram.ModuleCount} modules, {RamChannelMode})");
+            sb.AppendLine();
+            sb.AppendLine("[GRAPHICS ADAPTERS]:");
+            foreach (var gpu in Profile.Gpus)
+            {
+                sb.AppendLine($" - {gpu.Name} ({gpu.VramGb:F1} GB, DirectX: {gpu.DirectXVersion}, Driver: {gpu.DriverVersion}, HAGS: {(gpu.HagsEnabled ? "Enabled" : "Disabled")})");
+            }
+            sb.AppendLine();
+            sb.AppendLine("[STORAGE DRIVES]:");
+            foreach (var drive in Profile.Storage)
+            {
+                sb.AppendLine($" - [{drive.DriveLetter}] {drive.Model} ({drive.DriveFormat}): {drive.FreeSpaceGb:F1} GB free of {drive.TotalSizeGb:F1} GB (TRIM: {(drive.SupportsTrim ? "Yes" : "No")})");
+            }
+            sb.AppendLine();
+            sb.AppendLine($"[OS]: {OsEdition} (Build {Profile.Os.BuildNumber}), Game Mode: {(Profile.Os.GameModeEnabled ? "Enabled" : "Disabled")}, Core Isolation: {(Profile.Os.CoreIsolationEnabled ? "Enabled" : "Disabled")}, Power Plan: {Profile.Os.ActivePowerPlanName}");
+            sb.AppendLine("==================================================");
         }
-        sb.AppendLine();
-        sb.AppendLine($"[ОС]: {OsEdition} (Сборка {Profile.Os.BuildNumber}), Game Mode: {(Profile.Os.GameModeEnabled ? "Вкл" : "Выкл")}, Изоляция ядра: {(Profile.Os.CoreIsolationEnabled ? "Вкл" : "Выкл")}, Схема питания: {Profile.Os.ActivePowerPlanName}");
-        sb.AppendLine("==================================================");
 
         var package = new DataPackage();
         package.SetText(sb.ToString());

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -84,10 +84,10 @@ public static class StorageOptimizationTweaks
             description: "Exposes the Disk Turn Off timeout policy in Windows Power Management.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\0012ee47-9041-4b5d-9b77-535fba8b1442\\6738e2c4-e8a5-4217-a113-10a40c0e7649.",
             problemSolved: "Allows configuring storage drives to never enter low-power sleep states on AC power.",
-            expectedResult: "Eliminates multi-second system freezes when a secondary game library drive spins up.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.StorageOptimization,
             risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
+            recommendation: RecommendationLevel.Optional,
             hive: "HKLM",
             subKey: @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\0012ee47-9041-4b5d-9b77-535fba8b1442\6738e2c4-e8a5-4217-a113-10a40c0e7649",
             valueName: "Attributes",
@@ -152,10 +152,10 @@ public static class StorageOptimizationTweaks
             description: "Unhides NVMe Idle Timeout in power configuration to prevent aggressive low-power transitions.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\0012ee47-9041-4b5d-9b77-535fba8b1442\\d639518a-e56d-4345-8af2-b3023c5106e1.",
             problemSolved: "NVMe drives entering deep sleep states (PS3/PS4) have a 10-50ms resume latency, causing game hitches.",
-            expectedResult: "Instantaneous NVMe read responsiveness on AC power.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.StorageOptimization,
             risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
+            recommendation: RecommendationLevel.Optional,
             hive: "HKLM",
             subKey: @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\0012ee47-9041-4b5d-9b77-535fba8b1442\d639518a-e56d-4345-8af2-b3023c5106e1",
             valueName: "Attributes",
@@ -216,24 +216,6 @@ public static class StorageOptimizationTweaks
         );
 
         yield return TweakBuilder.CreateRegistryDword(
-            id: "storage_flush_file_buffers_optimization",
-            title: "Optimize Disk Write Cache Buffer Flush Thresholds",
-            description: "Configures Windows storage subsystem to avoid synchronous flush stalls during game level streaming.",
-            howItWorks: "Sets 'DisableFlushBuffer' to 1 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem.",
-            problemSolved: "Excessive disk write buffer flushes stall concurrent read requests during game loading.",
-            expectedResult: "Smoother disk I/O streaming in open world titles on high-speed NVMe drives.",
-            category: TweakCategory.StorageOptimization,
-            risk: RiskLevel.Medium,
-            recommendation: RecommendationLevel.Optional,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\FileSystem",
-            valueName: "DisableFlushBuffer",
-            appliedValue: 1,
-            fallbackDefaultValue: 0,
-            requiresSsdOrNvme: true
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
             id: "storage_write_cache_buffer_flushing_tune",
             title: "Optimize File System Cache Flush Interval",
             description: "Configures file system write-cache buffer flushing heuristics to avoid queue congestion during sustained writes.",
@@ -249,23 +231,6 @@ public static class StorageOptimizationTweaks
             appliedValue: 10,
             fallbackDefaultValue: 0,
             requiresSsdOrNvme: true
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "storage_disable_volumetric_shadow_copies",
-            title: "Optimize Volume Shadow Copy Allocation Quota",
-            description: "Caps maximum VSS system restore shadow storage space to prevent stealth consumption of SSD capacity.",
-            howItWorks: "Sets 'MaxShadowCopies' to 5 in HKLM\\SYSTEM\\CurrentControlSet\\Services\\VSS\\Settings.",
-            problemSolved: "Unconstrained VSS snapshots consume 50-100GB of SSD storage across Windows Update cycles.",
-            expectedResult: "Reclaims tens of gigabytes of solid-state storage without breaking restore point functionality.",
-            category: TweakCategory.StorageOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Services\VSS\Settings",
-            valueName: "MaxShadowCopies",
-            appliedValue: 5,
-            fallbackDefaultValue: 64
         );
 
         yield return TweakBuilder.CreateRegistryDword(

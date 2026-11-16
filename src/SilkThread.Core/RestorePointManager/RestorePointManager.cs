@@ -48,71 +48,23 @@ public class RestorePointManager : IRestorePointManager
 
     public async Task<RestorePointStatus> CheckStatusAsync()
     {
-        return await Task.Run(async () =>
+        try
         {
-            try
-            {
-                // 1. Check if SR is disabled via Registry
-                using (var hklm = Registry.LocalMachine)
-                using (var key = hklm.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore", writable: false))
-                {
-                    if (key != null)
-                    {
-                        var disableVal = key.GetValue("DisableSR");
-                        if (disableVal is int d && d == 1)
-                        {
-                            return new RestorePointStatus(false, false, "Защита системы выключена системной политикой Windows.");
-                        }
-                    }
-                }
-
-                // 2. Query WMI root\default:SystemRestore
-                try
-                {
-                    var scope = new ManagementScope(@"\\.\root\default");
-                    scope.Connect();
-                    using var searcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT * FROM SystemRestore"));
-                    using var results = searcher.Get();
-
-                    return new RestorePointStatus(true, true, "Служба защиты системы включена, создание контрольных точек активно.");
-                }
-                catch
-                {
-                    // WMI might need elevation or VSS check
-                }
-
-                // 3. Check drive protection via PowerShell
-                var script = "(Get-ComputerRestorePoint -ErrorAction SilentlyContinue) -ne $null; (Get-WmiObject -Namespace root\\default -Class SystemRestore -ErrorAction SilentlyContinue) -ne $null";
-                var psResult = await CommandOperations.RunAsync("powershell.exe", $"-NoProfile -NonInteractive -Command \"{script}\"", 8000);
-                if (psResult.ExitCode == 0 && psResult.Output.Contains("True", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new RestorePointStatus(true, true, "Служба защиты системы активна.");
-                }
-
-                // 4. Check vssadmin list shadowstorage
-                var vssRes = await CommandOperations.RunAsync("vssadmin", "list shadowstorage", 8000);
-                if (vssRes.ExitCode == 0 && (vssRes.Output.Contains("Shadow Copy Storage association", StringComparison.OrdinalIgnoreCase) || vssRes.Output.Contains("C:")))
-                {
-                    return new RestorePointStatus(true, true, "Теневое копирование тома C: активно.");
-                }
-
-                // 5. Check registry cfg for disk space allocation
-                using (var hklm = Registry.LocalMachine)
-                using (var cfgKey = hklm.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore\cfg", writable: false))
-                {
-                    if (cfgKey != null && cfgKey.GetValue("DiskPercent") != null)
-                    {
-                        return new RestorePointStatus(true, true, "Служба защиты системы настроена.");
-                    }
-                }
-
-                return new RestorePointStatus(false, false, "Защита системы выключена для системного диска.");
-            }
-            catch (Exception ex)
-            {
-                return new RestorePointStatus(false, false, $"Статус защиты недоступен: {ex.Message}");
-            }
-        });
+            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore");
+            if (key?.GetValue("DisableSR") is int disabled && disabled == 1)
+                return new(false, false, "Защита системы выключена настройкой Windows.");
+            var points = await GetRestorePointsAsync();
+            // Existing restore points and VSS storage do not prove that monitoring is enabled now.
+            return new(true, false, $"Чтение доступно. Найдено точек: {points.Count}. Состояние защиты диска проверяйте в параметрах защиты системы Windows.") { ProtectionStateKnown = false };
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return new(false, false, "Для чтения точек восстановления нужны права администратора. Нажмите «Пользователь» вверху окна и подтвердите перезапуск через UAC.") { ProtectionStateKnown = false };
+        }
+        catch (Exception ex)
+        {
+            return new(false, false, $"Не удалось прочитать точки восстановления: {ex.Message}") { ProtectionStateKnown = false };
+        }
     }
 
     public async Task<(bool Success, string Message, long SequenceNumber)> CreateRestorePointAsync(string description)
@@ -187,13 +139,15 @@ public class RestorePointManager : IRestorePointManager
         {
             var list = new List<RestorePointItem>();
 
+            Exception? readError = null;
             // 1. First attempt: WMI root\default:SystemRestore
             try
             {
-                var scope = new ManagementScope(@"\\.\root\default");
+                var scope = new ManagementScope(@"\\.\root\default", new ConnectionOptions { Timeout = TimeSpan.FromSeconds(5), EnablePrivileges = true });
                 scope.Connect();
 
-                using var searcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT * FROM SystemRestore"));
+                var opt = new System.Management.EnumerationOptions { ReturnImmediately = true, Timeout = TimeSpan.FromSeconds(5) };
+                using var searcher = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT * FROM SystemRestore"), opt);
                 using var results = searcher.Get();
                 foreach (ManagementObject mo in results)
                 {
@@ -214,49 +168,34 @@ public class RestorePointManager : IRestorePointManager
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // WMI might require elevation or be blocked
+                readError = ex;
             }
-
-            if (list.Count > 0)
-            {
-                return list.OrderByDescending(r => r.SequenceNumber).ToList();
-            }
+            if (readError == null) return list.OrderByDescending(r => r.SequenceNumber).ToList();
+            if (IsAccessDenied(readError)) throw new UnauthorizedAccessException("Windows denied access to SystemRestore.", readError);
 
             // 2. Fallback: PowerShell Get-ComputerRestorePoint
-            try
-            {
-                var script = "Get-ComputerRestorePoint -ErrorAction SilentlyContinue | Select-Object SequenceNumber, Description, CreationTime, RestorePointType, EventType | ConvertTo-Json -Compress";
-                var psRes = await CommandOperations.RunAsync("powershell.exe", $"-NoProfile -NonInteractive -Command \"{script}\"", 15000);
-
-                if (psRes.ExitCode == 0 && !string.IsNullOrWhiteSpace(psRes.Output))
-                {
-                    var json = psRes.Output.Trim();
-                    using var doc = JsonDocument.Parse(json);
-
-                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var elem in doc.RootElement.EnumerateArray())
-                        {
-                            var item = ParseJsonRestorePoint(elem);
-                            if (item != null) list.Add(item);
-                        }
-                    }
-                    else if (doc.RootElement.ValueKind == JsonValueKind.Object)
-                    {
-                        var item = ParseJsonRestorePoint(doc.RootElement);
-                        if (item != null) list.Add(item);
-                    }
-                }
-            }
-            catch
-            {
-                // In case PowerShell fails
-            }
-
-            return list.OrderByDescending(r => r.SequenceNumber).ToList();
+            var script = "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); $ErrorActionPreference='Stop'; $points = @(Get-ComputerRestorePoint -ErrorAction Stop | Select-Object SequenceNumber,Description,CreationTime,RestorePointType,EventType); ConvertTo-Json -InputObject $points -Compress";
+            var psRes = await CommandOperations.RunAsync("powershell.exe", $"-NoProfile -NonInteractive -Command \"{script}\"", 15000);
+            if (psRes.ExitCode != 0)
+                throw new InvalidOperationException($"SystemRestore could not be read: {readError.Message}; {psRes.Error.Trim()}", readError);
+            return ParseRestorePointsJson(psRes.Output);
         });
+    }
+
+    public static bool IsAccessDenied(Exception error) => error is UnauthorizedAccessException
+        || error is ManagementException { ErrorCode: ManagementStatus.AccessDenied }
+        || error.HResult is unchecked((int)0x80070005) or unchecked((int)0x80041003);
+
+    public static List<RestorePointItem> ParseRestorePointsJson(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var rows = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToArray()
+            : doc.RootElement.ValueKind == JsonValueKind.Object ? new[] { doc.RootElement }
+            : throw new JsonException("Expected restore point array or object.");
+        return rows.Select(e => ParseJsonRestorePoint(e) ?? throw new JsonException("Invalid restore point record."))
+            .OrderByDescending(p => p.SequenceNumber).ToList();
     }
 
     public async Task<(bool Success, string Message)> DeleteRestorePointAsync(long sequenceNumber)
@@ -405,6 +344,7 @@ public class RestorePointManager : IRestorePointManager
                     long.TryParse(seqProp.GetString(), out seq);
             }
 
+            if (seq <= 0) return null;
             string desc = elem.TryGetProperty("Description", out var descProp) ? descProp.GetString() ?? "Restore Point" : "Restore Point";
             string rawType = elem.TryGetProperty("RestorePointType", out var typeProp) ? typeProp.ToString() : "12";
             string rawEvent = elem.TryGetProperty("EventType", out var eventProp) ? eventProp.ToString() : "100";

@@ -124,17 +124,26 @@ public class GameProfileTests
     [Fact]
     public async Task Service_ApplyAndRevertProfile_ShouldExecuteWithoutCrashing()
     {
-        var service = new GameProfileService();
-        var cs2 = service.GetProfileById("cs2");
-        Assert.NotNull(cs2);
+        int writes = 0, deletes = 0;
+        var service = new GameProfileService(
+            (hive, key, name) => { deletes++; return true; },
+            (hive, key, name, value) => { writes++; return true; },
+            (hive, key, name, value) => { writes++; return true; });
+        var cs2 = service.GetProfileById("cs2")!;
+        Assert.True(await service.ApplyProfileAsync("cs2"));
+        Assert.Equal(cs2.ExecutableNames.Count * 4 + 3, writes);
+        Assert.True(await service.RevertProfileAsync("cs2"));
+        Assert.Equal(cs2.ExecutableNames.Count * 4 + 3, deletes);
+    }
 
-        // Applying system profile
-        bool applied = await service.ApplyProfileAsync("cs2");
-        // May succeed or partially succeed depending on current test process rights (IFEO requires admin)
-        Assert.True(applied);
-
-        // Reverting system profile
-        bool reverted = await service.RevertProfileAsync("cs2");
-        Assert.True(reverted);
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public async Task Service_ApplyReportsFailedRegistryWrites(bool stringsSucceed, bool dwordsSucceed)
+    {
+        var service = new GameProfileService((hive, key, name) => true,
+            (hive, key, name, value) => stringsSucceed,
+            (hive, key, name, value) => dwordsSucceed);
+        Assert.False(await service.ApplyProfileAsync("cs2"));
     }
 }

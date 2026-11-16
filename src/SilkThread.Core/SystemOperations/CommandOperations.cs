@@ -50,7 +50,7 @@ public static class ElevationHelper
 
 public static class CommandOperations
 {
-    public static async Task<(int ExitCode, string Output, string Error)> RunAsync(string fileName, string arguments, int timeoutMs = 15000)
+    public static async Task<(int ExitCode, string Output, string Error)> RunAsync(string fileName, string arguments, int timeoutMs = 15000, System.Text.Encoding? outputEncoding = null)
     {
         try
         {
@@ -61,11 +61,16 @@ public static class CommandOperations
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                StandardOutputEncoding = outputEncoding,
+                StandardErrorEncoding = outputEncoding,
                 CreateNoWindow = true
             };
 
             using var process = new Process { StartInfo = startInfo };
-            process.Start();
+            if (!process.Start())
+            {
+                return (-1, string.Empty, "Failed to start process");
+            }
 
             var stdoutTask = process.StandardOutput.ReadToEndAsync();
             var stderrTask = process.StandardError.ReadToEndAsync();
@@ -75,7 +80,7 @@ public static class CommandOperations
 
             if (completedTask != waitForExitTask)
             {
-                try { process.Kill(); } catch { }
+                try { process.Kill(entireProcessTree: true); } catch { }
                 if (fileName.Contains("powershell", StringComparison.OrdinalIgnoreCase))
                 {
                     TweakExecutionService.Instance.LogPowerShell(arguments, -1, null, "Process timed out");

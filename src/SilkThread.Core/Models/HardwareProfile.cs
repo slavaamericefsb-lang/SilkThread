@@ -145,7 +145,10 @@ public record RestorePointStatus(
     bool SystemRestoreAvailable,
     bool SystemDriveProtected,
     string StatusDescription
-);
+)
+{
+    public bool ProtectionStateKnown { get; init; } = true;
+}
 
 public record HardwareProfile(
     CpuInfo Cpu,

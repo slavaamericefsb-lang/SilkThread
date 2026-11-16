@@ -1,316 +1,110 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<Page
-    x:Class="SilkThread.App.Views.RestoreBackupPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:SilkThread.Core.Models"
-    xmlns:helpers="using:SilkThread.App.Helpers"
-    Loaded="Page_Loaded"
-    mc:Ignorable="d">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page x:Class="SilkThread.App.Views.RestoreBackupPage"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:models="using:SilkThread.Core.Models" xmlns:helpers="using:SilkThread.App.Helpers"
+ Loaded="Page_Loaded">
+ <Page.Resources>
+  <LinearGradientBrush x:Key="RecoveryHeroBrush" StartPoint="0,0" EndPoint="1,1">
+   <GradientStop Color="#27243F" Offset="0"/><GradientStop Color="#171A25" Offset="0.65"/><GradientStop Color="#131720" Offset="1"/>
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="RecoveryStrokeBrush" StartPoint="0,0" EndPoint="1,1">
+   <GradientStop Color="#61518C" Offset="0"/><GradientStop Color="#323445" Offset="0.55"/><GradientStop Color="#262A37" Offset="1"/>
+  </LinearGradientBrush>
+ </Page.Resources>
+ <ScrollViewer Background="{StaticResource SilkBackgroundDarkBrush}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="24,20,24,28">
+  <StackPanel Spacing="16">
+   <Border x:Name="HeaderPanel" Background="{StaticResource RecoveryHeroBrush}" BorderBrush="{StaticResource RecoveryStrokeBrush}" BorderThickness="1" CornerRadius="18" Padding="24,22">
+    <Grid ColumnSpacing="20"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <StackPanel Spacing="8" VerticalAlignment="Center">
+      <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" FontSize="25" FontWeight="SemiBold" Foreground="#F4F2FF" TextWrapping="Wrap"/>
+      <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" FontSize="13" Foreground="#B0ADC4" TextWrapping="Wrap" LineHeight="20"/>
+     </StackPanel>
+     <Border Grid.Column="1" Width="68" Height="68" CornerRadius="18" BorderBrush="#62508E" BorderThickness="1" Background="#242136" VerticalAlignment="Center">
+      <FontIcon Glyph="&#xE90F;" FontSize="30" Foreground="#B8A7FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+     </Border>
+    </Grid>
+   </Border>
+   <InfoBar Severity="Informational" IsClosable="False"
+    IsOpen="{x:Bind ViewModel.OperationMessage, Mode=OneWay, Converter={StaticResource StringNotEmptyToBoolConverter}}"
+    Message="{x:Bind ViewModel.OperationMessage, Mode=OneWay}"/>
+   <Grid x:Name="OptionsGrid" helpers:ResponsiveColumns.Breakpoint="950" ColumnSpacing="16" RowSpacing="16">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
-    <ScrollViewer Background="#0E1017" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="28,20,28,32"
-                  helpers:SmoothScroll.IsEnabled="True">
-        <StackPanel Spacing="20" HorizontalAlignment="Stretch">
-
-            <!-- Page Title & Subtitle -->
-            <StackPanel x:Name="HeaderPanel" Spacing="2">
-                <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" Style="{StaticResource SilkPageTitleStyle}" />
-                <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" />
-            </StackPanel>
-
-            <!-- Status Notification InfoBar -->
-            <InfoBar Severity="Informational"
-                     IsOpen="{x:Bind ViewModel.OperationMessage, Mode=OneWay, Converter={StaticResource StringNotEmptyToBoolConverter}}"
-                     Message="{x:Bind ViewModel.OperationMessage, Mode=OneWay}" />
-
-            <!-- CARD 1: WINDOWS SYSTEM PROTECTION STATUS -->
-            <Border x:Name="CardProtection" Style="{StaticResource SilkCardStyle}" Padding="20">
-                <StackPanel Spacing="16">
-                    <!-- Header -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                            <Border Width="40" Height="40" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                                <FontIcon Glyph="&#xE73E;" FontSize="18" Foreground="#22C55E" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.ProtectionCardTitle, Mode=OneWay}" FontSize="15" FontWeight="Bold" Foreground="#F3F4F8" />
-                                <TextBlock Text="{x:Bind ViewModel.SubProtectionLabel, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#969CAB" CharacterSpacing="50" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Protection Status Badge -->
-                        <Border Grid.Column="1" Background="#1E22C55E" BorderBrush="#3322C55E" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="#22C55E" />
-                                <TextBlock Text="{x:Bind ViewModel.ProtectionStatusBadge, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#22C55E" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-
-                    <!-- Protection Detail Subsurface Tile -->
-                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="16,12">
-                        <Grid ColumnSpacing="14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Spacing="3" VerticalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.SubStatusLabel, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#969CAB" CharacterSpacing="50" />
-                                <TextBlock Text="{x:Bind ViewModel.StatusDescription, Mode=OneWay}" FontSize="12.5" Foreground="#F3F4F8" TextWrapping="Wrap" LineHeight="18" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Button Command="{x:Bind ViewModel.RefreshStatusCommand}"
-                                        Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,6">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="#806BFF" />
-                                        <TextBlock Text="{x:Bind ViewModel.CheckBtnLabel, Mode=OneWay}" FontSize="11.5" />
-                                    </StackPanel>
-                                </Button>
-
-                                <Button Command="{x:Bind ViewModel.OpenWindowsRestoreUiCommand}"
-                                        Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,6"
-                                        ToolTipService.ToolTip="{x:Bind ViewModel.RstruiTooltip, Mode=OneWay}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE78B;" FontSize="11" Foreground="#38BDF8" />
-                                        <TextBlock Text="rstrui.exe" FontSize="11.5" FontFamily="Consolas" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </StackPanel>
-            </Border>
-
-            <!-- CARD 2: CREATE RESTORE POINT -->
-            <Border x:Name="CardCreate" Style="{StaticResource SilkCardStyle}" Padding="20">
-                <StackPanel Spacing="16">
-                    <!-- Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Width="40" Height="40" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                            <FontIcon Glyph="&#xE710;" FontSize="18" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <StackPanel Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind ViewModel.CreateCardTitle, Mode=OneWay}" FontSize="15" FontWeight="Bold" Foreground="#F3F4F8" />
-                            <TextBlock Text="{x:Bind ViewModel.SubSnapshotLabel, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#969CAB" CharacterSpacing="50" />
-                        </StackPanel>
-                    </StackPanel>
-
-                    <TextBlock Text="{x:Bind ViewModel.CreateCardDesc, Mode=OneWay}" 
-                               FontSize="12.5" Foreground="#969CAB" LineHeight="17" />
-
-                    <!-- Input Bar -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Grid.Column="0" 
-                                 Text="{x:Bind ViewModel.NewRestorePointName, Mode=TwoWay}"
-                                 PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}"
-                                 Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8"
-                                 CornerRadius="8" Padding="14,10" VerticalAlignment="Center" />
-
-                        <Button Grid.Column="1" Command="{x:Bind ViewModel.CreateRestorePointCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                Style="{StaticResource SilkPrimaryButtonStyle}" Padding="20,10" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE710;" FontSize="13" />
-                                <TextBlock Text="{x:Bind ViewModel.CreateBtnLabel, Mode=OneWay}" FontWeight="Bold" FontSize="12.5" />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- CARD 3: SNAPSHOT TIMELINE & LIST OF RESTORE POINTS -->
-            <Border x:Name="CardTimeline" Style="{StaticResource SilkCardStyle}" Padding="20">
-                <StackPanel Spacing="16">
-                    <!-- Header -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                            <Border Width="40" Height="40" CornerRadius="8" Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                                <FontIcon Glyph="&#xE81C;" FontSize="18" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.ListTitle, Mode=OneWay}" FontSize="15" FontWeight="Bold" Foreground="#F3F4F8" />
-                                <TextBlock Text="{x:Bind ViewModel.SubTimelineLabel, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#969CAB" CharacterSpacing="50" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <TextBlock Text="{x:Bind ViewModel.RestorePointsCount, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
-                                    <TextBlock Text="{x:Bind ViewModel.SubPointsCountLabel, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#969CAB" />
-                                </StackPanel>
-                            </Border>
-
-                            <Button Command="{x:Bind ViewModel.LoadRestorePointsCommand}"
-                                    Style="{StaticResource SilkSecondaryButtonStyle}" Padding="10,6" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="#806BFF" />
-                                    <TextBlock Text="{x:Bind ViewModel.RefreshListLabel, Mode=OneWay}" FontSize="11.5" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Busy ProgressBar -->
-                    <ProgressBar IsIndeterminate="True" 
-                                 Height="4" CornerRadius="2"
-                                 Foreground="#806BFF" Background="#202431"
-                                 Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                    <!-- Restore Points List -->
-                    <ListView ItemsSource="{x:Bind ViewModel.RestorePoints}" SelectionMode="None"
-                              helpers:SmoothScroll.IsEnabled="True">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="Margin" Value="0,3" />
-                                <Setter Property="MinHeight" Value="0" />
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:RestorePointItem">
-                                <Border Background="#202431" 
-                                        BorderBrush="#2B3040" 
-                                        BorderThickness="1" CornerRadius="8" Padding="16,12">
-                                    <Grid ColumnSpacing="16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- Sequence Number Badge with Active Anchor Pulsing Ring -->
-                                        <Grid Grid.Column="0" Width="44" Height="44" VerticalAlignment="Center">
-                                            <!-- Active Anchor Pulse Aura Ring (#22C55E newest restore point) -->
-                                            <Border x:Name="AnchorPulseRing" Width="44" Height="44" CornerRadius="10"
-                                                    BorderBrush="#22C55E" BorderThickness="2"
-                                                    Opacity="0.8"
-                                                    RenderTransformOrigin="0.5,0.5"
-                                                    Loaded="AnchorPulseRing_Loaded"
-                                                    Visibility="{x:Bind IsNewest, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                <Border.RenderTransform>
-                                                    <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
-                                                </Border.RenderTransform>
-                                            </Border>
-
-                                            <!-- Sequence Number Badge -->
-                                            <Border Width="38" Height="38" CornerRadius="8" 
-                                                    Background="#181B25" BorderBrush="#2B3040" BorderThickness="1"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="{x:Bind SequenceNumber}" FontSize="12" FontWeight="Bold" FontFamily="Consolas" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                            </Border>
-                                        </Grid>
-
-                                        <!-- Description & Meta -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                                            <TextBlock Text="{x:Bind Description}" FontSize="13.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                    <FontIcon Glyph="&#xE823;" FontSize="10" Foreground="#38BDF8" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{x:Bind FormattedCreationTime}" FontSize="11" Foreground="#969CAB" FontFamily="Consolas" VerticalAlignment="Center" />
-                                                </StackPanel>
-
-                                                <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="4" Padding="6,1.5">
-                                                    <TextBlock Text="{x:Bind EventTypeString}" FontSize="9.5" FontWeight="SemiBold" Foreground="#969CAB" />
-                                                </Border>
-
-                                                <!-- Active Anchor Safety Pill for Newest Point -->
-                                                <Border Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="4" Padding="6,1.5"
-                                                        Visibility="{x:Bind IsNewest, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                        <Ellipse Width="5" Height="5" Fill="#22C55E" />
-                                                        <TextBlock Text="АКТИВНАЯ ТОЧКА" FontSize="9" FontWeight="Bold" Foreground="#22C55E" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </StackPanel>
-                                        </StackPanel>
-
-                                        <!-- Action Buttons: Rollback & Delete -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <!-- Rollback button -->
-                                            <Button Click="RollbackPointButton_Click"
-                                                    Tag="{x:Bind}"
-                                                    Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,6">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <FontIcon Glyph="&#xE7A7;" FontSize="11" Foreground="#806BFF" />
-                                                    <TextBlock Text="{x:Bind Description, Converter={StaticResource ActionTextConverter}, ConverterParameter=Rest_Rollback_Btn}" FontSize="11.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                                                </StackPanel>
-                                            </Button>
-
-                                            <!-- Delete button -->
-                                            <Button Click="DeletePointButton_Click"
-                                                    Tag="{x:Bind}"
-                                                    Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,6">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="#EF4444" />
-                                                    <TextBlock Text="{x:Bind Description, Converter={StaticResource ActionTextConverter}, ConverterParameter=Rest_Delete_Btn}" FontSize="11.5" FontWeight="SemiBold" Foreground="#EF4444" />
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-
-                    <!-- Empty State -->
-                    <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="28"
-                            Visibility="{x:Bind ViewModel.HasNoPoints, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
-                            <Border Width="64" Height="64" CornerRadius="32" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" HorizontalAlignment="Center">
-                                <FontIcon Glyph="&#xE90F;" FontSize="28" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Spacing="6" HorizontalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.EmptyTitleLabel, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="#F3F4F8" HorizontalAlignment="Center" />
-                                <TextBlock Text="{x:Bind ViewModel.EmptyDescriptionLabel, Mode=OneWay}" 
-                                           FontSize="12.5" Foreground="#969CAB" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="520" LineHeight="18" />
-                            </StackPanel>
-
-                            <!-- Action Buttons in Empty State -->
-                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <Button Command="{x:Bind ViewModel.CreateRestorePointCommand}"
-                                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                        Style="{StaticResource SilkPrimaryButtonStyle}" Padding="18,9">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE710;" FontSize="13" />
-                                        <TextBlock Text="{x:Bind ViewModel.CreateFirstPointLabel, Mode=OneWay}" FontWeight="Bold" FontSize="12.5" />
-                                    </StackPanel>
-                                </Button>
-
-                                <Button Command="{x:Bind ViewModel.EnableProtectionCommand}"
-                                        Visibility="{x:Bind ViewModel.IsProtectionInactive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                        Style="{StaticResource SilkSecondaryButtonStyle}" Padding="16,9">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE73E;" FontSize="13" Foreground="#22C55E" />
-                                        <TextBlock Text="{x:Bind ViewModel.EnableProtectionLabel, Mode=OneWay}" FontWeight="SemiBold" FontSize="12.5" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+    <Border x:Name="CardProtection" Style="{StaticResource SilkCardStyle}" BorderBrush="#38354E" Padding="22">
+     <StackPanel Spacing="14">
+      <TextBlock Text="{x:Bind ViewModel.SubProtectionLabel, Mode=OneWay}" FontSize="10" CharacterSpacing="60" Foreground="#A89BCB" TextWrapping="Wrap"/>
+      <TextBlock Text="{x:Bind ViewModel.ProtectionCardTitle, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="Wrap"/>
+      <Border x:Name="ProtectionStatusBadge" Background="#242331" BorderBrush="#494357" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left">
+       <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE946;" FontSize="12" Foreground="#B6A7D8"/><TextBlock Text="{x:Bind ViewModel.ProtectionStatusBadge, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#D4CBE9"/></StackPanel>
+      </Border>
+      <TextBlock Text="{x:Bind ViewModel.StatusDescription, Mode=OneWay}" FontSize="13" LineHeight="20" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" MinHeight="60"/>
+      <Grid ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <Button Command="{x:Bind ViewModel.RefreshStatusCommand}" Style="{StaticResource SilkSecondaryButtonStyle}" Padding="14,8" VerticalAlignment="Stretch">
+        <StackPanel Orientation="Horizontal" Spacing="7"><FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="#B8A7FF"/><TextBlock Text="{x:Bind ViewModel.CheckBtnLabel, Mode=OneWay}"/></StackPanel>
+       </Button>
+       <Button Grid.Column="1" Command="{x:Bind ViewModel.OpenWindowsRestoreUiCommand}" Style="{StaticResource SilkSecondaryButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,8" ToolTipService.ToolTip="{x:Bind ViewModel.RstruiTooltip, Mode=OneWay}">
+        <TextBlock Text="{x:Bind ViewModel.OpenSysRestoreLabel, Mode=OneWay}" TextWrapping="Wrap" FontSize="12"/>
+       </Button>
+      </Grid>
+     </StackPanel>
+    </Border>
+    <Border x:Name="CardCreate" Grid.Column="1" Style="{StaticResource SilkCardStyle}" BorderBrush="{StaticResource RecoveryStrokeBrush}" Padding="22">
+     <StackPanel Spacing="14">
+      <TextBlock Text="{x:Bind ViewModel.SubSnapshotLabel, Mode=OneWay}" FontSize="10" CharacterSpacing="60" Foreground="#A89BCB" TextWrapping="Wrap"/>
+      <TextBlock Text="{x:Bind ViewModel.CreateCardTitle, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="Wrap"/>
+      <TextBlock Text="{x:Bind ViewModel.CreateCardDesc, Mode=OneWay}" FontSize="13" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
+      <TextBox Text="{x:Bind ViewModel.NewRestorePointName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}" Background="#171A26" BorderBrush="#464057" CornerRadius="8" Padding="12,10" MaxLength="255"/>
+      <Button Command="{x:Bind ViewModel.CreateRestorePointCommand}" IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}" Style="{StaticResource SilkPrimaryButtonStyle}" HorizontalAlignment="Stretch" Padding="16,10">
+       <Grid ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><FontIcon Glyph="&#xE710;" FontSize="13" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="{x:Bind ViewModel.CreateBtnLabel, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/></Grid>
+      </Button>
+     </StackPanel>
+    </Border>
+   </Grid>
+   <Border x:Name="CardTimeline" Style="{StaticResource SilkCardStyle}" Padding="22">
+    <StackPanel Spacing="16">
+     <TextBlock Text="{x:Bind ViewModel.SubTimelineLabel, Mode=OneWay}" FontSize="10" CharacterSpacing="60" Foreground="#A89BCB" TextWrapping="Wrap"/>
+     <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel Spacing="8">
+       <TextBlock Text="{x:Bind ViewModel.ListTitle, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="Wrap"/>
+       <StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="{x:Bind ViewModel.RestorePointsCountDisplay, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="#B8A7FF"/><TextBlock Text="{x:Bind ViewModel.SubPointsCountLabel, Mode=OneWay}" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}"/></StackPanel>
+      </StackPanel>
+      <Button Grid.Column="1" Command="{x:Bind ViewModel.LoadRestorePointsCommand}" Style="{StaticResource SilkSecondaryButtonStyle}" VerticalAlignment="Top" Padding="12,8">
+       <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="#B8A7FF"/><TextBlock Text="{x:Bind ViewModel.RefreshListLabel, Mode=OneWay}" FontSize="12"/></StackPanel>
+      </Button>
+     </Grid>
+     <ProgressBar IsIndeterminate="True" Height="3" Foreground="#A18BFA" Background="#252534" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+     <InfoBar Severity="Warning" IsClosable="False" IsOpen="{x:Bind ViewModel.HasListReadError, Mode=OneWay}" Message="{x:Bind ViewModel.ListReadError, Mode=OneWay}"/>
+     <ListView ItemsSource="{x:Bind ViewModel.RestorePoints}" SelectionMode="None" ScrollViewer.VerticalScrollMode="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+      <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,10"/><Setter Property="MinHeight" Value="0"/></Style></ListView.ItemContainerStyle>
+      <ListView.ItemTemplate><DataTemplate x:DataType="models:RestorePointItem">
+       <Border Background="#1D202D" BorderBrush="#303445" BorderThickness="1" CornerRadius="10" Padding="16">
+        <Grid ColumnSpacing="14" RowSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+         <Border Width="40" Height="40" Background="#28243B" BorderBrush="#5C4B85" BorderThickness="1" CornerRadius="10" VerticalAlignment="Top"><TextBlock Text="{x:Bind SequenceNumber}" FontFamily="Consolas" FontSize="12" Foreground="#C0B0FA" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+         <StackPanel Grid.Column="1" Spacing="5"><TextBlock Text="{x:Bind Description}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{StaticResource SilkTextPrimaryBrush}"/><TextBlock Text="{x:Bind FormattedCreationTime}" FontFamily="Consolas" FontSize="11" Foreground="#A8ABBD"/><TextBlock Text="{x:Bind EventTypeString}" FontSize="11" Foreground="#A89BCB" TextWrapping="Wrap"/></StackPanel>
+         <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <Border HorizontalAlignment="Left" VerticalAlignment="Center" Background="#252136" CornerRadius="5" Padding="8,4" Visibility="{x:Bind IsNewest, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}"><TextBlock Text="{x:Bind Description, Converter={StaticResource ActionTextConverter}, ConverterParameter=Rest_ActivePointBadge}" FontSize="10" Foreground="#C0B0FA" TextWrapping="Wrap"/></Border>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+           <Button Click="RollbackPointButton_Click" Tag="{x:Bind}" Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,7"><TextBlock Text="{x:Bind Description, Converter={StaticResource ActionTextConverter}, ConverterParameter=Rest_Rollback_Btn}" FontSize="12"/></Button>
+           <Button Click="DeletePointButton_Click" Tag="{x:Bind}" Style="{StaticResource SilkSecondaryButtonStyle}" Padding="12,7"><TextBlock Text="{x:Bind Description, Converter={StaticResource ActionTextConverter}, ConverterParameter=Rest_Delete_Btn}" FontSize="12" Foreground="#F19CA9"/></Button>
+          </StackPanel>
+         </Grid>
+        </Grid>
+       </Border>
+      </DataTemplate></ListView.ItemTemplate>
+     </ListView>
+     <Border Background="#171A26" BorderBrush="#303445" BorderThickness="1" CornerRadius="10" Padding="24" Visibility="{x:Bind ViewModel.HasNoPoints, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+      <StackPanel Spacing="12">
+       <FontIcon Glyph="&#xE90F;" FontSize="30" Foreground="#A994F3" HorizontalAlignment="Center"/>
+       <TextBlock Text="{x:Bind ViewModel.EmptyTitleLabel, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center"/>
+       <TextBlock Text="{x:Bind ViewModel.EmptyDescriptionLabel, Mode=OneWay}" FontSize="13" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" LineHeight="20"/>
+       <Button Command="{x:Bind ViewModel.CreateRestorePointCommand}" IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}" Style="{StaticResource SilkPrimaryButtonStyle}" HorizontalAlignment="Center" Padding="16,9"><TextBlock Text="{x:Bind ViewModel.CreateFirstPointLabel, Mode=OneWay}" FontSize="13" TextWrapping="Wrap" TextAlignment="Center"/></Button>
+       <Button Command="{x:Bind ViewModel.EnableProtectionCommand}" Visibility="{x:Bind ViewModel.IsProtectionInactive, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}" Style="{StaticResource SilkSecondaryButtonStyle}" HorizontalAlignment="Center" Padding="16,9"><TextBlock Text="{x:Bind ViewModel.EnableProtectionLabel, Mode=OneWay}" FontSize="13" TextWrapping="Wrap" TextAlignment="Center"/></Button>
+      </StackPanel>
+     </Border>
+    </StackPanel>
+   </Border>
+  </StackPanel>
+ </ScrollViewer>
 </Page>

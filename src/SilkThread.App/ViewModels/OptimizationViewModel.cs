@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -75,7 +75,7 @@ public partial class OptimizationViewModel : ObservableObject
     private double _progressPercent;
 
     [ObservableProperty]
-    private string _currentStatusText = "Готов к запуску оптимизации.";
+    private string _currentStatusText = "";
 
     public ObservableCollection<TweakItemViewModel> TweaksToApply { get; } = new();
     public ObservableCollection<string> ExecutionLog { get; } = new();
@@ -85,11 +85,11 @@ public partial class OptimizationViewModel : ObservableObject
     public string PageSubtitle => _loc["Opt_Subtitle"];
     public string CreateRestorePointLabel => _loc["Opt_CreateRestorePoint"];
     public string StartBtnLabel => _loc["Opt_Start_Btn"];
-    public string ExecutionLogTitle => _loc.CurrentLanguage == "ru" ? "ЖУРНАЛ ОПЕРАЦИЙ В РЕАЛЬНОМ ВРЕМЕНИ" : "REAL-TIME EXECUTION LOG";
+    public string ExecutionLogTitle => _loc["Opt_ExecutionLogTitle"];
     public string CreatePresetLabel => _loc["Tweaks_CreatePreset"];
     public string ActivatePresetLabel => _loc["Tweaks_ActivatePreset"];
-    public string CustomPresetsSectionTitle => _loc.CurrentLanguage == "ru" ? "ПОЛЬЗОВАТЕЛЬСКИЕ ПРЕСЕТЫ" : "CUSTOM PRESETS";
-    public string CustomPresetsDesc => _loc.CurrentLanguage == "ru" ? "Создание резервных профилей и импорт внешних конфигураций .silkpreset" : "Create backup profiles and import external .silkpreset files";
+    public string CustomPresetsSectionTitle => _loc["Opt_CustomPresetsSectionTitle"];
+    public string CustomPresetsDesc => _loc["Opt_CustomPresetsDesc"];
 
     public string ProfilesCardTitle => _loc["Opt_Profiles_Title"];
     public string ProfilesCardSubtitle => _loc["Opt_Profiles_Subtitle"];
@@ -123,6 +123,7 @@ public partial class OptimizationViewModel : ObservableObject
         _presetManager = presetManager;
 
         _createRestorePoint = _settingsService.Settings.AutoCreateRestorePoint;
+        _currentStatusText = _loc["Opt_Status_Ready"];
 
         BuildPresets();
 
@@ -150,6 +151,10 @@ public partial class OptimizationViewModel : ObservableObject
             OnPropertyChanged(nameof(ClearLogsLabel));
             OnPropertyChanged(nameof(ProgressHeader));
             OnPropertyChanged(nameof(SystemStatusHeader));
+            if (!IsExecuting)
+            {
+                CurrentStatusText = _loc["Opt_Status_Ready"];
+            }
             BuildPresets();
         };
     }
@@ -164,7 +169,7 @@ public partial class OptimizationViewModel : ObservableObject
             _loc["Opt_Preset_Safe"],
             _loc["Opt_Preset_Safe_Desc"],
             "\uE72E", // Shield
-            "100% SAFE",
+            "LOW RISK",
             "#10B981",
             (t, h) => t.Risk == RiskLevel.Low && t.Recommendation == RecommendationLevel.Recommended
         ));
@@ -174,13 +179,13 @@ public partial class OptimizationViewModel : ObservableObject
             _loc["Opt_Preset_Gaming"],
             _loc["Opt_Preset_Gaming_Desc"],
             "\uE7FC", // Controller
-            "MAX FPS",
+            "GAMING",
             "#6366F1",
             (t, h) => (t.Category == TweakCategory.CpuOptimization ||
                        t.Category == TweakCategory.GpuOptimization ||
                        t.Category == TweakCategory.GamingPerformance ||
                        t.Category == TweakCategory.InputAndLatency) &&
-                      t.Risk <= RiskLevel.Medium
+                      t.Risk <= RiskLevel.Medium && t.Recommendation <= RecommendationLevel.Optional
         ));
 
         Presets.Add(new OptimizationPreset(
@@ -188,9 +193,9 @@ public partial class OptimizationViewModel : ObservableObject
             _loc["Opt_Preset_Network"],
             _loc["Opt_Preset_Network_Desc"],
             "\uE839", // Globe
-            "LOW LATENCY",
+            "NETWORK",
             "#38BDF8",
-            (t, h) => t.Category == TweakCategory.NetworkOptimization && t.Risk <= RiskLevel.Medium
+            (t, h) => t.Category == TweakCategory.NetworkOptimization && t.Risk <= RiskLevel.Medium && t.Recommendation <= RecommendationLevel.Optional
         ));
 
         Presets.Add(new OptimizationPreset(
@@ -198,12 +203,12 @@ public partial class OptimizationViewModel : ObservableObject
             _loc["Opt_Preset_Minimal"],
             _loc["Opt_Preset_Minimal_Desc"],
             "\uE9F5", // Clean / tasks
-            "DEBLOAT",
+            "BACKGROUND",
             "#F59E0B",
             (t, h) => (t.Category == TweakCategory.BackgroundProcesses ||
                        t.Category == TweakCategory.WindowsServices ||
                        t.Category == TweakCategory.SecurityAndPrivacy) &&
-                      t.Risk <= RiskLevel.Medium
+                      t.Risk <= RiskLevel.Medium && t.Recommendation <= RecommendationLevel.Optional
         ));
 
         int targetIndex = _settingsService.LastOptimizationProfileIndex;
@@ -279,37 +284,76 @@ public partial class OptimizationViewModel : ObservableObject
         ExecutionLog.Clear();
     }
 
+    private Task<HardwareProfile>? _previewHardware;
+    private DateTimeOffset _previewHardwareExpires;
+    private int _previewRequest;
+
     public async Task RefreshTweaksToApplyAsync()
     {
-        if (SelectedPreset == null) return;
-
-        var hw = await _hardwareScanner.ScanAsync();
-        TweaksToApply.Clear();
-
-        var matches = _tweakEngine.GetAllTweaks()
-            .Where(t => SelectedPreset.Selector(t, hw))
-            .Where(t => _compatibilityEngine.EvaluateCompatibility(t, hw).IsCompatible)
-            .ToList();
-
-        foreach (var def in matches)
+        int request = ++_previewRequest;
+        var preset = SelectedPreset;
+        if (preset == null) return;
+        try
         {
-            var item = new TweakItemViewModel(def, _tweakEngine);
-            _ = item.RefreshStatusAsync();
-            TweaksToApply.Add(item);
+            // Share a pending observation when the user clicks several presets quickly.
+            // Only previews reuse this short-lived snapshot; execution scans fresh below.
+            if (_previewHardware == null || _previewHardware.IsFaulted || _previewHardware.IsCanceled
+                || (_previewHardware.IsCompleted && DateTimeOffset.UtcNow >= _previewHardwareExpires))
+            {
+                _previewHardware = _hardwareScanner.ScanAsync();
+                _previewHardwareExpires = DateTimeOffset.UtcNow.AddSeconds(30);
+            }
+            var hw = await _previewHardware;
+            if (request != _previewRequest) return;
+            var matches = _tweakEngine.GetAllTweaks()
+                .Where(t => t.AuditBlockReason == null && preset.Selector(t, hw))
+                .Where(t => _compatibilityEngine.EvaluateCompatibility(t, hw).IsCompatible)
+                .Select(t => new TweakItemViewModel(t, _tweakEngine)).ToList();
+            TweaksToApply.Clear();
+            foreach (var item in matches) TweaksToApply.Add(item);
+            ProgressTotal = matches.Count;
+            CurrentStatusText = string.Format(_loc["Opt_Status_SelectedFormat"], matches.Count, preset.Name);
+            await Task.WhenAll(matches.Select(item => item.RefreshStatusAsync()));
         }
-
-        ProgressTotal = TweaksToApply.Count;
-        CurrentStatusText = _loc.CurrentLanguage == "ru"
-            ? $"Отобрано {TweaksToApply.Count} твиков для профиля «{SelectedPreset.Name}»"
-            : $"Selected {TweaksToApply.Count} tweaks for «{SelectedPreset.Name}»";
+        catch (Exception ex)
+        {
+            App.Log($"[Optimization preview]: {ex}");
+            if (request == _previewRequest)
+                CurrentStatusText = _loc.CurrentLanguage == "ru" ? "Не удалось обновить список. Выберите профиль повторно." : "Unable to refresh. Select the preset again.";
+        }
     }
 
     [RelayCommand]
     public async Task StartOptimizationAsync()
     {
-        if (IsExecuting || TweaksToApply.Count == 0) return;
+        if (IsExecuting || SelectedPreset == null) return;
 
         IsExecuting = true;
+        List<TweakItemViewModel> selectedTweaks;
+        var selectedPreset = SelectedPreset;
+        try
+        {
+            var hardware = await _hardwareScanner.ScanAsync();
+            var preset = await _presetManager.CreatePresetFromTweakIdsAsync(
+                selectedPreset.Name, selectedPreset.Description,
+                _tweakEngine.GetAllTweaks().Where(t => t.AuditBlockReason == null && selectedPreset.Selector(t, hardware)).Select(t => t.Id), "SilkThread");
+            var evaluated = await _presetManager.EvaluatePresetAsync(preset, hardware);
+            var review = new PresetReviewDialog(evaluated, _tweakEngine, selectionOnly: true)
+            {
+                XamlRoot = App.MainWindowInstance?.Content?.XamlRoot
+            };
+            await review.ShowAsync();
+            if (!review.WasConfirmed) { IsExecuting = false; return; }
+            selectedTweaks = review.SelectedTweakIds.Select(id => new TweakItemViewModel(_tweakEngine.GetTweakById(id)!, _tweakEngine)).ToList();
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[Optimization review]: {ex}");
+            CurrentStatusText = ex.Message;
+            IsExecuting = false;
+            return;
+        }
+        ProgressTotal = selectedTweaks.Count;
         ProgressCurrent = 0;
         ProgressPercent = 0;
         ExecutionLog.Clear();
@@ -320,14 +364,20 @@ public partial class OptimizationViewModel : ObservableObject
         {
             var timestamp = DateTime.Now.ToString("HH:mm:ss");
             var line = $"[{timestamp}] {msg}";
-            var dq = App.MainWindowInstance?.DispatcherQueue;
-            if (dq != null && !dq.HasThreadAccess)
+            var dq = App.MainDispatcherQueue ?? App.MainWindowInstance?.DispatcherQueue;
+            if (dq != null)
             {
-                dq.TryEnqueue(() => ExecutionLog.Add(line));
-            }
-            else
-            {
-                ExecutionLog.Add(line);
+                if (!dq.HasThreadAccess)
+                {
+                    dq.TryEnqueue(() =>
+                    {
+                        try { ExecutionLog.Add(line); } catch { }
+                    });
+                }
+                else
+                {
+                    try { ExecutionLog.Add(line); } catch { }
+                }
             }
         };
 
@@ -335,17 +385,15 @@ public partial class OptimizationViewModel : ObservableObject
 
         try
         {
-            logAction($"Запуск пакетной оптимизации: «{SelectedPreset?.Name}»");
+            logAction($"Запуск пакетной оптимизации: «{selectedPreset.Name}»");
 
             if (CreateRestorePoint)
             {
-                CurrentStatusText = _loc.CurrentLanguage == "ru"
-                    ? "Создание системной точки восстановления..."
-                    : "Creating system restore point...";
+                CurrentStatusText = _loc["Opt_Status_CreatingRestore"];
                 logAction($"[RESTORE] {_loc["Opt_CreateRestorePoint"]}...");
 
                 var rpResult = await _restorePointManager.CreateRestorePointAsync(
-                    $"SilkThread Batch Optimization ({SelectedPreset?.Name ?? "Preset"})");
+                    $"SilkThread Batch Optimization ({selectedPreset.Name ?? "Preset"})");
 
                 if (rpResult.Success)
                 {
@@ -363,13 +411,13 @@ public partial class OptimizationViewModel : ObservableObject
             int skippedCount = 0;
             int failedCount = 0;
 
-            foreach (var tweak in TweaksToApply)
+            foreach (var tweak in selectedTweaks)
             {
                 count++;
                 ProgressCurrent = count;
-                ProgressPercent = (double)count / TweaksToApply.Count * 100.0;
+                ProgressPercent = (double)count / selectedTweaks.Count * 100.0;
 
-                CurrentStatusText = $"[{count}/{TweaksToApply.Count}] {tweak.Title}";
+                CurrentStatusText = $"[{count}/{selectedTweaks.Count}] {tweak.Title}";
 
                 var def = _tweakEngine.GetTweakById(tweak.Id);
                 if (def != null)
@@ -383,7 +431,7 @@ public partial class OptimizationViewModel : ObservableObject
                     }
                 }
 
-                logAction($"[TWEAK] >>> [{count}/{TweaksToApply.Count}] {tweak.Title}");
+                logAction($"[TWEAK] >>> [{count}/{selectedTweaks.Count}] {tweak.Title}");
 
                 try
                 {
@@ -407,9 +455,7 @@ public partial class OptimizationViewModel : ObservableObject
                 }
             }
 
-            CurrentStatusText = _loc.CurrentLanguage == "ru"
-                ? $"✓ Пакетная оптимизация завершена. Применено: {appliedCount}, Ошибок: {failedCount}, Пропущено: {skippedCount}."
-                : $"✓ Batch optimization completed. Applied: {appliedCount}, Failed: {failedCount}, Skipped: {skippedCount}.";
+            CurrentStatusText = string.Format(_loc["Opt_Status_CompletedFormat"], appliedCount, failedCount, skippedCount);
 
             logAction($"Все операции завершены. Успешно: {appliedCount}, Сбоев: {failedCount}, Пропущено: {skippedCount}.");
         }

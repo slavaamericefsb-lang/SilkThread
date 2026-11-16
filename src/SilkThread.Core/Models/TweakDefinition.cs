@@ -5,6 +5,9 @@ namespace SilkThread.Core.Models;
 
 public class TweakDefinition
 {
+    /// <summary>Blocked for new application after audit; retained for historical rollback.</summary>
+    public string? AuditBlockReason { get; internal set; }
+    public IReadOnlyList<RegistryWrite> RegistryWrites { get; init; } = Array.Empty<RegistryWrite>();
     public required string Id { get; init; }
     public required string Title { get; init; }
     public required string Description { get; init; }
@@ -35,4 +38,9 @@ public class TweakDefinition
     public required Func<Task<TweakStatus>> CheckCurrentStateAsync { get; init; }
     public required Func<Task<TweakOperationResult>> ApplyAsync { get; init; }
     public required Func<string?, Task<TweakOperationResult>> RollbackAsync { get; init; }
+}
+
+public record RegistryWrite(string Hive, string SubKey, string ValueName, object Value)
+{
+    public string Target => $"{Hive}\\{SubKey.TrimEnd('\\')}\\{ValueName}".ToUpperInvariant();
 }

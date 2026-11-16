@@ -32,100 +32,85 @@ public sealed partial class RestoreBackupPage : Page, IStaggeredPage
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
-        PageTransitionHelper.AnimatePageEntrance(this);
-        await ViewModel.InitializeAsync();
+        try
+        {
+            PageTransitionHelper.AnimatePageEntrance(this);
+            await ViewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[RestoreBackupPage.Page_Loaded exception]: {ex.Message}");
+        }
     }
 
     private async void RollbackPointButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && (btn.DataContext is RestorePointItem point || btn.Tag is RestorePointItem pointTag && (point = pointTag) != null))
+        try
         {
-            var loc = LocalizationService.Instance;
-            var confirmDialog = new ContentDialog
+            if (sender is Button btn && (btn.DataContext is RestorePointItem point || btn.Tag is RestorePointItem pointTag && (point = pointTag) != null))
             {
-                Title = loc["Rest_Rollback_Dialog_Title"],
-                Content = string.Format(loc["Rest_Rollback_Dialog_Content"], point.Description, point.SequenceNumber),
-                PrimaryButtonText = loc["Rest_Rollback_Dialog_Btn"],
-                CloseButtonText = loc["Rest_Dialog_Cancel"],
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = this.XamlRoot
-            };
+                var loc = LocalizationService.Instance;
+                var xamlRoot = this.XamlRoot ?? App.MainWindowInstance?.Content?.XamlRoot;
+                if (xamlRoot == null) return;
 
-            var result = await confirmDialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                await ViewModel.RollbackRestorePointAsync(point);
+                var confirmDialog = new ContentDialog
+                {
+                    Title = loc["Rest_Rollback_Dialog_Title"],
+                    Content = string.Format(loc["Rest_Rollback_Dialog_Content"], point.Description, point.SequenceNumber),
+                    PrimaryButtonText = loc["Rest_Rollback_Dialog_Btn"],
+                    CloseButtonText = loc["Rest_Dialog_Cancel"],
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = xamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    await ViewModel.RollbackRestorePointAsync(point);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[RestoreBackupPage.RollbackPointButton_Click exception]: {ex.Message}");
         }
     }
 
     private async void DeletePointButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && (btn.DataContext is RestorePointItem point || btn.Tag is RestorePointItem pointTag && (point = pointTag) != null))
+        try
         {
-            var loc = LocalizationService.Instance;
-            var confirmDialog = new ContentDialog
+            if (sender is Button btn && (btn.DataContext is RestorePointItem point || btn.Tag is RestorePointItem pointTag && (point = pointTag) != null))
             {
-                Title = loc["Rest_Delete_Dialog_Title"],
-                Content = string.Format(loc["Rest_Delete_Dialog_Content"], point.Description, point.SequenceNumber),
-                PrimaryButtonText = loc["Rest_Delete_Dialog_Btn"],
-                CloseButtonText = loc["Rest_Dialog_Cancel"],
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = this.XamlRoot
-            };
+                var loc = LocalizationService.Instance;
+                var xamlRoot = this.XamlRoot ?? App.MainWindowInstance?.Content?.XamlRoot;
+                if (xamlRoot == null) return;
 
-            var result = await confirmDialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                await ViewModel.DeleteRestorePointAsync(point);
+                var confirmDialog = new ContentDialog
+                {
+                    Title = loc["Rest_Delete_Dialog_Title"],
+                    Content = string.Format(loc["Rest_Delete_Dialog_Content"], point.Description, point.SequenceNumber),
+                    PrimaryButtonText = loc["Rest_Delete_Dialog_Btn"],
+                    CloseButtonText = loc["Rest_Dialog_Cancel"],
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = xamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    await ViewModel.DeleteRestorePointAsync(point);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[RestoreBackupPage.DeletePointButton_Click exception]: {ex.Message}");
         }
     }
 
     private void AnchorPulseRing_Loaded(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement fe)
-        {
-            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard 
-            { 
-                RepeatBehavior = Microsoft.UI.Xaml.Media.Animation.RepeatBehavior.Forever, 
-                AutoReverse = true 
-            };
-
-            var scaleX = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
-            {
-                From = 1.0,
-                To = 1.15,
-                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
-                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
-            };
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleX, fe);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleX, "(UIElement.RenderTransform).(ScaleTransform.ScaleX)");
-
-            var scaleY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
-            {
-                From = 1.0,
-                To = 1.15,
-                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
-                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
-            };
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(scaleY, fe);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(scaleY, "(UIElement.RenderTransform).(ScaleTransform.ScaleY)");
-
-            var opacity = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
-            {
-                From = 0.85,
-                To = 0.25,
-                Duration = new Duration(TimeSpan.FromSeconds(1.5)),
-                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.SineEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseInOut }
-            };
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(opacity, fe);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(opacity, "Opacity");
-
-            sb.Children.Add(scaleX);
-            sb.Children.Add(scaleY);
-            sb.Children.Add(opacity);
-            sb.Begin();
-        }
+        if (sender is FrameworkElement ring) ring.Opacity = 0.35;
     }
 }

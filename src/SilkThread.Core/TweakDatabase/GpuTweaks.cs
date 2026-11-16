@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -151,11 +151,11 @@ public static class GpuTweaks
             fallbackDefaultValue: 5
         );
 
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "gpu_dx_prefer_high_performance",
             title: "Default DirectX Graphic Preference to Discrete GPU",
             description: "Instructs DirectX runtime to prefer High-Performance discrete graphics adapter for all games by default.",
-            howItWorks: "Sets 'DirectXUserGlobalSettings' to 2 in HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences.",
+            howItWorks: "Sets 'DirectXUserGlobalSettings' to 'GpuPreference=2;' in HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences.",
             problemSolved: "Prevents hybrid laptop and dual-GPU systems from accidentally launching games on weak integrated iGPUs.",
             expectedResult: "Ensures maximum rendering power is automatically assigned.",
             category: TweakCategory.GpuOptimization,
@@ -164,8 +164,8 @@ public static class GpuTweaks
             hive: "HKCU",
             subKey: @"Software\Microsoft\DirectX\UserGpuPreferences",
             valueName: "DirectXUserGlobalSettings",
-            appliedValue: 2,
-            fallbackDefaultValue: 0
+            appliedValue: "GpuPreference=2;",
+            fallbackDefaultValue: "GpuPreference=0;"
         );
 
         yield return TweakBuilder.CreateRegistryDword(
@@ -275,20 +275,21 @@ public static class GpuTweaks
         );
 
         yield return TweakBuilder.CreateRegistryDword(
-            id: "gpu_dwm_composition_buffer_count",
-            title: "Minimize Desktop Window Manager Composition Back-Buffers",
-            description: "Reduces internal DWM compositor buffering from triple buffer to double buffer for windowed games.",
-            howItWorks: "Sets 'MaxFrameLatency' to 1 in HKLM\\SOFTWARE\\Microsoft\\Windows\\DWM.",
-            problemSolved: "Default desktop window manager buffers 2-3 frames, adding 16-33ms latency to windowed games.",
-            expectedResult: "Lower input latency when playing games in windowed or borderless mode.",
+            id: "gpu_disable_mpo",
+            title: "Disable Multi-Plane Overlay (MPO)",
+            description: "Disables Desktop Window Manager Multi-Plane Overlay (MPO) to resolve display stuttering, driver black screens on Alt+Tab, and desktop flickering.",
+            howItWorks: "Sets 'OverlayTestMode' to 5 in HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm.",
+            problemSolved: "Hardware MPO bugs in GPU drivers frequently cause DWM frame stutter, black screens on Alt-Tab, and flickering in multi-monitor setups.",
+            expectedResult: "Smooth, stutter-free desktop composition and instant, glitch-free Alt+Tab switching in borderless and windowed games.",
             category: TweakCategory.GpuOptimization,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
             hive: "HKLM",
-            subKey: @"SOFTWARE\Microsoft\Windows\DWM",
-            valueName: "MaxFrameLatency",
-            appliedValue: 1,
-            fallbackDefaultValue: 2
+            subKey: @"SOFTWARE\Microsoft\Windows\Dwm",
+            valueName: "OverlayTestMode",
+            appliedValue: 5,
+            fallbackDefaultValue: 0,
+            requiresReboot: true
         );
 
         yield return TweakBuilder.CreateRegistryDword(

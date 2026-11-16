@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -9,6 +9,7 @@ namespace SilkThread.Core.SystemOperations;
 public class RegistryValueSnapshot
 {
     public bool Exists { get; set; }
+    public bool ReadSucceeded { get; set; } = true;
     public string Hive { get; set; } = string.Empty;
     public string SubKey { get; set; } = string.Empty;
     public string ValueName { get; set; } = string.Empty;
@@ -56,31 +57,25 @@ public static class RegistryOperations
         try
         {
             using var baseKey = GetHiveKey(hive);
-            if (baseKey == null) return snapshot;
+            if (baseKey == null) { snapshot.ReadSucceeded = false; return snapshot; }
 
             using var key = baseKey.OpenSubKey(subKey, writable: false);
             if (key == null) return snapshot;
 
-            var val = key.GetValue(valueName);
+            var val = key.GetValue(valueName, null, RegistryValueOptions.DoNotExpandEnvironmentNames);
             if (val != null)
             {
                 snapshot.Exists = true;
                 var kind = key.GetValueKind(valueName);
                 snapshot.ValueKind = kind.ToString();
 
-                if (kind == RegistryValueKind.Binary && val is byte[] bytes)
-                {
-                    snapshot.RawValue = Convert.ToBase64String(bytes);
-                }
-                else
-                {
-                    snapshot.RawValue = val.ToString();
-                }
+                snapshot.RawValue = EncodeSnapshotValue(kind, val);
             }
         }
         catch
         {
-            // If access denied or missing, return not exists
+            snapshot.ReadSucceeded = false;
+            // Access denied is not evidence that the original value was absent.
         }
 
         return snapshot;
@@ -180,7 +175,7 @@ public static class RegistryOperations
         }
     }
 
-    public static int? GetDword(string hive, string subKey, string valueName)
+    public static int? GetDword(string hive, string subKey, string valueName, bool requireExactKind = false)
     {
         try
         {
@@ -190,6 +185,7 @@ public static class RegistryOperations
             using var key = baseKey.OpenSubKey(subKey, writable: false);
             if (key == null) return null;
 
+            if (requireExactKind && key.GetValueKind(valueName) != RegistryValueKind.DWord) return null;
             var val = key.GetValue(valueName);
             if (val is int intVal) return intVal;
             if (val != null && int.TryParse(val.ToString(), out int parsed)) return parsed;
@@ -201,7 +197,7 @@ public static class RegistryOperations
         }
     }
 
-    public static string? GetString(string hive, string subKey, string valueName)
+    public static string? GetString(string hive, string subKey, string valueName, bool requireExactKind = false)
     {
         try
         {
@@ -211,6 +207,7 @@ public static class RegistryOperations
             using var key = baseKey.OpenSubKey(subKey, writable: false);
             if (key == null) return null;
 
+            if (requireExactKind && key.GetValueKind(valueName) != RegistryValueKind.String) return null;
             return key.GetValue(valueName)?.ToString();
         }
         catch
@@ -219,10 +216,35 @@ public static class RegistryOperations
         }
     }
 
+    public static string EncodeSnapshotValue(RegistryValueKind kind, object value) => kind switch
+    {
+        RegistryValueKind.MultiString => JsonSerializer.Serialize((string[])value),
+        RegistryValueKind.Binary or RegistryValueKind.None => Convert.ToBase64String((byte[])value),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty
+    };
+
+    public static object DecodeSnapshotValue(RegistryValueKind kind, string? rawValue) => kind switch
+    {
+        RegistryValueKind.MultiString => JsonSerializer.Deserialize<string[]>(rawValue ?? "null")
+            ?? throw new FormatException("Invalid multi-string snapshot."),
+        RegistryValueKind.Binary or RegistryValueKind.None => Convert.FromBase64String(rawValue ?? throw new FormatException("Missing binary snapshot.")),
+        RegistryValueKind.DWord => int.Parse(rawValue!, System.Globalization.CultureInfo.InvariantCulture),
+        RegistryValueKind.QWord => long.Parse(rawValue!, System.Globalization.CultureInfo.InvariantCulture),
+        RegistryValueKind.String or RegistryValueKind.ExpandString => rawValue ?? string.Empty,
+        _ => throw new FormatException("Unsupported registry value kind.")
+    };
+
     public static bool RestoreFromSnapshot(RegistryValueSnapshot snapshot)
     {
         try
         {
+            if (!snapshot.ReadSucceeded) return false;
+            // Decode before opening a writable key: corrupt data must not change the registry.
+            if (snapshot.Exists)
+            {
+                if (!Enum.TryParse<RegistryValueKind>(snapshot.ValueKind, out var validatedKind)) return false;
+                _ = DecodeSnapshotValue(validatedKind, snapshot.RawValue);
+            }
             using var baseKey = GetHiveKey(snapshot.Hive);
             if (baseKey == null) return false;
 
@@ -235,41 +257,9 @@ public static class RegistryOperations
             using var key = baseKey.CreateSubKey(snapshot.SubKey, writable: true);
             if (key == null) return false;
 
-            if (Enum.TryParse<RegistryValueKind>(snapshot.ValueKind, out var kind))
-            {
-                object valueToSet;
-                if (kind == RegistryValueKind.DWord && int.TryParse(snapshot.RawValue, out int dwordVal))
-                {
-                    valueToSet = dwordVal;
-                }
-                else if (kind == RegistryValueKind.QWord && long.TryParse(snapshot.RawValue, out long qwordVal))
-                {
-                    valueToSet = qwordVal;
-                }
-                else if (kind == RegistryValueKind.Binary && !string.IsNullOrEmpty(snapshot.RawValue))
-                {
-                    try
-                    {
-                        valueToSet = Convert.FromBase64String(snapshot.RawValue);
-                    }
-                    catch
-                    {
-                        valueToSet = Array.Empty<byte>();
-                    }
-                }
-                else
-                {
-                    valueToSet = snapshot.RawValue ?? string.Empty;
-                }
-
-                key.SetValue(snapshot.ValueName, valueToSet, kind);
-                return true;
-            }
-            else
-            {
-                key.SetValue(snapshot.ValueName, snapshot.RawValue ?? string.Empty);
-                return true;
-            }
+            if (!Enum.TryParse<RegistryValueKind>(snapshot.ValueKind, out var kind)) return false;
+            key.SetValue(snapshot.ValueName, DecodeSnapshotValue(kind, snapshot.RawValue), kind);
+            return true;
         }
         catch
         {

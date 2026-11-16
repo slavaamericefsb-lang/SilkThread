@@ -17,17 +17,18 @@ public partial class GameCardViewModel : ObservableObject
     public string Id => Profile.Id;
     public string Title => Profile.Title;
     public string ShortTitle => Profile.ShortTitle;
-    public string Genre => Profile.Genre;
+    public string Genre => GameProfileLocalization.GetGenre(Profile.Id, Profile.Genre);
     public GameGenreCategory GenreCategory => Profile.GenreCategory;
     public string EngineBadge => Profile.EngineBadge;
     public string Launcher => Profile.Launcher;
     public string AccentColorHex => Profile.AccentColorHex;
     public string IconGlyph => Profile.IconGlyph;
-    public string Description => Profile.Description;
+    public string Description => GameProfileLocalization.GetDescription(Profile.Id, Profile.Description);
     public string LaunchOptions => Profile.LaunchOptions;
-    public IReadOnlyList<LaunchArgItem> LaunchArgs => Profile.LaunchArgs;
-    public IReadOnlyList<VideoSettingItem> VideoSettings => Profile.VideoSettings;
-    public IReadOnlyList<ConfigFileInfo> ConfigFiles => Profile.ConfigFiles;
+    public IReadOnlyList<LaunchArgItem> LaunchArgs => GameProfileLocalization.GetLaunchArgs(Profile.Id, Profile.LaunchArgs);
+    public IReadOnlyList<VideoSettingItem> VideoSettings => GameProfileLocalization.GetVideoSettings(Profile.Id, Profile.VideoSettings);
+    public IReadOnlyList<ConfigFileInfo> ConfigFiles => GameProfileLocalization.GetConfigFiles(Profile.Id, Profile.ConfigFiles);
+    public string EsportsProfileBadge => LocalizationService.Instance["Games_EsportsProfileBadge"];
 
     [ObservableProperty]
     private bool _isSelected;
@@ -42,7 +43,26 @@ public partial class GameCardViewModel : ObservableObject
     {
         Profile = profile;
         _isProfileApplied = isApplied;
-        _statusBadge = isApplied ? "Активен ✓" : "Готов";
+        UpdateStatusBadge();
+    }
+
+    public void UpdateStatusBadge()
+    {
+        bool isRu = LocalizationService.Instance.CurrentLanguage == "ru";
+        StatusBadge = IsProfileApplied
+            ? (isRu ? "Активен ✓" : "Active ✓")
+            : (isRu ? "Готов" : "Ready");
+    }
+
+    public void RefreshLocalization()
+    {
+        OnPropertyChanged(nameof(Genre));
+        OnPropertyChanged(nameof(Description));
+        OnPropertyChanged(nameof(LaunchArgs));
+        OnPropertyChanged(nameof(VideoSettings));
+        OnPropertyChanged(nameof(ConfigFiles));
+        OnPropertyChanged(nameof(EsportsProfileBadge));
+        UpdateStatusBadge();
     }
 }
 
@@ -110,6 +130,10 @@ public partial class GamesViewModel : ObservableObject
     public string Block2Subtitle => _loc["Games_Block2_Subtitle"];
     public string Block3Title => _loc["Games_Block3_Title"];
     public string Block3Subtitle => _loc["Games_Block3_Subtitle"];
+    public string Block3Card1Desc => _loc["Games_Block3_Card1_Desc"];
+    public string Block3Card2Desc => _loc["Games_Block3_Card2_Desc"];
+    public string Block3Card3Desc => _loc["Games_Block3_Card3_Desc"];
+    public string Block3ConfigHeader => _loc["Games_Block3_ConfigHeader"];
     public string ApplyProfileBtnText => _loc["Games_ApplyProfile_Btn"];
     public string RevertProfileBtnText => _loc["Games_RevertProfile_Btn"];
     public string CopyPathBtnText => _loc["Games_CopyPath_Btn"];
@@ -124,6 +148,10 @@ public partial class GamesViewModel : ObservableObject
 
         _loc.LanguageChanged += (s, e) =>
         {
+            foreach (var card in AllGames)
+            {
+                card.RefreshLocalization();
+            }
             OnPropertyChanged(string.Empty);
             UpdateAppliedSummary();
             UpdateStatusText();
@@ -232,7 +260,9 @@ public partial class GamesViewModel : ObservableObject
             }
             else
             {
+                foreach (var game in AllGames) game.IsSelected = false;
                 SelectedGame = null;
+                UpdateStatusText();
             }
         }
     }
@@ -251,6 +281,7 @@ public partial class GamesViewModel : ObservableObject
         catch (Exception ex)
         {
             App.Log($"[CopyLaunchOptions error]: {ex.Message}");
+            return;
         }
 
         CopyConfirmationText = _loc["Games_Copied_Badge"];
@@ -273,6 +304,7 @@ public partial class GamesViewModel : ObservableObject
         catch (Exception ex)
         {
             App.Log($"[CopyConfigPath error]: {ex.Message}");
+            return;
         }
 
         ConfigCopiedNotification = _loc.CurrentLanguage == "ru" ? "Путь скопирован! ✓" : "Path copied! ✓";
@@ -284,16 +316,17 @@ public partial class GamesViewModel : ObservableObject
     [RelayCommand]
     public async Task ApplySystemProfileAsync()
     {
-        if (SelectedGame == null) return;
+        var game = SelectedGame;
+        if (game == null || IsApplyingProfile) return;
 
         IsApplyingProfile = true;
         try
         {
-            bool success = await _profileService.ApplyProfileAsync(SelectedGame.Id);
+            bool success = await _profileService.ApplyProfileAsync(game.Id);
             if (success)
             {
-                SelectedGame.IsProfileApplied = true;
-                SelectedGame.StatusBadge = _loc.CurrentLanguage == "ru" ? "Активен ✓" : "Active ✓";
+                game.IsProfileApplied = true;
+                game.UpdateStatusBadge();
                 UpdateAppliedSummary();
                 UpdateStatusText();
             }
@@ -311,16 +344,17 @@ public partial class GamesViewModel : ObservableObject
     [RelayCommand]
     public async Task RevertSystemProfileAsync()
     {
-        if (SelectedGame == null) return;
+        var game = SelectedGame;
+        if (game == null || IsApplyingProfile) return;
 
         IsApplyingProfile = true;
         try
         {
-            bool success = await _profileService.RevertProfileAsync(SelectedGame.Id);
+            bool success = await _profileService.RevertProfileAsync(game.Id);
             if (success)
             {
-                SelectedGame.IsProfileApplied = false;
-                SelectedGame.StatusBadge = _loc.CurrentLanguage == "ru" ? "Готов" : "Ready";
+                game.IsProfileApplied = false;
+                game.UpdateStatusBadge();
                 UpdateAppliedSummary();
                 UpdateStatusText();
             }

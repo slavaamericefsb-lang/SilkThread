@@ -1,0 +1,1143 @@
+{
+  "method": "Exact local Windows ADMX hive-scope/key/value match; not a runtime policy-effect test",
+  "entries": [
+    {
+      "id": "doc_search_cloud",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "AllowCloudSearch",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "AllowCloudSearch",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowCloudSearch",
+          "xml": "<policy name=\"AllowCloudSearch\" class=\"Machine\" displayName=\"$(string.AllowCloudSearch)\" explainText=\"$(string.ExplainAllowCloudSearch)\" presentation=\"$(presentation.AllowCloudSearch)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowCloudSearch\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <enum id=\"AllowCloudSearch_Dropdown\" valueName=\"AllowCloudSearch\" required=\"true\">\n          <item displayName=\"$(string.AllowCloudSearchDisabled)\">\n            <value>\n              <decimal value=\"0\" />\n            </value>\n          </item>\n          <item displayName=\"$(string.AllowCloudSearchEnabled)\">\n            <value>\n              <decimal value=\"1\" />\n            </value>\n          </item>\n          <item displayName=\"$(string.AllowCloudSearchControlledByUser)\">\n            <value>\n              <decimal value=\"2\" />\n            </value>\n          </item>\n        </enum>\n      </elements>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "AllowCloudSearch",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowCloudSearch",
+          "xml": "<policy name=\"AllowCloudSearch\" class=\"Machine\" displayName=\"$(string.AllowCloudSearch)\" explainText=\"$(string.ExplainAllowCloudSearch)\" presentation=\"$(presentation.AllowCloudSearch)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowCloudSearch\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <enum id=\"AllowCloudSearch_Dropdown\" valueName=\"AllowCloudSearch\" required=\"true\">\n          <item displayName=\"$(string.AllowCloudSearchDisabled)\">\n            <value>\n              <decimal value=\"0\" />\n            </value>\n          </item>\n          <item displayName=\"$(string.AllowCloudSearchEnabled)\">\n            <value>\n              <decimal value=\"1\" />\n            </value>\n          </item>\n          <item displayName=\"$(string.AllowCloudSearchControlledByUser)\">\n            <value>\n              <decimal value=\"2\" />\n            </value>\n          </item>\n        </enum>\n      </elements>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_encrypted",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "AllowIndexingEncryptedStoresOrItems",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "AllowIndexingEncryptedStoresOrItems",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowIndexingEncryptedStoresOrItems",
+          "xml": "<policy name=\"AllowIndexingEncryptedStoresOrItems\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.AllowIndexingEncryptedStoresOrItems)\" explainText=\"$(string.ExplainAllowIndexingEncryptedStoresOrItems)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowIndexingEncryptedStoresOrItems\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOr4\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "AllowIndexingEncryptedStoresOrItems",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowIndexingEncryptedStoresOrItems",
+          "xml": "<policy name=\"AllowIndexingEncryptedStoresOrItems\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.AllowIndexingEncryptedStoresOrItems)\" explainText=\"$(string.ExplainAllowIndexingEncryptedStoresOrItems)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowIndexingEncryptedStoresOrItems\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOr4\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_highlights",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "EnableDynamicContentInWSB",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "AllowSearchHighlights",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "EnableDynamicContentInWSB",
+          "xml": "<policy name=\"AllowSearchHighlights\" class=\"Machine\" displayName=\"$(string.EnableDynamicContentInWSB)\" explainText=\"$(string.ExplainEnableDynamicContentInWSB)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"EnableDynamicContentInWSB\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "AllowSearchHighlights",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "EnableDynamicContentInWSB",
+          "xml": "<policy name=\"AllowSearchHighlights\" class=\"Machine\" displayName=\"$(string.EnableDynamicContentInWSB)\" explainText=\"$(string.ExplainEnableDynamicContentInWSB)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"EnableDynamicContentInWSB\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_location",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "AllowSearchToUseLocation",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "AllowSearchToUseLocation",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowSearchToUseLocation",
+          "xml": "<policy name=\"AllowSearchToUseLocation\" class=\"Machine\" displayName=\"$(string.AllowSearchToUseLocation)\" explainText=\"$(string.ExplainAllowSearchToUseLocation)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowSearchToUseLocation\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "AllowSearchToUseLocation",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "AllowSearchToUseLocation",
+          "xml": "<policy name=\"AllowSearchToUseLocation\" class=\"Machine\" displayName=\"$(string.AllowSearchToUseLocation)\" explainText=\"$(string.ExplainAllowSearchToUseLocation)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"AllowSearchToUseLocation\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_removable",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "DisableRemovableDriveIndexing",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "DisableRemovableDriveIndexing",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "DisableRemovableDriveIndexing",
+          "xml": "<policy name=\"DisableRemovableDriveIndexing\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.DisableRemovableDriveIndexing)\" explainText=\"$(string.ExplainDisableRemovableDriveIndexing)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"DisableRemovableDriveIndexing\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"WinBlueOnly\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "DisableRemovableDriveIndexing",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "DisableRemovableDriveIndexing",
+          "xml": "<policy name=\"DisableRemovableDriveIndexing\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.DisableRemovableDriveIndexing)\" explainText=\"$(string.ExplainDisableRemovableDriveIndexing)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"DisableRemovableDriveIndexing\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"WinBlueOnly\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_remote",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventRemoteQueries",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventRemoteQueries",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventRemoteQueries",
+          "xml": "<policy name=\"PreventRemoteQueries\" class=\"Machine\" displayName=\"$(string.PreventRemoteQueries)\" explainText=\"$(string.ExplainPreventRemoteQueries)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventRemoteQueries\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"4OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventRemoteQueries",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventRemoteQueries",
+          "xml": "<policy name=\"PreventRemoteQueries\" class=\"Machine\" displayName=\"$(string.PreventRemoteQueries)\" explainText=\"$(string.ExplainPreventRemoteQueries)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventRemoteQueries\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"4OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_battery",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventIndexOnBattery",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexOnBattery",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexOnBattery",
+          "xml": "<policy name=\"PreventIndexOnBattery\" class=\"Machine\" displayName=\"$(string.PreventIndexOnBattery)\" explainText=\"$(string.ExplainPreventIndexOnBattery)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexOnBattery\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"301OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexOnBattery",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexOnBattery",
+          "xml": "<policy name=\"PreventIndexOnBattery\" class=\"Machine\" displayName=\"$(string.PreventIndexOnBattery)\" explainText=\"$(string.ExplainPreventIndexOnBattery)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexOnBattery\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"301OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_offline",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventIndexingOfflineFiles",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingOfflineFiles",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingOfflineFiles",
+          "xml": "<policy name=\"PreventIndexingOfflineFiles\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingOfflineFiles)\" explainText=\"$(string.ExplainPreventIndexingOfflineFiles)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingOfflineFiles\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOnly\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingOfflineFiles",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingOfflineFiles",
+          "xml": "<policy name=\"PreventIndexingOfflineFiles\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingOfflineFiles)\" explainText=\"$(string.ExplainPreventIndexingOfflineFiles)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingOfflineFiles\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOnly\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_exchange",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventIndexingUncachedExchangeFolders",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingUncachedExchangeFolders",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingUncachedExchangeFolders",
+          "xml": "<policy name=\"PreventIndexingUncachedExchangeFolders\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.EnableIndexingUncachedExchangeFolders)\" explainText=\"$(string.ExplainEnableIndexingUncachedExchangeFolders)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingUncachedExchangeFolders\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"0\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"1\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingUncachedExchangeFolders",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingUncachedExchangeFolders",
+          "xml": "<policy name=\"PreventIndexingUncachedExchangeFolders\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.EnableIndexingUncachedExchangeFolders)\" explainText=\"$(string.ExplainEnableIndexingUncachedExchangeFolders)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingUncachedExchangeFolders\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"0\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"1\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_delegate",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "EnableIndexingDelegateMailboxes",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "EnableIndexingDelegateMailboxes",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "EnableIndexingDelegateMailboxes",
+          "xml": "<policy name=\"EnableIndexingDelegateMailboxes\" class=\"Machine\" displayName=\"$(string.EnableIndexingDelegateMailboxes)\" explainText=\"$(string.ExplainEnableIndexingDelegateMailboxes)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"EnableIndexingDelegateMailboxes\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"4OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "EnableIndexingDelegateMailboxes",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "EnableIndexingDelegateMailboxes",
+          "xml": "<policy name=\"EnableIndexingDelegateMailboxes\" class=\"Machine\" displayName=\"$(string.EnableIndexingDelegateMailboxes)\" explainText=\"$(string.ExplainEnableIndexingDelegateMailboxes)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"EnableIndexingDelegateMailboxes\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"4OrLater\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_attachments",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventIndexingEmailAttachments",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingEmailAttachments",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingEmailAttachments",
+          "xml": "<policy name=\"PreventIndexingEmailAttachments\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingEmailAttachments)\" explainText=\"$(string.ExplainPreventIndexingEmailAttachments)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingEmailAttachments\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingEmailAttachments",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingEmailAttachments",
+          "xml": "<policy name=\"PreventIndexingEmailAttachments\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingEmailAttachments)\" explainText=\"$(string.ExplainPreventIndexingEmailAttachments)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingEmailAttachments\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_search_public",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+      "value": "PreventIndexingPublicFolders",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingPublicFolders",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingPublicFolders",
+          "xml": "<policy name=\"PreventIndexingPublicFolders\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingPublicFolders)\" explainText=\"$(string.ExplainPreventIndexingPublicFolders)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingPublicFolders\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        },
+        {
+          "file": "Search.admx",
+          "policy": "PreventIndexingPublicFolders",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "value": "PreventIndexingPublicFolders",
+          "xml": "<policy name=\"PreventIndexingPublicFolders\" class=\"Machine\" clientExtension=\"{7933F41E-56F8-41d6-A31C-4148A711EE93}\" displayName=\"$(string.PreventIndexingPublicFolders)\" explainText=\"$(string.ExplainPreventIndexingPublicFolders)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search\" valueName=\"PreventIndexingPublicFolders\">\n      <parentCategory ref=\"Search\" />\n      <supportedOn ref=\"VistaOrRedist\" />\n      <enabledValue>\n        <decimal value=\"1\" />\n      </enabledValue>\n      <disabledValue>\n        <decimal value=\"0\" />\n      </disabledValue>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_desktop",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableSpotlightCollectionOnDesktop",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableSpotlightCollectionOnDesktop",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableSpotlightCollectionOnDesktop",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableSpotlightCollectionOnDesktop\" class=\"User\" displayName=\"$(string.DisableSpotlightCollectionOnDesktop)\" explainText=\"$(string.DisableSpotlightCollectionOnDesktop_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableSpotlightCollectionOnDesktop\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableSpotlightCollectionOnDesktop",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableSpotlightCollectionOnDesktop",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableSpotlightCollectionOnDesktop\" class=\"User\" displayName=\"$(string.DisableSpotlightCollectionOnDesktop)\" explainText=\"$(string.DisableSpotlightCollectionOnDesktop_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableSpotlightCollectionOnDesktop\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_thirdparty",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableThirdPartySuggestions",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableThirdPartySuggestions",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableThirdPartySuggestions",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableThirdPartySuggestions\" class=\"User\" displayName=\"$(string.DisableThirdPartySuggestions)\" explainText=\"$(string.DisableThirdPartySuggestions_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableThirdPartySuggestions\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableThirdPartySuggestions",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableThirdPartySuggestions",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableThirdPartySuggestions\" class=\"User\" displayName=\"$(string.DisableThirdPartySuggestions)\" explainText=\"$(string.DisableThirdPartySuggestions_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableThirdPartySuggestions\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_consumer",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableWindowsConsumerFeatures",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsConsumerFeatures",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsConsumerFeatures",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsConsumerFeatures\" class=\"Machine\" displayName=\"$(string.DisableWindowsConsumerFeatures)\" explainText=\"$(string.DisableWindowsConsumerFeatures_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsConsumerFeatures\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsConsumerFeatures",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsConsumerFeatures",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsConsumerFeatures\" class=\"Machine\" displayName=\"$(string.DisableWindowsConsumerFeatures)\" explainText=\"$(string.DisableWindowsConsumerFeatures_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsConsumerFeatures\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_NOSERVER\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_action",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableWindowsSpotlightOnActionCenter",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightOnActionCenter",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightOnActionCenter",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightOnActionCenter\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightOnActionCenter)\" explainText=\"$(string.DisableWindowsSpotlightOnActionCenter_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightOnActionCenter\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS2\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightOnActionCenter",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightOnActionCenter",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightOnActionCenter\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightOnActionCenter)\" explainText=\"$(string.DisableWindowsSpotlightOnActionCenter_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightOnActionCenter\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS2\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_settings",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableWindowsSpotlightOnSettings",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightOnSettings",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightOnSettings",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightOnSettings\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightOnSettings)\" explainText=\"$(string.DisableWindowsSpotlightOnSettings_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightOnSettings\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS4\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightOnSettings",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightOnSettings",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightOnSettings\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightOnSettings)\" explainText=\"$(string.DisableWindowsSpotlightOnSettings_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightOnSettings\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS4\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_welcome",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableWindowsSpotlightWindowsWelcomeExperience",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightWindowsWelcomeExperience",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightWindowsWelcomeExperience",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightWindowsWelcomeExperience\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightWindowsWelcomeExperience)\" explainText=\"$(string.DisableWindowsSpotlightWindowsWelcomeExperience_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightWindowsWelcomeExperience\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS2\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableWindowsSpotlightWindowsWelcomeExperience",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableWindowsSpotlightWindowsWelcomeExperience",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSpotlightWindowsWelcomeExperience\" class=\"User\" displayName=\"$(string.DisableWindowsSpotlightWindowsWelcomeExperience)\" explainText=\"$(string.DisableWindowsSpotlightWindowsWelcomeExperience_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableWindowsSpotlightWindowsWelcomeExperience\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS2\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_optimized",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableCloudOptimizedContent",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableCloudOptimizedContent",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableCloudOptimizedContent",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableCloudOptimizedContent\" class=\"Machine\" displayName=\"$(string.DisableCloudOptimizedContent)\" explainText=\"$(string.DisableCloudOptimizedContent_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableCloudOptimizedContent\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableCloudOptimizedContent",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableCloudOptimizedContent",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableCloudOptimizedContent\" class=\"Machine\" displayName=\"$(string.DisableCloudOptimizedContent)\" explainText=\"$(string.DisableCloudOptimizedContent_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableCloudOptimizedContent\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_cloud_account",
+      "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+      "value": "DisableConsumerAccountStateContent",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableConsumerAccountStateContent",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableConsumerAccountStateContent",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableConsumerAccountStateContent\" class=\"Machine\" displayName=\"$(string.DisableConsumerAccountStateContent)\" explainText=\"$(string.DisableConsumerAccountStateContent_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableConsumerAccountStateContent\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "CloudContent.admx",
+          "policy": "DisableConsumerAccountStateContent",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\CloudContent",
+          "value": "DisableConsumerAccountStateContent",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableConsumerAccountStateContent\" class=\"Machine\" displayName=\"$(string.DisableConsumerAccountStateContent)\" explainText=\"$(string.DisableConsumerAccountStateContent_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\CloudContent\" valueName=\"DisableConsumerAccountStateContent\">\n      <ns0:parentCategory ref=\"CloudContent\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0_RS7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_appsettings",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableApplicationSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableApplicationSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableApplicationSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableApplicationSettingSync\" presentation=\"$(presentation.DisableApplicationSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableApplicationSettingSync)\" explainText=\"$(string.DisableApplicationSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableApplicationSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableApplicationSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableApplicationSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableApplicationSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableApplicationSettingSync\" presentation=\"$(presentation.DisableApplicationSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableApplicationSettingSync)\" explainText=\"$(string.DisableApplicationSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableApplicationSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableApplicationSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_apps",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableAppSyncSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableAppSyncSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableAppSyncSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableAppSyncSettingSync\" presentation=\"$(presentation.DisableAppSyncSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableAppSyncSettingSync)\" explainText=\"$(string.DisableAppSyncSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableAppSyncSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_6_3\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableAppSyncSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableAppSyncSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableAppSyncSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableAppSyncSettingSync\" presentation=\"$(presentation.DisableAppSyncSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableAppSyncSettingSync)\" explainText=\"$(string.DisableAppSyncSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableAppSyncSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_6_3\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableAppSyncSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_theme",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableDesktopThemeSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableDesktopThemeSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableDesktopThemeSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableDesktopThemeSettingSync\" presentation=\"$(presentation.DisableDesktopThemeSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableDesktopThemeSettingSync)\" explainText=\"$(string.DisableDesktopThemeSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableDesktopThemeSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableDesktopThemeSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableDesktopThemeSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableDesktopThemeSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableDesktopThemeSettingSync\" presentation=\"$(presentation.DisableDesktopThemeSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableDesktopThemeSettingSync)\" explainText=\"$(string.DisableDesktopThemeSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableDesktopThemeSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableDesktopThemeSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_personal",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisablePersonalizationSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisablePersonalizationSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisablePersonalizationSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisablePersonalizationSettingSync\" presentation=\"$(presentation.DisablePersonalizationSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisablePersonalizationSettingSync)\" explainText=\"$(string.DisablePersonalizationSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisablePersonalizationSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisablePersonalizationSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisablePersonalizationSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisablePersonalizationSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisablePersonalizationSettingSync\" presentation=\"$(presentation.DisablePersonalizationSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisablePersonalizationSettingSync)\" explainText=\"$(string.DisablePersonalizationSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisablePersonalizationSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisablePersonalizationSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_windows",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableWindowsSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableWindowsSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableWindowsSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSettingSync\" presentation=\"$(presentation.DisableWindowsSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableWindowsSettingSync)\" explainText=\"$(string.DisableWindowsSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableWindowsSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableWindowsSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableWindowsSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableWindowsSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableWindowsSettingSync\" presentation=\"$(presentation.DisableWindowsSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableWindowsSettingSync)\" explainText=\"$(string.DisableWindowsSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableWindowsSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableWindowsSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_metered",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableSyncOnPaidNetwork",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableSyncOnPaidNetwork",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableSyncOnPaidNetwork",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableSyncOnPaidNetwork\" class=\"Machine\" displayName=\"$(string.DisableSyncOnPaidNetwork)\" explainText=\"$(string.DisableSyncOnPaidNetwork_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableSyncOnPaidNetwork\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableSyncOnPaidNetwork",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableSyncOnPaidNetwork",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableSyncOnPaidNetwork\" class=\"Machine\" displayName=\"$(string.DisableSyncOnPaidNetwork)\" explainText=\"$(string.DisableSyncOnPaidNetwork_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableSyncOnPaidNetwork\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_sync_start",
+      "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+      "value": "DisableStartLayoutSettingSync",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableStartLayoutSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableStartLayoutSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableStartLayoutSettingSync\" presentation=\"$(presentation.DisableStartLayoutSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableStartLayoutSettingSync)\" explainText=\"$(string.DisableStartLayoutSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableStartLayoutSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_6_3\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableStartLayoutSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        },
+        {
+          "file": "SettingSync.admx",
+          "policy": "DisableStartLayoutSettingSync",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\SettingSync",
+          "value": "DisableStartLayoutSettingSync",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableStartLayoutSettingSync\" presentation=\"$(presentation.DisableStartLayoutSettingSyncUserOverride)\" class=\"Machine\" displayName=\"$(string.DisableStartLayoutSettingSync)\" explainText=\"$(string.DisableStartLayoutSettingSync_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\SettingSync\" valueName=\"DisableStartLayoutSettingSync\">\n      <ns0:parentCategory ref=\"SettingSync\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_6_3\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"2\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n      <ns0:elements>\n        <ns0:boolean id=\"CheckBox_UserOverride\" valueName=\"DisableStartLayoutSettingSyncUserOverride\">\n          <ns0:trueValue>\n            <ns0:decimal value=\"0\" />\n          </ns0:trueValue>\n          <ns0:falseValue>\n            <ns0:decimal value=\"1\" />\n          </ns0:falseValue>\n        </ns0:boolean>\n      </ns0:elements>\n    </ns0:policy>\n\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_do_cache",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "value": "DOAbsoluteMaxCacheSize",
+      "desired": 5,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "DeliveryOptimization.admx",
+          "policy": "AbsoluteMaxCacheSize",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+          "value": "DOAbsoluteMaxCacheSize",
+          "xml": "<policy class=\"Machine\" displayName=\"$(string.AbsoluteMaxCacheSize)\" explainText=\"$(string.AbsoluteMaxCacheSize_Help)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization\" name=\"AbsoluteMaxCacheSize\" presentation=\"$(presentation.AbsoluteMaxCacheSize)\">\n      <parentCategory ref=\"DeliveryOptimizationCat\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <decimal id=\"AbsoluteMaxCacheSize\" maxValue=\"4294967295\" minValue=\"0\" valueName=\"DOAbsoluteMaxCacheSize\" />\n      </elements>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_do_background",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "value": "DOMaxBackgroundDownloadBandwidth",
+      "desired": 1024,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "DeliveryOptimization.admx",
+          "policy": "MaxBackgroundDownloadBandwidth",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+          "value": "DOMaxBackgroundDownloadBandwidth",
+          "xml": "<policy class=\"Machine\" displayName=\"$(string.MaxBackgroundDownloadBandwidth)\" explainText=\"$(string.MaxBackgroundDownloadBandwidth_Help)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization\" name=\"MaxBackgroundDownloadBandwidth\" presentation=\"$(presentation.MaxBackgroundDownloadBandwidth)\">\n      <parentCategory ref=\"DeliveryOptimizationCat\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <decimal id=\"MaxBackgroundDownloadBandwidth\" maxValue=\"4294967295\" minValue=\"0\" valueName=\"DOMaxBackgroundDownloadBandwidth\" />\n      </elements>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_do_upload",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "value": "DOMonthlyUploadDataCap",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "DeliveryOptimization.admx",
+          "policy": "MonthlyUploadDataCap",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+          "value": "DOMonthlyUploadDataCap",
+          "xml": "<policy class=\"Machine\" displayName=\"$(string.MonthlyUploadDataCap)\" explainText=\"$(string.MonthlyUploadDataCap_Help)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization\" name=\"MonthlyUploadDataCap\" presentation=\"$(presentation.MonthlyUploadDataCap)\">\n      <parentCategory ref=\"DeliveryOptimizationCat\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <decimal id=\"MonthlyUploadDataCap\" maxValue=\"4294967295\" minValue=\"0\" valueName=\"DOMonthlyUploadDataCap\" />\n      </elements>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_do_ram",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+      "value": "DOMinRAMAllowedToPeer",
+      "desired": 8,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "DeliveryOptimization.admx",
+          "policy": "MinRAMAllowedToPeer",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+          "value": "DOMinRAMAllowedToPeer",
+          "xml": "<policy class=\"Machine\" displayName=\"$(string.MinRAMAllowedToPeer)\" explainText=\"$(string.MinRAMAllowedToPeer_Help)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization\" name=\"MinRAMAllowedToPeer\" presentation=\"$(presentation.MinRAMAllowedToPeer)\">\n      <parentCategory ref=\"DeliveryOptimizationCat\" />\n      <supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <elements>\n        <decimal id=\"MinRAMAllowedToPeer\" maxValue=\"100000\" minValue=\"1\" valueName=\"DOMinRAMAllowedToPeer\" />\n      </elements>\n    </policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_explorer_icons",
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+      "value": "DisableThumbnails",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "Thumbnails.admx",
+          "policy": "DisableThumbnails",
+          "scope": "User",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+          "value": "DisableThumbnails",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableThumbnails\" class=\"User\" displayName=\"$(string.DisableThumbnails)\" explainText=\"$(string.DisableThumbnails_Help)\" key=\"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" valueName=\"DisableThumbnails\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_WindowsVista\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "Thumbnails.admx",
+          "policy": "DisableThumbnails",
+          "scope": "User",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+          "value": "DisableThumbnails",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"DisableThumbnails\" class=\"User\" displayName=\"$(string.DisableThumbnails)\" explainText=\"$(string.DisableThumbnails_Help)\" key=\"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" valueName=\"DisableThumbnails\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_WindowsVista\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_explorer_remoteicons",
+      "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+      "value": "EnableShellShortcutIconRemotePath",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "EnableShellShortcutIconRemotePath",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "value": "EnableShellShortcutIconRemotePath",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"EnableShellShortcutIconRemotePath\" class=\"Machine\" displayName=\"$(string.EnableShellShortcutIconRemotePath_DisplayName)\" explainText=\"$(string.EnableShellShortcutIconRemotePath_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\Explorer\" valueName=\"EnableShellShortcutIconRemotePath\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "EnableShellShortcutIconRemotePath",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "value": "EnableShellShortcutIconRemotePath",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"EnableShellShortcutIconRemotePath\" class=\"Machine\" displayName=\"$(string.EnableShellShortcutIconRemotePath_DisplayName)\" explainText=\"$(string.EnableShellShortcutIconRemotePath_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\Explorer\" valueName=\"EnableShellShortcutIconRemotePath\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_explorer_snippets",
+      "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+      "value": "HideContentViewModeSnippets",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "HideContentViewModeSnippets",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "value": "HideContentViewModeSnippets",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"HideContentViewModeSnippets\" class=\"User\" displayName=\"$(string.HideContentViewModeSnippets_DisplayName)\" explainText=\"$(string.HideContentViewModeSnippets_ExplainText)\" key=\"Software\\Policies\\Microsoft\\Windows\\Explorer\" valueName=\"HideContentViewModeSnippets\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "HideContentViewModeSnippets",
+          "scope": "User",
+          "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+          "value": "HideContentViewModeSnippets",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"HideContentViewModeSnippets\" class=\"User\" displayName=\"$(string.HideContentViewModeSnippets_DisplayName)\" explainText=\"$(string.HideContentViewModeSnippets_ExplainText)\" key=\"Software\\Policies\\Microsoft\\Windows\\Explorer\" valueName=\"HideContentViewModeSnippets\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows7\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_explorer_linktracking",
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+      "value": "LinkResolveIgnoreLinkInfo",
+      "desired": 1,
+      "scope": "User",
+      "admxMatches": [
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "LinkResolveIgnoreLinkInfo",
+          "scope": "User",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+          "value": "LinkResolveIgnoreLinkInfo",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LinkResolveIgnoreLinkInfo\" class=\"User\" displayName=\"$(string.LinkResolveIgnoreLinkInfo)\" explainText=\"$(string.LinkResolveIgnoreLinkInfo_Help)\" key=\"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" valueName=\"LinkResolveIgnoreLinkInfo\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Win2k\" />\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "WindowsExplorer.admx",
+          "policy": "LinkResolveIgnoreLinkInfo",
+          "scope": "User",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer",
+          "value": "LinkResolveIgnoreLinkInfo",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LinkResolveIgnoreLinkInfo\" class=\"User\" displayName=\"$(string.LinkResolveIgnoreLinkInfo)\" explainText=\"$(string.LinkResolveIgnoreLinkInfo_Help)\" key=\"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" valueName=\"LinkResolveIgnoreLinkInfo\">\n      <ns0:parentCategory ref=\"windows:WindowsExplorer\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Win2k\" />\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_account",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessAccountInfo",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessAccountInfo",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessAccountInfo",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessAccountInfo\" class=\"Machine\" displayName=\"$(string.LetAppsAccessAccountInfo_Name)\" explainText=\"$(string.LetAppsAccessAccountInfo_Explain)\" presentation=\"$(presentation.LetAppsAccessAccountInfo)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessAccountInfo_Enum\" valueName=\"LetAppsAccessAccountInfo\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessAccountInfo_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessAccountInfo_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessAccountInfo_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessAccountInfo_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessAccountInfo_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessAccountInfo_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_calendar",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessCalendar",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessCalendar",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessCalendar",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessCalendar\" class=\"Machine\" displayName=\"$(string.LetAppsAccessCalendar_Name)\" explainText=\"$(string.LetAppsAccessCalendar_Explain)\" presentation=\"$(presentation.LetAppsAccessCalendar)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessCalendar_Enum\" valueName=\"LetAppsAccessCalendar\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessCalendar_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessCalendar_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessCalendar_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessCalendar_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessCalendar_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessCalendar_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_calls",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessCallHistory",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessCallHistory",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessCallHistory",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessCallHistory\" class=\"Machine\" displayName=\"$(string.LetAppsAccessCallHistory_Name)\" explainText=\"$(string.LetAppsAccessCallHistory_Explain)\" presentation=\"$(presentation.LetAppsAccessCallHistory)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessCallHistory_Enum\" valueName=\"LetAppsAccessCallHistory\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessCallHistory_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessCallHistory_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessCallHistory_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessCallHistory_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessCallHistory_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessCallHistory_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_contacts",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessContacts",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessContacts",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessContacts",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessContacts\" class=\"Machine\" displayName=\"$(string.LetAppsAccessContacts_Name)\" explainText=\"$(string.LetAppsAccessContacts_Explain)\" presentation=\"$(presentation.LetAppsAccessContacts)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessContacts_Enum\" valueName=\"LetAppsAccessContacts\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessContacts_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessContacts_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessContacts_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessContacts_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessContacts_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessContacts_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_email",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessEmail",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessEmail",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessEmail",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessEmail\" class=\"Machine\" displayName=\"$(string.LetAppsAccessEmail_Name)\" explainText=\"$(string.LetAppsAccessEmail_Explain)\" presentation=\"$(presentation.LetAppsAccessEmail)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessEmail_Enum\" valueName=\"LetAppsAccessEmail\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessEmail_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessEmail_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessEmail_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessEmail_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessEmail_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessEmail_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_messages",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessMessaging",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessMessaging",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessMessaging",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessMessaging\" class=\"Machine\" displayName=\"$(string.LetAppsAccessMessaging_Name)\" explainText=\"$(string.LetAppsAccessMessaging_Explain)\" presentation=\"$(presentation.LetAppsAccessMessaging)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessMessaging_Enum\" valueName=\"LetAppsAccessMessaging\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessMessaging_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessMessaging_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessMessaging_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessMessaging_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessMessaging_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessMessaging_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_motion",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessMotion",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessMotion",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessMotion",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessMotion\" class=\"Machine\" displayName=\"$(string.LetAppsAccessMotion_Name)\" explainText=\"$(string.LetAppsAccessMotion_Explain)\" presentation=\"$(presentation.LetAppsAccessMotion)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessMotion_Enum\" valueName=\"LetAppsAccessMotion\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessMotion_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessMotion_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessMotion_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessMotion_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessMotion_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessMotion_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_notifications",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessNotifications",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessNotifications",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessNotifications",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessNotifications\" class=\"Machine\" displayName=\"$(string.LetAppsAccessNotifications_Name)\" explainText=\"$(string.LetAppsAccessNotifications_Explain)\" presentation=\"$(presentation.LetAppsAccessNotifications)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessNotifications_Enum\" valueName=\"LetAppsAccessNotifications\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessNotifications_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessNotifications_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessNotifications_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessNotifications_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessNotifications_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessNotifications_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_tasks",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessTasks",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessTasks",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessTasks",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessTasks\" class=\"Machine\" displayName=\"$(string.LetAppsAccessTasks_Name)\" explainText=\"$(string.LetAppsAccessTasks_Explain)\" presentation=\"$(presentation.LetAppsAccessTasks)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessTasks_Enum\" valueName=\"LetAppsAccessTasks\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessTasks_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessTasks_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessTasks_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessTasks_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessTasks_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessTasks_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_app_radios",
+      "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+      "value": "LetAppsAccessRadios",
+      "desired": 2,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "AppPrivacy.admx",
+          "policy": "LetAppsAccessRadios",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "value": "LetAppsAccessRadios",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"LetAppsAccessRadios\" class=\"Machine\" displayName=\"$(string.LetAppsAccessRadios_Name)\" explainText=\"$(string.LetAppsAccessRadios_Explain)\" presentation=\"$(presentation.LetAppsAccessRadios)\" key=\"Software\\Policies\\Microsoft\\Windows\\AppPrivacy\">\n      <ns0:parentCategory ref=\"AppPrivacy\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:elements>\n        <ns0:enum id=\"LetAppsAccessRadios_Enum\" valueName=\"LetAppsAccessRadios\">\n          <ns0:item displayName=\"$(string.UserInControl)\">\n            <ns0:value>\n              <ns0:decimal value=\"0\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceAllow)\">\n            <ns0:value>\n              <ns0:decimal value=\"1\" />\n            </ns0:value>\n          </ns0:item>\n          <ns0:item displayName=\"$(string.ForceDeny)\">\n            <ns0:value>\n              <ns0:decimal value=\"2\" />\n            </ns0:value>\n          </ns0:item>\n        </ns0:enum>\n        <ns0:multiText id=\"LetAppsAccessRadios_UserInControlOfTheseApps_List\" valueName=\"LetAppsAccessRadios_UserInControlOfTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessRadios_ForceAllowTheseApps_List\" valueName=\"LetAppsAccessRadios_ForceAllowTheseApps\" />\n        <ns0:multiText id=\"LetAppsAccessRadios_ForceDenyTheseApps_List\" valueName=\"LetAppsAccessRadios_ForceDenyTheseApps\" />\n      </ns0:elements>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_wer_extra",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+      "value": "DontSendAdditionalData",
+      "desired": 1,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerNoSecondLevelData_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "DontSendAdditionalData",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerNoSecondLevelData_2\" class=\"Machine\" displayName=\"$(string.WerNoSecondLevelData)\" explainText=\"$(string.WerNoSecondLevelDataExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"DontSendAdditionalData\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_WindowsVista\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerNoSecondLevelData_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "DontSendAdditionalData",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerNoSecondLevelData_2\" class=\"Machine\" displayName=\"$(string.WerNoSecondLevelData)\" explainText=\"$(string.WerNoSecondLevelDataExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"DontSendAdditionalData\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_WindowsVista\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_wer_power",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+      "value": "BypassPowerThrottling",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerBypassPowerThrottling_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "BypassPowerThrottling",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerBypassPowerThrottling_2\" class=\"Machine\" displayName=\"$(string.WerBypassPowerThrottling)\" explainText=\"$(string.WerBypassPowerThrottlingExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"BypassPowerThrottling\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerBypassPowerThrottling_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "BypassPowerThrottling",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerBypassPowerThrottling_2\" class=\"Machine\" displayName=\"$(string.WerBypassPowerThrottling)\" explainText=\"$(string.WerBypassPowerThrottlingExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"BypassPowerThrottling\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_wer_network",
+      "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+      "value": "BypassNetworkCostThrottling",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerBypassNetworkCostThrottling_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "BypassNetworkCostThrottling",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerBypassNetworkCostThrottling_2\" class=\"Machine\" displayName=\"$(string.WerBypassNetworkCostThrottling)\" explainText=\"$(string.WerBypassNetworkCostThrottlingExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"BypassNetworkCostThrottling\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "ErrorReporting.admx",
+          "policy": "WerBypassNetworkCostThrottling_2",
+          "scope": "Machine",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting",
+          "value": "BypassNetworkCostThrottling",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"WerBypassNetworkCostThrottling_2\" class=\"Machine\" displayName=\"$(string.WerBypassNetworkCostThrottling)\" explainText=\"$(string.WerBypassNetworkCostThrottlingExp)\" key=\"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting\" valueName=\"BypassNetworkCostThrottling\">\n      <ns0:parentCategory ref=\"CAT_WindowsErrorReporting\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows8\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_speech_online",
+      "key": "Software\\Policies\\Microsoft\\InputPersonalization",
+      "value": "AllowInputPersonalization",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "Globalization.admx",
+          "policy": "AllowInputPersonalization",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\InputPersonalization",
+          "value": "AllowInputPersonalization",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"AllowInputPersonalization\" class=\"Machine\" displayName=\"$(string.AllowInputPersonalization)\" explainText=\"$(string.AllowInputPersonalization_Help)\" key=\"Software\\Policies\\Microsoft\\InputPersonalization\" valueName=\"AllowInputPersonalization\">\n      <ns0:parentCategory ref=\"RegionalOptions\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        },
+        {
+          "file": "Globalization.admx",
+          "policy": "AllowInputPersonalization",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\InputPersonalization",
+          "value": "AllowInputPersonalization",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"AllowInputPersonalization\" class=\"Machine\" displayName=\"$(string.AllowInputPersonalization)\" explainText=\"$(string.AllowInputPersonalization_Help)\" key=\"Software\\Policies\\Microsoft\\InputPersonalization\" valueName=\"AllowInputPersonalization\">\n      <ns0:parentCategory ref=\"RegionalOptions\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n    "
+        }
+      ]
+    },
+    {
+      "id": "doc_clipboard_history",
+      "key": "Software\\Policies\\Microsoft\\Windows\\System",
+      "value": "AllowClipboardHistory",
+      "desired": 0,
+      "scope": "Machine",
+      "admxMatches": [
+        {
+          "file": "OSPolicy.admx",
+          "policy": "AllowClipboardHistory",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\System",
+          "value": "AllowClipboardHistory",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"AllowClipboardHistory\" class=\"Machine\" displayName=\"$(string.AllowClipboardHistory)\" explainText=\"$(string.AllowClipboardHistory_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\System\" valueName=\"AllowClipboardHistory\">\n      <ns0:parentCategory ref=\"PolicyPolicies\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n  "
+        },
+        {
+          "file": "OSPolicy.admx",
+          "policy": "AllowClipboardHistory",
+          "scope": "Machine",
+          "key": "Software\\Policies\\Microsoft\\Windows\\System",
+          "value": "AllowClipboardHistory",
+          "xml": "<ns0:policy xmlns:ns0=\"http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions\" name=\"AllowClipboardHistory\" class=\"Machine\" displayName=\"$(string.AllowClipboardHistory)\" explainText=\"$(string.AllowClipboardHistory_Help)\" key=\"Software\\Policies\\Microsoft\\Windows\\System\" valueName=\"AllowClipboardHistory\">\n      <ns0:parentCategory ref=\"PolicyPolicies\" />\n      <ns0:supportedOn ref=\"windows:SUPPORTED_Windows_10_0\" />\n      <ns0:enabledValue>\n        <ns0:decimal value=\"1\" />\n      </ns0:enabledValue>\n      <ns0:disabledValue>\n        <ns0:decimal value=\"0\" />\n      </ns0:disabledValue>\n    </ns0:policy>\n  "
+        }
+      ]
+    }
+  ]
+}

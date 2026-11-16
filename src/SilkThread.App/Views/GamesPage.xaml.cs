@@ -28,13 +28,40 @@ public sealed partial class GamesPage : Page, IStaggeredPage
         ViewModel = App.Services.GetRequiredService<GamesViewModel>();
         InitializeComponent();
 
-        ViewModel.PropertyChanged += (s, e) =>
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        Unloaded += GamesPage_Unloaded;
+    }
+
+    private void GameCards_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (GameCardsControl.ItemsPanelRoot is not ItemsWrapGrid panel || e.NewSize.Width <= 0) return;
+        int columns = Math.Clamp((int)(e.NewSize.Width / 260), 1, 4);
+        panel.MaximumRowsOrColumns = columns;
+        panel.ItemWidth = Math.Floor(e.NewSize.Width / columns);
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GamesViewModel.IsCopied) && ViewModel.IsCopied)
         {
-            if (e.PropertyName == nameof(GamesViewModel.IsCopied) && ViewModel.IsCopied)
+            DispatcherQueue?.TryEnqueue(() =>
             {
-                AnimateCopyButtonSpring();
-            }
-        };
+                try { AnimateCopyButtonSpring(); }
+                catch (Exception ex) { App.Log($"[GamesPage AnimateCopy exception]: {ex.Message}"); }
+            });
+        }
+    }
+
+    private void GamesPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[GamesPage_Unloaded exception]: {ex.Message}");
+        }
     }
 
     private void CopyLaunchOptionsButton_Click(object sender, RoutedEventArgs e)
@@ -44,58 +71,9 @@ public sealed partial class GamesPage : Page, IStaggeredPage
 
     private void AnimateCopyButtonSpring()
     {
+        // Native pressed/hover feedback stays crisp; no scaling of glyphs or text.
         if (CopyButtonScale == null) return;
-
-        var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
-
-        var animX = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimationUsingKeyFrames();
-        animX.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.DiscreteDoubleKeyFrame { KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.8 });
-        animX.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(160)),
-            Value = 1.12,
-            KeySpline = new Microsoft.UI.Xaml.Media.Animation.KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
-        });
-        animX.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(300)),
-            Value = 0.97,
-            KeySpline = new Microsoft.UI.Xaml.Media.Animation.KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
-        });
-        animX.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(420)),
-            Value = 1.0
-        });
-
-        var animY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimationUsingKeyFrames();
-        animY.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.DiscreteDoubleKeyFrame { KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 0.8 });
-        animY.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(160)),
-            Value = 1.12,
-            KeySpline = new Microsoft.UI.Xaml.Media.Animation.KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
-        });
-        animY.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(300)),
-            Value = 0.97,
-            KeySpline = new Microsoft.UI.Xaml.Media.Animation.KeySpline { ControlPoint1 = new Windows.Foundation.Point(0.2, 0.8), ControlPoint2 = new Windows.Foundation.Point(0.3, 1.0) }
-        });
-        animY.KeyFrames.Add(new Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame
-        {
-            KeyTime = Microsoft.UI.Xaml.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(420)),
-            Value = 1.0
-        });
-
-        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animX, CopyButtonScale);
-        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animX, "ScaleX");
-        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animY, CopyButtonScale);
-        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animY, "ScaleY");
-
-        sb.Children.Add(animX);
-        sb.Children.Add(animY);
-        sb.Begin();
+        CopyButtonScale.ScaleX = CopyButtonScale.ScaleY = 1;
     }
 
     private void Page_Loaded(object sender, RoutedEventArgs e)

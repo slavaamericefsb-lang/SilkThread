@@ -956,6 +956,12 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Medium / Recommended",
                 TweakTag.FrametimeSmooth | TweakTag.Input),
 
+            new("cpu_disable_vbs_hvci",
+                "ИИ: Отключены VBS и изоляция ядра HVCI, устраняя накладные расходы виртуализации памяти и повышая 1% Low FPS в играх.",
+                "AI: Disabled Virtualization-Based Security (VBS) and HVCI memory integrity to eliminate CPU virtualization overhead and boost 1% Low FPS.",
+                "High / 1% Low Boost",
+                TweakTag.CpuThrottling | TweakTag.FrametimeSmooth),
+
             // =========================================================================
             // 2. GPU OPTIMIZATION & GRAPHICS PIPELINE
             // =========================================================================
@@ -1007,11 +1013,11 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Safe / GPU Memory",
                 TweakTag.GpuCore),
 
-            new("gpu_dwm_composition_buffer_count",
-                "ИИ: Количество буферов композитора DWM сокращено с тройного до двойного, срезая до 16 мс задержки в оконных режимах.",
-                "AI: Reduced DWM composition buffering from triple to double buffer, cutting up to 16ms presentation lag in windowed mode.",
-                "Safe / Input Lag",
-                TweakTag.DwmDirectFlip | TweakTag.Input),
+            new("gpu_disable_mpo",
+                "ИИ: Отключен механизм Multi-Plane Overlay (MPO) в DWM, устраняя мерцания экрана, микростаттеры и черный экран при Alt+Tab.",
+                "AI: Disabled Desktop Window Manager Multi-Plane Overlay (MPO) to resolve display flickering, DWM micro-stutters, and Alt+Tab black screen delays.",
+                "Safe / MPO Fix",
+                TweakTag.DwmDirectFlip | TweakTag.FrametimeSmooth),
 
             new("gpu_nvidia_power_mizer_max",
                 $"ИИ: Для видеокарты {gpu.Name} активирован режим PowerMizer 'Максимальная производительность' с фиксацией 3D-частот ядра и памяти.",
@@ -1102,35 +1108,11 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Safe / CPU Overhead",
                 TweakTag.CpuThrottling | TweakTag.MemoryClean),
 
-            new("ram_paging_executive_driver_lock",
-                "ИИ: Установлена блокировка выгрузки критических драйверов видеокарты и звука при высокой нагрузке на память.",
-                "AI: Enforced kernel driver paging lock to prevent GPU and audio driver routines from paging out under high memory load.",
-                "Safe / Stability",
-                TweakTag.FrametimeSmooth),
-
-            new("ram_standby_list_trimming_heuristics",
-                $"ИИ: Для {ram.TotalGb:F0} ГБ памяти включена проактивная очистка кэша ожидания Standby List, устраняющая микрозаикания при нехватке памяти.",
-                $"AI: Enabled proactive Standby List cache trimming for {ram.TotalGb:F0}GB RAM to prevent memory-allocation micro-stuttering.",
-                "Safe / Memory",
-                TweakTag.MemoryStandby | TweakTag.MemoryClean | TweakTag.FrametimeSmooth),
-
-            new("ram_working_set_trim_protection",
-                "ИИ: Включена защита активного рабочего набора (Working Set) игры от принудительной выгрузки при переключении окон.",
-                "AI: Protected game working set from background memory trimming, ensuring instant Alt-Tab recovery without reloading pauses.",
-                "Safe / Multi-Task",
-                TweakTag.MemoryStandby | TweakTag.StreamingObs | TweakTag.FrametimeSmooth),
-
             new("ram_paged_pool_quota_size",
                 "ИИ: Расширен виртуальный пул PagedPoolSize для стабильной многозадачности с играми, Discord и браузером.",
                 "AI: Expanded kernel paged pool address space quota for reliable multi-tasking alongside Discord, browser, and games.",
                 "Safe / Pool",
                 TweakTag.StreamingObs | TweakTag.SystemHygiene),
-
-            new("ram_heap_segment_allocation_cache",
-                "ИИ: Активировано ускорение блочного кэша Segment Heap для быстрого спавна объектов в движках UE5 и Unity.",
-                "AI: Accelerated segment heap cache allocation to reduce allocator lock contention in modern C++/Rust game engines.",
-                "Safe / Heap",
-                TweakTag.FrametimeSmooth | TweakTag.GpuCore),
 
             new("ram_worker_thread_stack_commit",
                 "ИИ: Оптимизирован стартовый стек системных потоков (64 КБ), предотвращая задержки расширения стека.",
@@ -1449,6 +1431,18 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Medium / Netcode Jitter",
                 TweakTag.Network | TweakTag.Input),
 
+            new("net_disable_hardware_rsc",
+                "ИИ: Отключен аппаратный Receive Segment Coalescing (RSC) на всех сетевых адаптерах и в TCP-стеке для устранения сетевого джиттера.",
+                "AI: Disabled hardware Receive Segment Coalescing (RSC) across all network adapters and TCP stack to eliminate packet jitter.",
+                "Safe / Zero Jitter",
+                TweakTag.Network | TweakTag.Input),
+
+            new("net_disable_interrupt_moderation",
+                "ИИ: Отключена модерация прерываний сетевой карты, обеспечивая мгновенную доставку пакетов на процессор без буферизации.",
+                "AI: Disabled network adapter interrupt moderation to eliminate packet coalescing and achieve absolute lowest packet latency.",
+                "Medium / Lowest Latency",
+                TweakTag.Network | TweakTag.Input),
+
             // =========================================================================
             // 7. STORAGE OPTIMIZATION & DRIVE HYGIENE
             // =========================================================================
@@ -1504,12 +1498,6 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 $"ИИ: Отключен файл гибернации hiberfil.sys, освобождая {ram.TotalGb:F0} ГБ ценного пространства на системном накопителе.",
                 $"AI: Disabled Windows hibernation file (hiberfil.sys), recovering {ram.TotalGb:F0}GB of valuable SSD storage space.",
                 "Safe / SSD Free Space",
-                TweakTag.StorageTune | TweakTag.MemoryClean),
-
-            new("storage_disable_volumetric_shadow_copies",
-                "ИИ: Ограничена квота теневых копий VSS, защищая десятки гигабайт памяти SSD от бесконтрольного расходования.",
-                "AI: Capped VSS shadow copy storage quota, reclaiming tens of gigabytes of solid-state drive space.",
-                "Safe / Capacity",
                 TweakTag.StorageTune | TweakTag.MemoryClean),
 
             new("storage_disable_chkdsk_scan_timeout",
@@ -1846,6 +1834,18 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Safe / Clean Experience",
                 TweakTag.SystemHygiene),
 
+            new("bg_recall_disable_24h2",
+                "ИИ: Отключены служба Windows Recall и фоновая индексация экрана, защищая конфиденциальность и высвобождая ресурсы NPU, CPU и памяти.",
+                "AI: Disabled Windows Recall screen capture indexing and background neural AI analysis to protect privacy and eliminate NPU/CPU background load.",
+                "Safe / Recall AI",
+                TweakTag.TelemetryPrivacy | TweakTag.SystemHygiene),
+
+            new("bg_edge_startup_boost_disable",
+                "ИИ: Отключено ускорение запуска Edge Startup Boost, блокируя фоновые процессы браузера в памяти при старте Windows.",
+                "AI: Disabled Microsoft Edge Startup Boost, preventing hidden background browser processes from consuming RAM at startup.",
+                "Safe / Edge Debloat",
+                TweakTag.MemoryClean | TweakTag.SystemHygiene),
+
             // =========================================================================
             // 11. SECURITY, PRIVACY & TELEMETRY
             // =========================================================================
@@ -2057,21 +2057,15 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Safe / Instant Screenshot",
                 TweakTag.SystemHygiene | TweakTag.Input),
 
+            new("win_start_bing_search_disable",
+                "ИИ: Отключены поиск Bing и облачные веб-подсказки в меню 'Пуск', обеспечивая мгновенный отклик поиска по локальным файлам.",
+                "AI: Disabled Bing search integration and cloud suggestions in Windows Start menu for instantaneous local offline searching.",
+                "Safe / Offline Search",
+                TweakTag.TelemetryPrivacy | TweakTag.SystemHygiene),
+
             // =========================================================================
             // 13. ADVANCED ARCHITECTURAL KERNEL TWEAKS
             // =========================================================================
-            new("adv_critical_section_timeout",
-                "ИИ: Сокращен тайм-аут критических секций ядра для быстрого разрешения взаимных блокировок потоков.",
-                "AI: Reduced kernel critical section timeout for rapid deadlock resolution.",
-                "Safe / Kernel",
-                TweakTag.TimerResolution | TweakTag.CpuThrottling | TweakTag.FrametimeSmooth),
-
-            new("adv_paging_executive_strict_lock",
-                "ИИ: Включена строгая блокировка страниц ядра в ОЗУ для защиты критических драйверов от фрагментации.",
-                "AI: Enforced strict kernel paging lock to protect driver routines from page fragmentation.",
-                "Safe / Kernel",
-                TweakTag.MemoryClean | TweakTag.FrametimeSmooth),
-
             new("adv_global_flag_page_heap_disable",
                 "ИИ: Отключены отладочные флаги Page Heap для минимального накладного расхода памяти.",
                 "AI: Disabled page heap debugging flags for lowest memory management overhead.",
@@ -2090,50 +2084,11 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "Safe / Audio Realtime",
                 TweakTag.AudioLatency | TweakTag.StreamingObs | TweakTag.FrametimeSmooth),
 
-            new("adv_executive_fast_fail_strict_lock",
-                "ИИ: Включена оптимизация Executive Fast Fail для мгновенной обработки системных прерываний.",
-                "AI: Enabled Executive Fast Fail optimization for instant system interrupt servicing.",
-                "Safe / Fast Fail",
-                TweakTag.TimerResolution | TweakTag.CpuThrottling),
-
             new("adv_dwm_thread_priority_realtime",
                 "ИИ: Приоритет потока композитора DWM повышен до реального времени для абсолютной плавности смены кадров.",
                 "AI: Elevated DWM compositor thread priority to realtime for flawless frame pacing and lowest presentation jitter.",
                 "Medium / Realtime DWM",
                 TweakTag.DwmDirectFlip | TweakTag.FrametimeSmooth),
-
-            new("adv_win32_priority_quanta_28",
-                "ИИ: Настроен квант времени потоков (quanta 28) для наилучшего баланса плавности рендера и отклика ввода.",
-                "AI: Configured Win32 thread scheduling quanta (28) for optimal render pacing and input responsiveness.",
-                "Medium / Quanta 28",
-                TweakTag.CpuThrottling | TweakTag.FrametimeSmooth | TweakTag.StreamingObs),
-
-            new("adv_session_pool_size_128",
-                "ИИ: Расширен размер пула сеансов SessionPoolSize до 128 МБ для стабильной работы тяжелых оверлеев.",
-                "AI: Expanded session pool size to 128MB to prevent UI resource exhaustion with heavy gaming overlays.",
-                "Medium / Memory Pool",
-                TweakTag.StreamingObs | TweakTag.MemoryClean),
-
-            // -------------------------------------------------------------------------
-            // ADVANCED ARCHITECTURAL KERNEL EXTENSIONS
-            // -------------------------------------------------------------------------
-            new("adv_device_latency_interrupt_affinity",
-                "ИИ: Активирована приоритетная маршрутизация прерываний MSI (Message Signaled Interrupts), устраняя разделение IRQ-линий и аппаратные всплески DPC.",
-                "AI: Enabled Message Signaled Interrupts (MSI) prioritization, eliminating shared IRQ line conflicts and hardware DPC latency spikes.",
-                "Safe / MSI Priority",
-                TweakTag.TimerResolution | TweakTag.CpuThrottling | TweakTag.FrametimeSmooth),
-
-            new("adv_heap_decommit_threshold",
-                "ИИ: Увеличен порог освобождения блоков кучи процессов (Heap Decommit), снижая накладные расходы на постоянное выделение и возврат памяти ОС.",
-                "AI: Increased heap decommit free block threshold to reduce memory allocation churn and OS paging locks.",
-                "Safe / Heap Tune",
-                TweakTag.MemoryClean | TweakTag.FrametimeSmooth),
-
-            new("adv_hpet_synthetic_timer_tune",
-                "ИИ: Настроена подсистема таймеров ядра на прямое обращение к аппаратному счетчику TSC процессора в обход накладных расходов синтетических таймеров.",
-                "AI: Configured kernel timer subsystem to use direct hardware TSC timers, bypassing synthetic timer overhead.",
-                "Safe / Hardware TSC",
-                TweakTag.TimerResolution | TweakTag.Input),
 
             new("adv_kernel_dpc_timeout_polynomial",
                 "ИИ: Скорректирован интервал тайм-аута сторожевого таймера DPC для предотвращения сбоев при интенсивной компиляции шейдеров в DX12.",
@@ -2158,12 +2113,6 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
                 "AI: Disabled Spectre/Meltdown branch prediction barriers to recover up to 15% pure CPU throughput in gaming.",
                 "High / Experimental",
                 TweakTag.CpuThrottling | TweakTag.TimerResolution),
-
-            new("adv_system_pages_unlimited",
-                "ИИ: Системный параметр SystemPages переведен в динамический режим (0), позволяя ядру создавать максимальный пул записей таблиц страниц.",
-                "AI: Set SystemPages to dynamic maximum (0), allowing the Windows kernel to scale page table entries to full RAM capacity.",
-                "Safe / Kernel Pages",
-                TweakTag.MemoryClean | TweakTag.FrametimeSmooth),
 
             // -------------------------------------------------------------------------
             // BACKGROUND & STARTUP OPTIMIZATIONS
@@ -2262,18 +2211,6 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
             // -------------------------------------------------------------------------
             // RAM & MEMORY EXTENSIONS
             // -------------------------------------------------------------------------
-            new("ram_io_page_lock_limit",
-                "ИИ: Лимит блокировки страниц ввода-вывода IoPageLockLimit расширен до 16 МБ, устраняя пробуксовку очередей при стриминге DirectStorage.",
-                "AI: Expanded IoPageLockLimit buffer to 16MB to prevent memory lock bottlenecks during high-throughput DirectStorage streaming.",
-                "Medium / I/O Buffer",
-                TweakTag.MemoryClean | TweakTag.StorageTune | TweakTag.FrametimeSmooth),
-
-            new("ram_memory_compression_store",
-                "ИИ: Оптимизирован кэш второго уровня подсистемы сжатия памяти для быстрого извлечения страниц без задержек декомпрессии на CPU.",
-                "AI: Optimized memory compression second-level data cache to minimize CPU decompression latency during game execution.",
-                "Medium / Compression Tune",
-                TweakTag.MemoryClean | TweakTag.FrametimeSmooth),
-
             new("ram_pool_usage_maximum",
                 "ИИ: Квота неподкачиваемого пула памяти NonPagedPool увеличена до 60%, гарантируя запас памяти для сетевых и аудио буферов.",
                 "AI: Increased NonPagedPool memory quota to 60%, providing ample headroom for network packet buffers and audio streams.",
@@ -2304,13 +2241,6 @@ public class LiquidAiOptimizerService : ILiquidAiOptimizerService
             // -------------------------------------------------------------------------
             // STORAGE & FILESYSTEM
             // -------------------------------------------------------------------------
-            new("storage_flush_file_buffers_optimization",
-                "ИИ: Оптимизированы интервалы сброса буферов записи на диск, предотвращая задержки синхронизации при потоковой загрузке уровней.",
-                "AI: Configured storage write cache buffer flush thresholds to avoid synchronous flush stalls during game level streaming.",
-                "Medium / Flush Buffer",
-                TweakTag.StorageTune | TweakTag.FrametimeSmooth,
-                hw => hw.Storage.Any(s => s.IsSsd)),
-
             new("storage_ntfs_memory_usage_increase",
                 "ИИ: Выделен расширенный объем физической памяти для файлового кэша NTFS (NtfsMemoryUsage = 2), ускоряя загрузку модов и текстур.",
                 "AI: Increased physical memory allocation for NTFS filesystem metadata cache to accelerate asset loading in heavily modded titles.",

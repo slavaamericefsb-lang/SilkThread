@@ -28,6 +28,7 @@ public class NavigationService : INavigationService
         RegisterRoute("Scanner", typeof(PcScannerPage));
         RegisterRoute("Optimization", typeof(OptimizationPage));
         RegisterRoute("Games", typeof(GamesPage));
+        RegisterRoute("SystemSettings", typeof(SystemSettingsPage));
         RegisterRoute("History", typeof(HistoryPage));
         RegisterRoute("Restore", typeof(RestoreBackupPage));
         RegisterRoute("Settings", typeof(SettingsPage));

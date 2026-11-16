@@ -7,9 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     CornerRadius="14"
-    BorderBrush="#2B3040"
+    BorderBrush="{StaticResource SilkStrokeDarkBrush}"
     BorderThickness="1"
-    Background="#181B25"
+    Background="{StaticResource SilkCardDarkBrush}"
     RequestedTheme="Dark">
 
     <ContentDialog.Resources>
@@ -38,26 +38,26 @@
 
             <!-- Brand Icon Container -->
             <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" 
-                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1"
+                    Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
                     Margin="0,0,12,0" VerticalAlignment="Center">
-                <FontIcon Glyph="&#xEBE8;" FontSize="20" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <FontIcon Glyph="&#xEBE8;" FontSize="20" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                <TextBlock x:Name="TitleTextBlock" Text="Режим разработчика" FontSize="18" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                <TextBlock x:Name="SubtitleTextBlock" Text="Введите ключ разработчика для доступа к панели отладки" FontSize="12.5" Foreground="#969CAB" TextWrapping="Wrap" />
+                <TextBlock x:Name="TitleTextBlock" Text="Режим разработчика" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                <TextBlock x:Name="SubtitleTextBlock" Text="Введите ключ разработчика для доступа к панели отладки" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" />
             </StackPanel>
         </Grid>
 
         <!-- 1: Key Input -->
         <StackPanel Grid.Row="1" Spacing="6">
-            <TextBlock Text="Ключ разработчика" FontSize="11.5" FontWeight="SemiBold" Foreground="#969CAB" />
+            <TextBlock x:Name="KeyLabelTextBlock" Text="Ключ разработчика" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
             <PasswordBox x:Name="KeyPasswordBox" 
                          PlaceholderText="Введите ключ доступа..."
                          PasswordRevealMode="Peek"
-                         Background="#202431" 
-                         BorderBrush="#2B3040" 
-                         Foreground="#F3F4F8" 
+                         Background="{StaticResource SilkSubsurfaceDarkBrush}" 
+                         BorderBrush="{StaticResource SilkStrokeDarkBrush}" 
+                         Foreground="{StaticResource SilkTextPrimaryBrush}" 
                          CornerRadius="8" 
                          Padding="12,8" 
                          Height="38"
@@ -87,18 +87,18 @@
                 <Button x:Name="BtnCancel" Click="BtnCancel_Click"
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
                         Width="Auto" MinWidth="90" Height="38" Padding="16,8" CornerRadius="8"
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                    <TextBlock Text="Отмена" FontSize="13" Foreground="#F3F4F8" TextWrapping="NoWrap" />
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
+                    <TextBlock x:Name="BtnCancelText" Text="Отмена" FontSize="13" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="NoWrap" />
                 </Button>
 
                 <!-- Enter / Submit -->
                 <Button x:Name="BtnSubmit" Click="BtnSubmit_Click"
                         Style="{StaticResource SilkPrimaryButtonStyle}"
                         Width="Auto" MinWidth="110" Height="38" Padding="16,8" CornerRadius="8"
-                        Background="#806BFF" BorderThickness="0">
+                        Background="{StaticResource SilkBrandBrush}" BorderThickness="0">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE72E;" FontSize="13" Foreground="#FFFFFF" />
-                        <TextBlock Text="Войти" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" TextWrapping="NoWrap" />
+                        <TextBlock x:Name="BtnSubmitText" Text="Войти" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" TextWrapping="NoWrap" />
                     </StackPanel>
                 </Button>
             </StackPanel>

@@ -9,9 +9,9 @@
     mc:Ignorable="d"
     Padding="24"
     CornerRadius="14"
-    BorderBrush="#2B3040"
+    BorderBrush="{StaticResource SilkStrokeDarkBrush}"
     BorderThickness="1"
-    Background="#181B25"
+    Background="{StaticResource SilkCardDarkBrush}"
     RequestedTheme="Dark">
 
     <ContentDialog.Resources>
@@ -49,29 +49,29 @@
 
                 <!-- Brand Icon -->
                 <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" 
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1"
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
                         VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE896;" FontSize="20" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <FontIcon Glyph="&#xE896;" FontSize="20" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
                 <!-- Title & Subtitle -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock x:Name="DialogTitleText" Text="Вышло новое обновление!" FontSize="18" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                    <TextBlock x:Name="CurrentVersionHintText" Text="Рекомендуется обновить SilkThread для стабильной работы" FontSize="13" Foreground="#969CAB" />
+                    <TextBlock x:Name="DialogTitleText" Text="Вышло новое обновление!" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                    <TextBlock x:Name="CurrentVersionHintText" Text="Рекомендуется обновить SilkThread для стабильной работы" FontSize="13" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 </StackPanel>
             </Grid>
 
             <!-- Column 1: Version Badge cleanly right-aligned with safety margin -->
-            <Border Grid.Column="1" Background="#1E1736" BorderBrush="#806BFF" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,4,0">
+            <Border Grid.Column="1" Background="#1E1736" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,4,0">
                 <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="#806BFF" />
-                    <TextBlock x:Name="BadgeVersionText" Text="v1.2.0" FontSize="11.5" FontWeight="Bold" Foreground="#806BFF" />
+                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                    <TextBlock x:Name="BadgeVersionText" Text="v1.2.0" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- 1: Release Details Banner Card (Title, Date & Official Badge) -->
-        <Border Grid.Row="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14">
+        <Border Grid.Row="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
             <Grid ColumnSpacing="14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -79,25 +79,25 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
-                    <TextBlock x:Name="ReleaseTitleText" Text="SilkThread Update" FontSize="14" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="ReleaseDateText" Text="Дата релиза: 2026-11-09" FontSize="12" Foreground="#969CAB" />
+                    <TextBlock x:Name="ReleaseTitleText" Text="SilkThread Update" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="ReleaseDateText" Text="Дата релиза: 2026-11-09" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 </StackPanel>
 
                 <Border Grid.Column="1" Background="#162E22" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,2,0">
-                    <TextBlock x:Name="OfficialBadgeText" Text="Официальный релиз" FontSize="11" FontWeight="Bold" Foreground="#22C55E" />
+                    <TextBlock x:Name="OfficialBadgeText" Text="Официальный релиз" FontSize="11" FontWeight="SemiBold" Foreground="#22C55E" />
                 </Border>
             </Grid>
         </Border>
 
         <!-- 2: Changelog / Description Box -->
         <StackPanel Grid.Row="2" Spacing="8">
-            <TextBlock x:Name="WhatsNewHeaderText" Text="Что нового в этой версии:" FontSize="13" FontWeight="SemiBold" Foreground="#969CAB" />
-            <Border Background="#121520" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14">
+            <TextBlock x:Name="WhatsNewHeaderText" Text="Что нового в этой версии:" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+            <Border Background="#121520" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                 <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto"
                               helpers:SmoothScroll.IsEnabled="True">
                     <TextBlock x:Name="DescriptionText" 
                                Text="• Полная переработка интерфейса в стиле Minimal Dark Bento Grid&#x0a;• Устранение дрожания плиток в игровой матрице задержек&#x0a;• Дистанционная доставка обновлений SilkThread Auto-Update" 
-                               FontSize="13" LineHeight="20" Foreground="#F3F4F8" TextWrapping="Wrap" />
+                               FontSize="13" LineHeight="20" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="Wrap" />
                 </ScrollViewer>
             </Border>
         </StackPanel>
@@ -105,10 +105,10 @@
         <!-- 3: Download Progress (Visible during download) -->
         <StackPanel x:Name="DownloadProgressPanel" Grid.Row="3" Spacing="8" Visibility="Collapsed">
             <Grid>
-                <TextBlock x:Name="DownloadStatusText" Text="Загрузка обновления..." FontSize="12.5" Foreground="#969CAB" HorizontalAlignment="Left" />
-                <TextBlock x:Name="DownloadPercentText" Text="0%" FontSize="12.5" FontWeight="Bold" Foreground="#806BFF" HorizontalAlignment="Right" Margin="0,0,2,0" />
+                <TextBlock x:Name="DownloadStatusText" Text="Загрузка обновления..." FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Left" />
+                <TextBlock x:Name="DownloadPercentText" Text="0%" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Right" Margin="0,0,2,0" />
             </Grid>
-            <ProgressBar x:Name="DownloadProgressBar" Minimum="0" Maximum="100" Value="0" Height="4" MinHeight="4" MaxHeight="4" CornerRadius="2" Foreground="#806BFF" Background="#202431" />
+            <ProgressBar x:Name="DownloadProgressBar" Minimum="0" Maximum="100" Value="0" Height="4" MinHeight="4" MaxHeight="4" CornerRadius="2" Foreground="{StaticResource SilkBrandBrush}" Background="{StaticResource SilkSubsurfaceDarkBrush}" />
         </StackPanel>
 
         <!-- 4: Action Buttons Row -->
@@ -127,15 +127,15 @@
                 <Button x:Name="BtnLater" Click="BtnLater_Click"
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
                         Width="Auto" MinWidth="90" Height="38" MinHeight="38" Padding="16,8" CornerRadius="8"
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1">
-                    <TextBlock x:Name="BtnLaterText" Text="Позже" FontSize="13" Foreground="#F3F4F8" />
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1">
+                    <TextBlock x:Name="BtnLaterText" Text="Позже" FontSize="13" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                 </Button>
 
                 <!-- Primary: «Обновить» -->
                 <Button x:Name="BtnUpdate" Click="BtnUpdate_Click"
                         Style="{StaticResource SilkPrimaryButtonStyle}"
                         Width="Auto" MinWidth="170" Height="38" MinHeight="38" Padding="16,8" CornerRadius="8"
-                        Background="#806BFF" BorderThickness="0">
+                        Background="{StaticResource SilkBrandBrush}" BorderThickness="0">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE896;" FontSize="14" Foreground="#FFFFFF" />
                         <TextBlock x:Name="BtnUpdateText" Text="Обновить" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="None" TextWrapping="NoWrap" />

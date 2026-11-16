@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -197,21 +197,21 @@ public static class GamingPerformanceTweaks
             fallbackDefaultValue: 0
         );
 
-        yield return TweakBuilder.CreateMultiRegistry(
+        yield return TweakBuilder.CreateRegistryDword(
             id: "gaming_optimizations_for_windowed_games_enable",
             title: "Enable Windows 11 Optimizations for Windowed Games",
             description: "Enables modern Auto HDR, Variable Refresh Rate (VRR), and DirectFlip presentation for DirectX 10/11 windowed games.",
-            howItWorks: "Sets AutoGameMode = 1 and DisableWindowedGameOptimizations = 0 in HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences.",
+            howItWorks: "Sets 'SwapEffectUpgradeEnable' to 1 in HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences.",
             problemSolved: "Eliminates classic windowed presentation lag and tearing in older DirectX 10/11 games played in borderless windowed mode.",
             expectedResult: "Fullscreen Exclusive-equivalent latency and G-Sync/FreeSync support in windowed titles.",
             category: TweakCategory.GamingPerformance,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
-            {
-                ("HKCU", @"Software\Microsoft\DirectX\UserGpuPreferences", "AutoGameMode", 1),
-                ("HKCU", @"Software\Microsoft\DirectX\UserGpuPreferences", "DisableWindowedGameOptimizations", 0)
-            },
+            hive: "HKCU",
+            subKey: @"Software\Microsoft\DirectX\UserGpuPreferences",
+            valueName: "SwapEffectUpgradeEnable",
+            appliedValue: 1,
+            fallbackDefaultValue: 0,
             minWindowsBuild: 22621
         );
 

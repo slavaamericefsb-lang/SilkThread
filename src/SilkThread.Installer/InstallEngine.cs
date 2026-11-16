@@ -10,7 +10,7 @@ public static class InstallEngine
 {
     public const string AppName = "SilkThread";
     public const string AppDisplayName = "SilkThread — Windows Gaming Optimizer";
-    public const string AppVersion = "1.2.0";
+    public const string AppVersion = "1.5.0";
     public const string AppPublisher = "SilkThread";
     public const string RegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\SilkThread";
 
@@ -33,6 +33,8 @@ public static class InstallEngine
 
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
         int totalEntries = archive.Entries.Count;
+        if (totalEntries == 0)
+            throw new InvalidDataException("Installer payload is empty.");
         int current = 0;
 
         foreach (var entry in archive.Entries)
@@ -50,7 +52,7 @@ public static class InstallEngine
             string destinationPath = Path.GetFullPath(Path.Combine(fullTargetDir, entry.FullName));
             if (!destinationPath.StartsWith(fullTargetDir, StringComparison.OrdinalIgnoreCase))
             {
-                continue; // Prevent Zip Slip traversal attack
+                throw new InvalidDataException($"Installer payload contains an unsafe path: {entry.FullName}");
             }
 
             if (string.IsNullOrEmpty(entry.Name))
@@ -185,16 +187,3 @@ public static class InstallEngine
         catch { }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

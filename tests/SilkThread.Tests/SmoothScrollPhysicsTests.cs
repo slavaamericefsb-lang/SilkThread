@@ -108,4 +108,42 @@ public class SmoothScrollPhysicsTests
 
         Assert.Equal(3.2, velocity, 2); // Velocity naturally braked from 20 to 3.2
     }
+    [Theory]
+    [InlineData(30)]
+    [InlineData(60)]
+    [InlineData(144)]
+    public void ActualDecayIntegration_PreservesDistanceAcrossRefreshRates(int refreshRate)
+    {
+        double velocity = 16.8, distance = 0;
+        for (int frame = 0; frame < refreshRate; frame++)
+        {
+            var step = SmoothScroll.IntegrateDecay(velocity, SmoothScroll.DefaultDecelerationFriction, 60d / refreshRate);
+            distance += step.Travel;
+            velocity = step.Velocity;
+        }
+        Assert.Equal(16.8 * Math.Pow(0.88, 60), velocity, 8);
+        Assert.Equal(16.8 * (1 - Math.Pow(0.88, 60)) / (1 - 0.88), distance, 8);
+    }
+
+    [Theory]
+    [InlineData(double.NaN, 0.88, 1)]
+    [InlineData(double.PositiveInfinity, 0.88, 1)]
+    [InlineData(10, 0.88, double.NaN)]
+    [InlineData(10, 0.88, -1)]
+    public void ActualDecayIntegration_RejectsNonFiniteMotion(double velocity, double friction, double elapsed)
+    {
+        Assert.Equal((0d, 0d), SmoothScroll.IntegrateDecay(velocity, friction, elapsed));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(double.NaN)]
+    [InlineData(-1)]
+    public void ActualDecayIntegration_InvalidFrictionUsesStableDefault(double friction)
+    {
+        var step = SmoothScroll.IntegrateDecay(10, friction, 1);
+        Assert.Equal(10d, step.Travel, 8);
+        Assert.Equal(8.8, step.Velocity, 8);
+    }
 }

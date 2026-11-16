@@ -24,98 +24,67 @@ public sealed partial class OptimizationPage : Page, IStaggeredPage
         };
     }
 
-    private Storyboard? _cursorBlinkStoryboard;
-    private Storyboard? _livePulseStoryboard;
 
     public OptimizationPage()
     {
         ViewModel = App.Services.GetRequiredService<OptimizationViewModel>();
         InitializeComponent();
 
-        ViewModel.PropertyChanged += (s, e) =>
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        Unloaded += OptimizationPage_Unloaded;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(OptimizationViewModel.IsExecuting))
         {
-            if (e.PropertyName == nameof(OptimizationViewModel.IsExecuting))
+            DispatcherQueue?.TryEnqueue(() =>
             {
-                StartLivePulseAnimation(ViewModel.IsExecuting);
-            }
-        };
+                try { StartLivePulseAnimation(ViewModel.IsExecuting); }
+                catch (Exception ex) { App.Log($"[OptimizationPage LivePulse exception]: {ex.Message}"); }
+            });
+        }
+    }
+
+    private void OptimizationPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[OptimizationPage_Unloaded exception]: {ex.Message}");
+        }
     }
 
     private void StartCursorBlink()
     {
-        if (TerminalCursor == null) return;
-
-        _cursorBlinkStoryboard?.Stop();
-        _cursorBlinkStoryboard = new Storyboard
-        {
-            RepeatBehavior = RepeatBehavior.Forever
-        };
-
-        var blinkAnim = new DoubleAnimationUsingKeyFrames();
-        blinkAnim.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = 1.0 });
-        blinkAnim.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(500)), Value = 0.0 });
-        blinkAnim.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(1000)), Value = 1.0 });
-
-        Storyboard.SetTarget(blinkAnim, TerminalCursor);
-        Storyboard.SetTargetProperty(blinkAnim, "Opacity");
-
-        _cursorBlinkStoryboard.Children.Add(blinkAnim);
-        _cursorBlinkStoryboard.Begin();
+        // Output is read-only; a blinking insertion cursor suggests an editable terminal.
+        if (TerminalCursor != null) TerminalCursor.Opacity = 0;
     }
 
     private void StartLivePulseAnimation(bool isFast)
     {
-        if (TerminalLiveGlow == null || TerminalLiveScale == null) return;
-
-        double durationSeconds = isFast ? 0.65 : 1.35;
-        _livePulseStoryboard?.Stop();
-        _livePulseStoryboard = new Storyboard
-        {
-            RepeatBehavior = RepeatBehavior.Forever,
-            AutoReverse = true
-        };
-
-        var scaleX = new DoubleAnimation
-        {
-            From = 1.0,
-            To = isFast ? 1.7 : 1.45,
-            Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        };
-        Storyboard.SetTarget(scaleX, TerminalLiveScale);
-        Storyboard.SetTargetProperty(scaleX, "ScaleX");
-
-        var scaleY = new DoubleAnimation
-        {
-            From = 1.0,
-            To = isFast ? 1.7 : 1.45,
-            Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        };
-        Storyboard.SetTarget(scaleY, TerminalLiveScale);
-        Storyboard.SetTargetProperty(scaleY, "ScaleY");
-
-        var opacity = new DoubleAnimation
-        {
-            From = isFast ? 0.8 : 0.55,
-            To = 0.1,
-            Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        };
-        Storyboard.SetTarget(opacity, TerminalLiveGlow);
-        Storyboard.SetTargetProperty(opacity, "Opacity");
-
-        _livePulseStoryboard.Children.Add(scaleX);
-        _livePulseStoryboard.Children.Add(scaleY);
-        _livePulseStoryboard.Children.Add(opacity);
-        _livePulseStoryboard.Begin();
+        if (TerminalLiveGlow == null) return;
+        Helpers.PulseAnimation.SetMinOpacity(TerminalLiveGlow, 0.35);
+        Helpers.PulseAnimation.SetDurationSeconds(TerminalLiveGlow, 1.6);
+        Helpers.PulseAnimation.SetIsEnabled(TerminalLiveGlow, isFast);
+        if (!isFast) TerminalLiveGlow.Opacity = 0.35;
     }
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
-        PageTransitionHelper.AnimatePageEntrance(this);
-        StartCursorBlink();
-        StartLivePulseAnimation(ViewModel.IsExecuting);
-        await ViewModel.InitializeAsync();
+        try
+        {
+            PageTransitionHelper.AnimatePageEntrance(this);
+            StartCursorBlink();
+            StartLivePulseAnimation(ViewModel.IsExecuting);
+            await ViewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[OptimizationPage.Page_Loaded exception]: {ex.Message}");
+        }
     }
 }

@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using SilkThread.Core.TweakDatabase;
 
 namespace SilkThread.App.Services;
 
@@ -12,37 +13,37 @@ public record TweakTranslation(
 
 public static class TweakLocalization
 {
+    static TweakLocalization()
+    {
+        Translations["cpu_mmcss_game_tasks"] = new(
+            "Планирование потоков, зарегистрированных в MMCSS Games",
+            "Меняет категорию только для потоков, которые приложение явно зарегистрировало в задаче Games службы MMCSS. Обычные игровые потоки не затрагиваются.",
+            "Позволяет настроить приоритет зарегистрированных мультимедийных потоков. Может сократить время процессора для других мультимедийных задач.",
+            "Эффект зависит от приложения; прирост FPS не гарантируется.",
+            "Scheduling Category=High, Priority=2. GPU Priority и SFIO Priority не используются и больше не записываются. https://learn.microsoft.com/en-us/windows/win32/procthread/multimedia-class-scheduler-service");
+    }
+
     public static string GetTitle(string id, string fallback) =>
         Translations.TryGetValue(id, out var t) ? t.Title : fallback;
 
     public static string GetDescription(string id, string fallback) =>
+        TweakAuditPolicy.Withdrawals.TryGetValue(id, out var reason) ? reason :
         Translations.TryGetValue(id, out var t) ? t.Description : fallback;
 
     public static string GetProblemSolved(string id, string fallback) =>
+        TweakAuditPolicy.Withdrawals.TryGetValue(id, out var reason) ? reason :
         Translations.TryGetValue(id, out var t) ? t.ProblemSolved : fallback;
 
     public static string GetExpectedResult(string id, string fallback) =>
+        TweakAuditPolicy.Withdrawals.TryGetValue(id, out var reason) ? reason :
         Translations.TryGetValue(id, out var t) ? t.ExpectedResult : fallback;
 
     public static string GetHowItWorks(string id, string fallback) =>
+        TweakAuditPolicy.Withdrawals.TryGetValue(id, out var reason) ? reason :
         Translations.TryGetValue(id, out var t) && !string.IsNullOrEmpty(t.HowItWorks) ? t.HowItWorks : fallback;
 
     public static readonly Dictionary<string, TweakTranslation> Translations = new()
     {
-        ["adv_critical_section_timeout"] = new(
-            "Калибровка тайм-аута ожидания критических секций ядра",
-            "Настраивает системный тайм-аут ожидания синхронизации потоков при взаимоблокировках.",
-            "Завышенный тайм-аут приводит к многосекундному «мертвому» зависанию игры при временном конфликте потоков.",
-            "Быстрое разрешение конфликтов синхронизации без долгого зависания всего приложения.",
-            "Устанавливает CriticalSectionTimeout = 2592000 в Session Manager."
-        ),
-        ["adv_device_latency_interrupt_affinity"] = new(
-            "Приоритетная маршрутизация прерываний MSI (Message Signaled Interrupts)",
-            "Настраивает арбитраж прерываний в HAL ядра для строгой приоритизации современных прерываний MSI над устаревшими Line IRQ.",
-            "Устаревшие прерывания на разделяемых линиях IRQ приводят к штормам прерываний (Interrupt Storms) и чудовищному инпут-лагу мыши.",
-            "Прямая векторная доставка прерываний от видеокарты, накопителя и USB-контроллера с минимальной задержкой DPC.",
-            "Устанавливает MsiSupported = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl."
-        ),
         ["adv_dwm_thread_priority_realtime"] = new(
             "Повышение категории планировщика DWM до High",
             "Переводит композитор оконного менеджера Desktop Window Manager в высокую категорию планирования с приоритетом GPU.",
@@ -50,33 +51,12 @@ public static class TweakLocalization
             "Идеально плавный вывод картинки без тиринга и пропусков кадров на мониторах 144/240/360 Гц.",
             "Устанавливает Scheduling Category = High, Priority = 8, GPU Priority = 8 в SystemProfile\\Tasks\\Window Manager."
         ),
-        ["adv_executive_fast_fail_strict_lock"] = new(
-            "Оптимизация маршрутизации исключений __fastfail ядра",
-            "Направляет критические сбои потоков в оптимизированный маршрут __fastfail в обход медленной цепочки вложенных обработчиков SEH.",
-            "Зависшие игровые процессы остаются висеть в диспетчере задач, блокируя видеопамять и файлы игры.",
-            "Мгновенное и чистое завершение сбойных процессов без зависания на панели задач и без блокировки файлов.",
-            "Устанавливает FastFailRouting = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel."
-        ),
         ["adv_global_flag_page_heap_disable"] = new(
             "Принудительное отключение отладки кучи (Page Heap)",
             "Гарантирует отключение скрытых отладочных флагов GlobalFlag, активирующих проверку границ памяти.",
             "Случайно оставленный активным флаг Page Heap замедляет работу любых приложений в 2-5 раз.",
             "Гарантия отсутствия отладочного замедления в играх и программах.",
             "Устанавливает GlobalFlag = 0 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager."
-        ),
-        ["adv_heap_decommit_threshold"] = new(
-            "Оптимизация порога декоммита памяти кучи процесса",
-            "Увеличивает порог времени и размера блоков памяти перед их возвратом из кучи приложения операционной системе.",
-            "Постоянный декоммит и повторное выделение страниц вызывают лишние переключения контекста и статтеры.",
-            "Снижение фрагментации кучи и устранение задержек повторного выделения памяти в тяжелых игровых движках.",
-            "Оптимизирует HeapDeCommitFreeBlockThreshold в параметрах диспетчера сессий."
-        ),
-        ["adv_hpet_synthetic_timer_tune"] = new(
-            "Отключение синтетических программных таймеров ядра Windows",
-            "Переводит подсистему системных таймеров ядра на прямое чтение аппаратного счетчика TSC процессора.",
-            "Синтетические виртуальные таймеры эмулируют тики программно, добавляя джиттер (плавающее время кадра) и микростаттеры.",
-            "Кристально чистое, стабильное аппаратное время кадра с минимальным разбросом микросекунд (Low Frametime Jitter).",
-            "Устанавливает SyntheticTimers = 0 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel."
         ),
         ["adv_kernel_dpc_timeout_polynomial"] = new(
             "Калибровка сторожевого таймера DPC (Watchdog Timeout)",
@@ -104,14 +84,7 @@ public static class TweakLocalization
             "Настраивает планировщик Multimedia Class Scheduler Service (MMCSS) на обработку аудиопотоков в категории High с приоритетом 6.",
             "При пиковой 100% нагрузке на процессор в тяжелых сценах звук в Discord и игре начинает хрипеть, щелкать и заикаться.",
             "Безупречно чистое игровое аудио и пространственное позиционирование без треска даже при экстремальных нагрузках на CPU.",
-            "Устанавливает Scheduling Category = 2 (High) и Priority = 6 в Multimedia\\SystemProfile\\Tasks\\Audio."
-        ),
-        ["adv_paging_executive_strict_lock"] = new(
-            "Жесткая блокировка стеков потоков ядра в ОЗУ",
-            "Принудительно запрещает выгрузку стеков потоков системных сервисов ввода и диспетчеризации.",
-            "Выгрузка стека потока вызывает 5-10 мс аппаратного прерывания (Page Fault) при каждом новом событии ввода.",
-            "Субмиллисекундная стабильность времени отклика системных прерываний.",
-            "Конфигурирует строгую резидентность страниц ядра в физической памяти."
+            "Устанавливает Scheduling Category = High и Priority = 6 в Multimedia\\SystemProfile\\Tasks\\Audio."
         ),
         ["adv_protection_mode_object_directories"] = new(
             "Изоляция ProtectionMode для каталогов объектов ядра",
@@ -120,33 +93,12 @@ public static class TweakLocalization
             "Высокая безопасность ядра без снижения производительности системных вызовов.",
             "Устанавливает ProtectionMode = 1 в Session Manager."
         ),
-        ["adv_session_pool_size_128"] = new(
-            "Расширение сессионного пула ядра до 128 МБ",
-            "Выделяет 128 мегабайт под сессионный пул ядра для обработки сложных многопоточных графических буферов.",
-            "Стандартный сессионный пул может исчерпываться при использовании нескольких мониторов высокого разрешения с HDR.",
-            "Безупречная стабильность рендеринга на многомониторных конфигурациях 2K/4K.",
-            "Устанавливает SessionPoolSize = 128 в Session Manager\\Memory Management."
-        ),
         ["adv_spectre_meltdown_override_experimental"] = new(
             "Отключение программных замедлений Spectre/Meltdown (Экспериментально)",
             "Отключает программные барьеры предсказания ветвлений Spectre/Meltdown в ядре Windows для максимальной чистой скорости CPU.",
             "Программные заплатки против атак по побочным каналам снижают производительность инструкций процессора на 3-10%.",
             "Возврат 3-10% чистой процессорной производительности на игровых машинах. (Рекомендуется для выделенных ПК).",
             "Устанавливает FeatureSettingsOverride = 3 и FeatureSettingsOverrideMask = 3 в Memory Management."
-        ),
-        ["adv_system_pages_unlimited"] = new(
-            "Максимизация записей страниц ядра (SystemPages = 0)",
-            "Указывает ядру Windows динамически рассчитывать максимально возможное число записей таблицы страниц на основе объема ОЗУ.",
-            "Фиксированное значение SystemPages ограничивает кэш адресации виртуальной памяти на ПК с 32+ ГБ ОЗУ.",
-            "Оптимизация подсистемы виртуальной памяти под большие объемы установленной оперативной памяти.",
-            "Устанавливает SystemPages = 0 в Session Manager\\Memory Management."
-        ),
-        ["adv_win32_priority_quanta_28"] = new(
-            "Win32PrioritySeparation 0x28 (Фокус киберспортивных шутеров)",
-            "Конфигурирует кванты времени процессора в соотношение 0x28 (40 dec): фиксированные длинные кванты с максимальным 3:1 приоритетом переднего плана.",
-            "Динамические кванты вызывают микроколебания частоты кадров в играх с фиксированным тикрейтом (CS2, Valorant, Apex).",
-            "Максимальная стабильность времени кадра (Frametime Consistency) и отсутствие разброса в 1% Low FPS.",
-            "Устанавливает Win32PrioritySeparation = 40 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl."
         ),
         ["bg_appx_deployment_optimization"] = new(
             "Запрет автоматического фонового обновления приложений Microsoft Store",
@@ -503,7 +455,7 @@ public static class TweakLocalization
             "Включает современную модель представления Flip Presentation Model, Auto HDR и поддержку переменной частоты (VRR) для игр DirectX 10/11 в окне.",
             "В оконном и безрамочном режиме старые игры страдают от увеличенного инпут-лага и разрывов кадров из-за устаревшего конвейера DWM.",
             "Минимальная задержка ввода на уровне эксклюзивного полного экрана и полноценная поддержка G-Sync/FreeSync в окне без рамок.",
-            "Устанавливает AutoGameMode = 1 и DisableWindowedGameOptimizations = 0 в HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences."
+            "Устанавливает SwapEffectUpgradeEnable = 1 в HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences."
         ),
         ["gaming_spatial_audio_overhead_disable"] = new(
             "Отключение задержки обработки пространственного звука Windows Sonic",
@@ -554,13 +506,6 @@ public static class TweakLocalization
             "Задержка ввода и отзывчивость как в Fullscreen Exclusive при удобстве оконного режима.",
             "Устанавливает DirectFlipMode = 1 в политиках оконного композитора Windows."
         ),
-        ["gpu_dwm_composition_buffer_count"] = new(
-            "Минимизация буферизации композитора DWM (Двойной буфер)",
-            "Сокращает внутреннюю очередь кадрового буфера диспетчера окон рабочего стола DWM с тройной до двойной буферизации.",
-            "Стандартная тройная буферизация рабочего стола Windows добавляет 1–2 кадра задержки в играх, запущенных в окне или без рамок.",
-            "Снижение задержки ввода мыши в играх в оконном режиме на величину до 16.6 мс при частоте 60 Гц (и до 7 мс при 144 Гц).",
-            "Устанавливает MaxFrameLatency = 1 в HKLM\\SOFTWARE\\Microsoft\\Windows\\DWM."
-        ),
         ["gpu_dwm_high_priority"] = new(
             "Повышенный приоритет DWM для видеоподсистемы",
             "Устанавливает высокий приоритет композитора Desktop Window Manager в планировщике GPU.",
@@ -573,7 +518,7 @@ public static class TweakLocalization
             "Указывает подсистеме DirectX по умолчанию использовать производительный дискретный GPU.",
             "Ноутбуки и ПК со встроенной графикой могут ошибочно запускать игры на медленном iGPU.",
             "Гарантированный запуск всех 3D-приложений на основном производительном видеоадаптере.",
-            "Устанавливает AutoGpuPreferences = 2 (High Performance) в графических параметрах Windows."
+            "Устанавливает DirectXUserGlobalSettings = \"GpuPreference=2;\" в HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences."
         ),
         ["gpu_dxgi_swapchain_waitable_object"] = new(
             "Активация режима DXGI Waitable Swapchain с ультранизкой задержкой",
@@ -993,7 +938,7 @@ public static class TweakLocalization
             "Запрещает сетевому стеку накапливать мелкие сетевые пакеты в буфере перед отправкой.",
             "Алгоритм Нагла задерживает отправку команд движения и выстрелов до накопления полного TCP-пакета (до 200 мс).",
             "Мгновенная отправка каждого сетевого пакета в онлайн-играх без задержки буферизации.",
-            "Устанавливает TcpAckFrequency = 1 и TCPNoDelay = 1 во всех сетевых интерфейсах Tcpip\\Parameters\\Interfaces."
+            "Устанавливает TcpAckFrequency = 1, TCPNoDelay = 1 и TcpDelAckTicks = 0 для всех интерфейсов в HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces."
         ),
         ["net_tcp_timestamps_disable"] = new(
             "Отключение служебных меток времени TCP (RFC 1323)",
@@ -1156,20 +1101,6 @@ public static class TweakLocalization
             "Стабильная работа звуковой подсистемы и периферии без щелчков и задержек.",
             "Конфигурирует DisablePagingExecutive = 1 в Memory Management."
         ),
-        ["ram_heap_segment_allocation_cache"] = new(
-            "Активация ускорения кэша аллокатора сегментной кучи",
-            "Включает быстрый поиск блоков в кэше аллокатора сегментной кучи (Segment Heap) Windows для игровых процессов.",
-            "Задержки блокировок стандартного аллокатора при частом создании и уничтожении сотен мелких объектов и частиц в играх.",
-            "Ускоренное выделение памяти для игровых сущностей и снижение нагрузки на процессор в динамичных сетевых баталиях.",
-            "Устанавливает SegmentHeapBlockCache = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager."
-        ),
-        ["ram_io_page_lock_limit"] = new(
-            "Увеличение лимита блокировки страниц ввода-вывода",
-            "Увеличивает максимальный объем оперативной памяти, который может быть заблокирован для быстрых операций I/O.",
-            "Стандартный лимит 512 КБ ограничивает скорость прямой DMA-передачи данных между NVMe и ОЗУ.",
-            "Увеличение пропускной способности при потоковой подгрузке тяжелых 4K-текстур.",
-            "Устанавливает IoPageLockLimit = 0x8000000 (128 МБ) в Session Manager\\Memory Management."
-        ),
         ["ram_large_system_cache_gaming"] = new(
             "Оптимизация системного кэша файловой системы для игр",
             "Настраивает баланс кэширования файлов в оперативной памяти в пользу приложений, а не системного диска.",
@@ -1177,26 +1108,12 @@ public static class TweakLocalization
             "Максимум свободной оперативной памяти для игровых текстур и геометрии.",
             "Устанавливает LargeSystemCache = 0 в Session Manager\\Memory Management."
         ),
-        ["ram_memory_compression_store"] = new(
-            "Оптимизация хранилища сжатия памяти Windows",
-            "Тонкая настройка встроенного механизма сжатия памяти для уменьшения задержек декомпрессии.",
-            "Декомпрессия страниц памяти процессором в реальном времени может вызывать просадку FPS в кульминационных моментах игры.",
-            "Оптимизация задержек обращения к сжатым страницам памяти.",
-            "Настраивает флаги пула MemoryCompression в конфигурации ядра."
-        ),
         ["ram_paged_pool_quota_size"] = new(
             "Расширение виртуального адресного пространства пула ядра",
             "Увеличивает квоту виртуального адресного пространства для выгружаемого пула ядра (Paged Pool) до максимального динамического предела.",
             "Исчерпание пула при одновременной работе тяжелой игры, стрима, браузера и голосового чата приводит к сбоям аллокации памяти.",
             "Максимальная стабильность системы при интенсивном многозадачном гейминге, стриминге и записи видео.",
             "Устанавливает PagedPoolSize = 0xFFFFFFFF (динамический максимум) в Session Manager\\Memory Management."
-        ),
-        ["ram_paging_executive_driver_lock"] = new(
-            "Запрет выгрузки драйверов устройств в файл подкачки",
-            "Принудительно удерживает бинарный код системных драйверов и модулей ядра в физической оперативной памяти.",
-            "При высокой нагрузке на память драйверы видеокарты и звука могут сбрасываться в файл подкачки, вызывая секундные зависания при обращении к ним.",
-            "Мгновенный отклик системных драйверов без дисковых задержек и исключение сбоев звука при интенсивном гейминге.",
-            "Устанавливает EnforcePagingLock = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management."
         ),
         ["ram_paging_file_encryption_disable"] = new(
             "Отключение фонового шифрования файла подкачки",
@@ -1226,13 +1143,6 @@ public static class TweakLocalization
             "Плавное переключение между игрой, браузером и дискордом без подвисаний.",
             "Устанавливает SessionViewSize = 128 в Session Manager\\Memory Management."
         ),
-        ["ram_standby_list_trimming_heuristics"] = new(
-            "Опережающая очистка списка ожидания памяти (Standby List)",
-            "Оптимизирует эвристику менеджера памяти ядра для своевременного высвобождения кэша Standby при запросе больших массивов ОЗУ игрой.",
-            "Переполненный кэш ожидания блокирует свободную память, заставляя Windows экстренно сбрасывать память с сопутствующими статтерами.",
-            "Плавное непрерывное выделение свободной памяти в требовательных играх с открытым миром без микрозаиканий.",
-            "Устанавливает StandbyListTrimming = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management."
-        ),
         ["ram_svchost_split_threshold"] = new(
             "Оптимизация разделения служб SVCHost в ОЗУ",
             "Группирует системные службы Svchost, предотвращая запуск сотен дублирующих фоновых процессов.",
@@ -1260,13 +1170,6 @@ public static class TweakLocalization
             "Пошаговое наращивание стека потока вызывает череду страничных сбоев (Page Faults) во время интенсивных многопоточных вычислений.",
             "Мгновенная диспетчеризация системных потоков и стабильная отдача процессора в играх.",
             "Устанавливает WorkerThreadStackSize = 65536 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Executive."
-        ),
-        ["ram_working_set_trim_protection"] = new(
-            "Защита рабочего набора активной игры от урезания (Working Set)",
-            "Запрещает менеджеру памяти Windows принудительно урезать рабочий набор страниц активной игры при переключении фокуса.",
-            "После кратковременного переключения на браузер или Discord игра зависает на несколько секунд, восстанавливая сброшенные данные из памяти.",
-            "Молниеносное переключение окон по Alt+Tab без лагов повторной загрузки памяти и фризов.",
-            "Устанавливает TrimProcessWorkingSets = 0 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management."
         ),
         ["sec_activity_history_disable"] = new(
             "Отключение сбора и отправки журнала действий",
@@ -1429,26 +1332,12 @@ public static class TweakLocalization
             "Защита от случайного прерывания игрового процесса навязчивыми системными сообщениями.",
             "Устанавливает NoLowDiskSpaceChecks = 1 в Policies\\Explorer."
         ),
-        ["storage_disable_volumetric_shadow_copies"] = new(
-            "Ограничение квоты теневых копий тома службы VSS",
-            "Ограничивает максимальное количество теневых снимков службы восстановления до 5 копий, экономя место на накопителе.",
-            "Неконтролируемые снимки VSS незаметно съедают от 50 до 100 ГБ пространства скоростного SSD после каждого обновления Windows.",
-            "Экономия десятков гигабайт емкости SSD при полном сохранении функции создания точек восстановления системы.",
-            "Устанавливает MaxShadowCopies = 5 в HKLM\\SYSTEM\\CurrentControlSet\\Services\\VSS\\Settings."
-        ),
         ["storage_disk_sleep_timeout_unhide"] = new(
             "Разблокировка тайм-аута остановки дисков в электропитании",
             "Отображает параметр времени отключения жестких дисков в расширенных настройках схемы питания.",
             "Внезапная парковка головок и остановка шпинделя HDD приводит к 3-секундному зависанию при обращении к диску.",
             "Возможность отключить засыпание дисков, предотвращая зависания игр, установленных на второй накопитель.",
             "Устанавливает Attributes = 0 для GUID настроек тайм-аута дисков в реестре питания."
-        ),
-        ["storage_flush_file_buffers_optimization"] = new(
-            "Оптимизация сброса буферов записи диска при чтении",
-            "Настраивает подсистему хранения Windows на исключение блокирующих задержек одновременного чтения игровых файлов при сбросе буферов.",
-            "Избыточные синхронные сбросы буферов записи приводят к задержкам чтения данных во время потоковой подгрузки игровых локаций.",
-            "Плавная непрерывная подгрузка текстур и ассетов в играх с открытым миром на скоростных NVMe-накопителях.",
-            "Устанавливает DisableFlushBuffer = 1 в HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem."
         ),
         ["storage_long_path_support_enable"] = new(
             "Поддержка длинных путей к файлам Win32 (>260 символов)",
@@ -1883,6 +1772,55 @@ public static class TweakLocalization
             "Анимации тратят 200-300 мс времени на каждый переход между приложениями.",
             "Мгновенное переключение окон без ожидания завершения анимации.",
             "Устанавливает MinAnimate = 0 в Control Panel\\Desktop\\WindowMetrics."
+        ),
+        ["gpu_disable_mpo"] = new(
+            "Отключение Multi-Plane Overlay (MPO)",
+            "Отключает Multi-Plane Overlay (MPO) в Desktop Window Manager (DWM) для устранения микростаттеров, мерцания и черных экранов при Alt+Tab.",
+            "Аппаратная технология MPO на современных видеокартах вызывает сбои DWM, мерцание экрана, краши видеодрайвера и зависания при переключении окон.",
+            "Идеально плавное воспроизведение видео и переключение между играми по Alt+Tab без черных экранов и зависаний интерфейса.",
+            "Устанавливает OverlayTestMode = 5 в HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm."
+        ),
+        ["cpu_disable_vbs_hvci"] = new(
+            "Отключение Virtualization-Based Security (VBS / HVCI)",
+            "Отключает безопасность на основе виртуализации (VBS) и изоляцию ядра (HVCI) для прироста 1% Low FPS и процессорной производительности.",
+            "VBS и HVCI создают постоянный оверхед гипервизора на процессор, вызывая микростаттеры и снижая производительность в играх на 5–15%.",
+            "Прирост частоты кадров (особенно 1% и 0.1% Low FPS), снижение задержек системных вызовов и более плавная картинка.",
+            "Устанавливает EnableVirtualizationBasedSecurity = 0 в DeviceGuard и Enabled = 0 в HypervisorEnforcedCodeIntegrity."
+        ),
+        ["net_disable_hardware_rsc"] = new(
+            "Отключение аппаратного Receive Segment Coalescing (RSC)",
+            "Отключает аппаратное объединение сегментов RSC на сетевых адаптерах и глобально в TCP-стеке для устранения сетевого джиттера и задержек.",
+            "Аппаратное объединение пакетов RSC в сетевых адаптерах объединяет мелкие игровые пакеты, порождая задержки доставки и скачки пинга в соревновательных играх.",
+            "Мгновенная доставка сетевых пакетов без искусственной буферизации, минимальный сетевой джиттер и стабильный пинг.",
+            "Выполняет Disable-NetAdapterRsc -Name * и netsh int tcp set global rsc=disabled."
+        ),
+        ["net_disable_interrupt_moderation"] = new(
+            "Отключение модерации прерываний сетевой карты",
+            "Отключает модерацию прерываний (Interrupt Moderation) сетевого адаптера для немедленной обработки входящих пакетов с минимальной задержкой.",
+            "Модерация прерываний накапливает сетевые пакеты в буфере перед отправкой прерывания процессору, увеличивая инпут-лаг в сетевых играх на несколько миллисекунд.",
+            "Немедленная реакция на каждый входящий сетевой пакет и предельно низкая задержка передачи данных в онлайн-шутерах.",
+            "Устанавливает *InterruptModeration = 0 для всех активных сетевых контроллеров в реестре."
+        ),
+        ["bg_recall_disable_24h2"] = new(
+            "Отключение фонового ИИ-снимка Windows Recall (24H2+)",
+            "Полностью отключает Windows Recall и сбор снимков активности Windows AI в Windows 11 24H2, освобождая ОЗУ, накопитель и ресурсы CPU/NPU.",
+            "Windows Recall регулярно делает скриншоты экрана и обрабатывает их нейросетью в фоне, нагружая диск, память и процессор во время работы и игр.",
+            "Полная конфиденциальность, экономия гигабайтов на накопителе и отсутствие скрытой фоновой нагрузки от компонентов ИИ.",
+            "Устанавливает DisableAIDataAnalysis = 1 в HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI."
+        ),
+        ["bg_edge_startup_boost_disable"] = new(
+            "Отключение фонового ускорения запуска Microsoft Edge",
+            "Отключает Startup Boost и фоновые расширения Edge, запрещая браузеру постоянно висеть в памяти и расходовать ресурсы процессора.",
+            "Microsoft Edge в фоновом режиме запускает свои процессы svchost и edge.exe при старте Windows, съедая сотни мегабайт ОЗУ даже если вы им не пользуетесь.",
+            "Экономия оперативной памяти и устранение фоновой нагрузки на процессор при закрытом браузере.",
+            "Устанавливает StartupBoostEnabled = 0 в HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge."
+        ),
+        ["win_start_bing_search_disable"] = new(
+            "Отключение поиска Bing в меню «Пуск»",
+            "Отключает отправку поисковых запросов в Bing и веб-подсказки в меню «Пуск», ускоряя локальный поиск программ и убирая фоновый трафик.",
+            "При любом вводе в меню «Пуск» Windows отправляет запрос на серверы Bing, вызывая секундные лаги при открытии приложений и фоновый сетевой трафик.",
+            "Мгновенный отклик поиска по установленным приложениям и файлам, отсутствие рекламных веб-подсказок и снижение сетевой активности.",
+            "Устанавливает DisableSearchBoxSuggestions = 1 в Windows Search и BingSearchEnabled = 0 в HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Search."
         ),
     };
 }

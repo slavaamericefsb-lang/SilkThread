@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="SilkThread.App.Views.GamesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -11,14 +11,14 @@
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="#0E1017" Padding="28,24,28,36"
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Background="{StaticResource SilkBackgroundDarkBrush}" Padding="24,20,24,28"
                   helpers:SmoothScroll.IsEnabled="True">
         <StackPanel Spacing="20" HorizontalAlignment="Stretch">
 
             <!-- ========================================================================= -->
             <!-- 0: HEADER & STATS BADGES                                                 -->
             <!-- ========================================================================= -->
-            <Grid x:Name="HeaderGrid">
+            <Border Style="{StaticResource SilkTechHeroStyle}"><Grid RowSpacing="12" helpers:ResponsiveColumns.Breakpoint="880" x:Name="HeaderGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -26,48 +26,48 @@
 
                 <StackPanel Grid.Column="0" Spacing="4">
                     <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" Style="{StaticResource SilkPageTitleStyle}" />
-                    <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" />
+                    <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <!-- Stats Badges -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <!-- Total Profiles Badge -->
-                    <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,6">
+                    <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6">
                         <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="#969CAB" />
-                            <TextBlock Text="{x:Bind ViewModel.StatTotalBadge, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                            <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.StatTotalBadge, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                         </StackPanel>
                     </Border>
 
                     <!-- Applied Profiles Badge -->
-                    <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,6">
+                    <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6">
                         <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="#806BFF" />
-                            <TextBlock Text="{x:Bind ViewModel.AppliedProfilesSummary, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#806BFF" />
+                            <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.AppliedProfilesSummary, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                         </StackPanel>
                     </Border>
 
                     <!-- Esports Ready Badge -->
-                    <Border Background="#22806BFF" BorderBrush="#806BFF" BorderThickness="1" CornerRadius="8" Padding="12,6">
+                    <Border Background="{StaticResource SilkBrandSelectionBrush}" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6">
                         <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE945;" FontSize="12" Foreground="#806BFF" />
-                            <TextBlock Text="{x:Bind ViewModel.StatReadyBadge, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="#806BFF" />
+                            <FontIcon Glyph="&#xE945;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.StatReadyBadge, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Grid>
+            </Grid></Border>
 
             <!-- ========================================================================= -->
             <!-- 1: FILTER BAR & SEARCH                                                    -->
             <!-- ========================================================================= -->
-            <Grid x:Name="FilterGrid">
+            <Grid x:Name="FilterGrid" RowSpacing="12" helpers:ResponsiveColumns.Breakpoint="980">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Category Segmented Filters -->
-                <Border Grid.Column="0" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="4" HorizontalAlignment="Left">
+                <Border Grid.Column="0" Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="4" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <!-- All -->
                         <Button Click="BtnFilterAll_Click"
@@ -107,15 +107,15 @@
                 <TextBox Grid.Column="1"
                          Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="{x:Bind ViewModel.SearchPlaceholder, Mode=OneWay}"
-                         Width="340" Height="36" CornerRadius="8"
-                         Background="#202431" BorderBrush="#2B3040"
+                         MaxWidth="340" HorizontalAlignment="Stretch" Height="36" CornerRadius="8"
+                         Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}"
                          VerticalAlignment="Center" />
             </Grid>
 
             <!-- ========================================================================= -->
             <!-- 2: GRID OF GAME CARDS (Bento Cards)                                       -->
             <!-- ========================================================================= -->
-            <ItemsControl x:Name="GameCardsControl" ItemsSource="{x:Bind ViewModel.FilteredGames, Mode=OneWay}">
+            <ItemsControl helpers:ItemsEntrance.IsEnabled="True" x:Name="GameCardsControl" SizeChanged="GameCards_SizeChanged" ItemsSource="{x:Bind ViewModel.FilteredGames, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <!-- 4 columns grid on 1080p/1440p displays -->
@@ -125,28 +125,24 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:GameCardViewModel">
                         <Button Click="GameCard_Click"
-                                Width="280" Margin="0,0,14,14" Padding="0"
+                                Margin="0,0,12,12" Padding="0" HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                                 Background="Transparent" BorderThickness="0" CornerRadius="12">
                             <Grid>
                                 <!-- Outer Glowing Border on Selected Game Card -->
-                                <Border CornerRadius="14" Margin="-1.5"
-                                        BorderBrush="#806BFF" BorderThickness="2"
+                                <Border CornerRadius="14" Margin="-1"
+                                        BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="2"
                                         Opacity="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToGlowOpacityConverter}}"
                                         IsHitTestVisible="False">
-                                    <Border.RenderTransform>
-                                        <TranslateTransform Y="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToElevationConverter}}" />
-                                    </Border.RenderTransform>
                                 </Border>
 
                                 <Border CornerRadius="12"
                                         Background="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToCardBgConverter}}"
                                         BorderBrush="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToCardBorderConverter}}"
-                                        BorderThickness="1.5"
-                                        Padding="16,14">
-                                    <Border.RenderTransform>
-                                        <TranslateTransform Y="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToElevationConverter}}" />
-                                    </Border.RenderTransform>
+                                        BorderThickness="1"
+                                        Padding="16,14"
+                                        helpers:HoverAnimation.IsEnabled="True"
+                                        helpers:HoverAnimation.HoverBorderColor="#806BFF">
                                     <StackPanel Spacing="10">
                                     <!-- Badges Row -->
                                     <Grid>
@@ -158,12 +154,12 @@
                                         <!-- Engine & Launcher Badges -->
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
                                             <!-- Engine Badge -->
-                                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="6,2">
-                                                <TextBlock Text="{x:Bind EngineBadge}" FontSize="10" FontWeight="SemiBold" Foreground="#969CAB" />
+                                            <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="6,2">
+                                                <TextBlock Text="{x:Bind EngineBadge}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                             </Border>
                                             <!-- Launcher Badge -->
-                                            <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="6,2">
-                                                <TextBlock Text="{x:Bind Launcher}" FontSize="10" FontWeight="SemiBold" Foreground="#969CAB" />
+                                            <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="6,2">
+                                                <TextBlock Text="{x:Bind Launcher}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                             </Border>
                                         </StackPanel>
 
@@ -173,15 +169,15 @@
                                                 BorderBrush="{x:Bind IsProfileApplied, Mode=OneWay, Converter={StaticResource BoolToStatusBorderConverter}}"
                                                 BorderThickness="1" CornerRadius="6" Padding="6,2">
                                             <TextBlock Text="{x:Bind StatusBadge, Mode=OneWay}"
-                                                       FontSize="10" FontWeight="Bold"
+                                                       FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{x:Bind IsProfileApplied, Mode=OneWay, Converter={StaticResource BoolToStatusFgConverter}}" />
                                         </Border>
                                     </Grid>
 
                                     <!-- Game Title & Genre -->
                                     <StackPanel Spacing="2">
-                                        <TextBlock Text="{x:Bind Title}" FontSize="15" FontWeight="Bold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{x:Bind Genre}" FontSize="11" Foreground="#969CAB" />
+                                        <TextBlock Text="{x:Bind Title}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Genre}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                     </StackPanel>
 
                                     <!-- Bottom Info: Color Line Indicator & Action Hint -->
@@ -192,11 +188,11 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="11" Foreground="#806BFF" />
-                                            <TextBlock Text="Esports Profile" FontSize="10" FontWeight="SemiBold" Foreground="#806BFF" />
+                                            <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                                            <TextBlock Text="{x:Bind EsportsProfileBadge, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                         </StackPanel>
 
-                                        <FontIcon Grid.Column="1" Glyph="&#xE76C;" FontSize="11" Foreground="#969CAB" VerticalAlignment="Center" />
+                                        <FontIcon Grid.Column="1" Glyph="&#xE76C;" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" />
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -208,10 +204,10 @@
 
             <!-- Empty Search State -->
             <Border Visibility="{x:Bind ViewModel.FilteredGames.Count, Mode=OneWay, Converter={StaticResource ZeroToVisibilityConverter}}"
-                    Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="12" Padding="32" Margin="0,8,0,0">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                    <FontIcon Glyph="&#xE721;" FontSize="28" Foreground="#969CAB" HorizontalAlignment="Center" />
-                    <TextBlock Text="{x:Bind ViewModel.NoResultsText, Mode=OneWay}" FontSize="13" Foreground="#969CAB" HorizontalAlignment="Center" />
+                    Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="12" Padding="32" Margin="0,8,0,0">
+                <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center" Spacing="8">
+                    <FontIcon Glyph="&#xE721;" FontSize="28" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.NoResultsText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Stretch" TextWrapping="Wrap" TextAlignment="Center" />
                 </StackPanel>
             </Border>
 
@@ -235,21 +231,21 @@
                         <!-- Game Title and Description -->
                         <StackPanel Grid.Column="0" Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                <TextBlock Text="{x:Bind ViewModel.SelectedGame.Title, Mode=OneWay}" FontSize="20" FontWeight="Bold" Foreground="#F3F4F8" />
-                                <Border Background="#22806BFF" BorderBrush="#806BFF" BorderThickness="1" CornerRadius="6" Padding="8,2">
-                                    <TextBlock Text="{x:Bind ViewModel.SelectedGame.EngineBadge, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                <TextBlock Text="{x:Bind ViewModel.SelectedGame.Title, Mode=OneWay}" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                <Border Background="{StaticResource SilkBrandSelectionBrush}" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1" CornerRadius="6" Padding="8,2">
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedGame.EngineBadge, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                 </Border>
-                                <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,2">
-                                    <TextBlock Text="{x:Bind ViewModel.SelectedGame.Launcher, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                                <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="8,2">
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedGame.Launcher, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                 </Border>
                             </StackPanel>
 
-                            <TextBlock Text="{x:Bind ViewModel.SelectedGame.Description, Mode=OneWay}" FontSize="12" Foreground="#969CAB" />
+                            <TextBlock Text="{x:Bind ViewModel.SelectedGame.Description, Mode=OneWay}" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                         </StackPanel>
 
                         <!-- Action: Quick Apply or Status Pill -->
                         <Border Grid.Column="1"
-                                Background="#181B25" BorderBrush="#2B3040" BorderThickness="1"
+                                Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
                                 CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE73E;" FontSize="12"
@@ -264,7 +260,7 @@
                     <!-- ================================================================= -->
                     <!-- БЛОК 1: «ПАРАМЕТРЫ ЗАПУСКА» (Launch Options)                      -->
                     <!-- ================================================================= -->
-                    <Border Background="#131620" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="18">
+                    <Border Background="#131620" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <StackPanel Spacing="14">
                             <!-- Block Header -->
                             <Grid>
@@ -275,10 +271,10 @@
 
                                 <StackPanel Grid.Column="0" Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE768;" FontSize="13" Foreground="#806BFF" />
-                                        <TextBlock Text="{x:Bind ViewModel.Block1Title, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F3F4F8" />
+                                        <FontIcon Glyph="&#xE768;" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.Block1Title, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                     </StackPanel>
-                                    <TextBlock Text="{x:Bind ViewModel.Block1Subtitle, Mode=OneWay}" FontSize="11" Foreground="#969CAB" />
+                                    <TextBlock Text="{x:Bind ViewModel.Block1Subtitle, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                 </StackPanel>
 
                                 <!-- Copy Button with Spring Bounce Feedback Animation -->
@@ -299,7 +295,7 @@
                             </Grid>
 
                             <!-- Monospace Launch String Display Box -->
-                            <Border Background="#0E1017" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,10">
+                            <Border Background="{StaticResource SilkBackgroundDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10">
                                 <TextBlock Text="{x:Bind ViewModel.SelectedGame.LaunchOptions, Mode=OneWay}"
                                            IsTextSelectionEnabled="True"
                                            FontFamily="Consolas, Cascadia Code, Courier New"
@@ -310,12 +306,12 @@
 
                             <!-- Breakdown of Each Argument -->
                             <StackPanel Spacing="8">
-                                <TextBlock Text="{x:Bind ViewModel.BreakdownTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                                <TextBlock Text="{x:Bind ViewModel.BreakdownTitle, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
 
                                 <ItemsControl ItemsSource="{x:Bind ViewModel.SelectedGame.LaunchArgs, Mode=OneWay}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="models:LaunchArgItem">
-                                            <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="220" />
@@ -326,14 +322,14 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="{x:Bind Argument}"
                                                                FontFamily="Consolas, Cascadia Code"
-                                                               FontSize="12" FontWeight="Bold"
-                                                               Foreground="#806BFF"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource SilkBrandBrush}"
                                                                VerticalAlignment="Center" />
 
                                                     <!-- Purpose & Impact -->
                                                     <StackPanel Grid.Column="1" Spacing="2">
-                                                        <TextBlock Text="{x:Bind Purpose}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                                                        <TextBlock Text="{x:Bind Impact}" FontSize="11" Foreground="#969CAB" />
+                                                        <TextBlock Text="{x:Bind Purpose}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                                        <TextBlock Text="{x:Bind Impact}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
@@ -347,15 +343,15 @@
                     <!-- ================================================================= -->
                     <!-- БЛОК 2: «РЕКОМЕНДОВАННЫЕ НАСТРОЙКИ ГРАФИКИ» (Video Settings)      -->
                     <!-- ================================================================= -->
-                    <Border Background="#131620" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="18">
+                    <Border Background="#131620" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <StackPanel Spacing="14">
                             <!-- Block Header -->
                             <StackPanel Spacing="2">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE790;" FontSize="13" Foreground="#806BFF" />
-                                    <TextBlock Text="{x:Bind ViewModel.Block2Title, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F3F4F8" />
+                                    <FontIcon Glyph="&#xE790;" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.Block2Title, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                 </StackPanel>
-                                <TextBlock Text="{x:Bind ViewModel.Block2Subtitle, Mode=OneWay}" FontSize="11" Foreground="#969CAB" />
+                                <TextBlock Text="{x:Bind ViewModel.Block2Subtitle, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                             </StackPanel>
 
                             <!-- Video Settings Grid -->
@@ -368,7 +364,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:VideoSettingItem">
                                         <Border Width="520" Margin="0,0,10,8"
-                                                Background="#181B25" BorderBrush="#2B3040" BorderThickness="1"
+                                                Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1"
                                                 CornerRadius="8" Padding="14,10">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -378,15 +374,15 @@
 
                                                 <!-- Setting Name & Impact -->
                                                 <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                                                    <TextBlock Text="{x:Bind EsportsImpact}" FontSize="11" Foreground="#969CAB" />
+                                                    <TextBlock Text="{x:Bind Name}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                                                    <TextBlock Text="{x:Bind EsportsImpact}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                                 </StackPanel>
 
                                                 <!-- Recommended Value Pill -->
                                                 <Border Grid.Column="1"
-                                                        Background="#202431" BorderBrush="#806BFF" BorderThickness="1"
+                                                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkBrandBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                                                    <TextBlock Text="{x:Bind RecommendedValue}" FontSize="11" FontWeight="Bold" Foreground="#806BFF" />
+                                                    <TextBlock Text="{x:Bind RecommendedValue}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -399,7 +395,7 @@
                     <!-- ================================================================= -->
                     <!-- БЛОК 3: «ОПТИМИЗАЦИЯ КОНФИГОВ И WINDOWS» (OS & Config Tuning)     -->
                     <!-- ================================================================= -->
-                    <Border Background="#131620" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="18">
+                    <Border Background="#131620" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <StackPanel Spacing="16">
                             <!-- Block Header -->
                             <Grid>
@@ -410,10 +406,10 @@
 
                                 <StackPanel Grid.Column="0" Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE713;" FontSize="13" Foreground="#806BFF" />
-                                        <TextBlock Text="{x:Bind ViewModel.Block3Title, Mode=OneWay}" FontSize="14" FontWeight="Bold" Foreground="#F3F4F8" />
+                                        <FontIcon Glyph="&#xE713;" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.Block3Title, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                     </StackPanel>
-                                    <TextBlock Text="{x:Bind ViewModel.Block3Subtitle, Mode=OneWay}" FontSize="11" Foreground="#969CAB" />
+                                    <TextBlock Text="{x:Bind ViewModel.Block3Subtitle, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                 </StackPanel>
 
                                 <!-- Apply System Profile Action Button -->
@@ -450,47 +446,47 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Pillar 1: High GPU Preference -->
-                                <Border Grid.Column="0" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                <Border Grid.Column="0" Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
                                     <StackPanel Spacing="6">
                                         <StackPanel Orientation="Horizontal" Spacing="7">
-                                            <FontIcon Glyph="&#xE790;" FontSize="12" Foreground="#806BFF" />
-                                            <TextBlock Text="High GPU Preference" FontSize="12" FontWeight="Bold" Foreground="#F3F4F8" />
+                                            <FontIcon Glyph="&#xE790;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                                            <TextBlock Text="High GPU Preference" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                         </StackPanel>
-                                        <TextBlock Text="Назначает дискретную видеокарту в реестре DirectX UserGpuPreferences (GpuPreference=2)" FontSize="11" Foreground="#969CAB" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind ViewModel.Block3Card1Desc, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Pillar 2: DirectFlip & Disable FSO -->
-                                <Border Grid.Column="1" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                <Border Grid.Column="1" Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
                                     <StackPanel Spacing="6">
                                         <StackPanel Orientation="Horizontal" Spacing="7">
-                                            <FontIcon Glyph="&#xE7F4;" FontSize="12" Foreground="#806BFF" />
-                                            <TextBlock Text="DirectFlip &amp; Disable FSO" FontSize="12" FontWeight="Bold" Foreground="#F3F4F8" />
+                                            <FontIcon Glyph="&#xE7F4;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                                            <TextBlock Text="DirectFlip &amp; Disable FSO" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                         </StackPanel>
-                                        <TextBlock Text="Отключает оконный оверлей DWM и активирует режим прямого аппаратного сканирования кадров" FontSize="11" Foreground="#969CAB" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind ViewModel.Block3Card2Desc, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Pillar 3: IFEO High Process Priority -->
-                                <Border Grid.Column="2" Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                <Border Grid.Column="2" Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
                                     <StackPanel Spacing="6">
                                         <StackPanel Orientation="Horizontal" Spacing="7">
-                                            <FontIcon Glyph="&#xE9D9;" FontSize="12" Foreground="#806BFF" />
-                                            <TextBlock Text="IFEO High CPU Priority" FontSize="12" FontWeight="Bold" Foreground="#F3F4F8" />
+                                            <FontIcon Glyph="&#xE9D9;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                                            <TextBlock Text="IFEO High CPU Priority" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                         </StackPanel>
-                                        <TextBlock Text="Задает приоритет реального времени (CpuPriorityClass=3, IoPriority=3) через PerfOptions" FontSize="11" Foreground="#969CAB" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind ViewModel.Block3Card3Desc, Mode=OneWay}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
 
                             <!-- Config Files List -->
                             <StackPanel Spacing="8">
-                                <TextBlock Text="РАСПОЛОЖЕНИЕ КОНФИГУРАЦИОННЫХ ФАЙЛОВ И АВТОЭКЗЕКОВ" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                                <TextBlock Text="{x:Bind ViewModel.Block3ConfigHeader, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
 
                                 <ItemsControl ItemsSource="{x:Bind ViewModel.SelectedGame.ConfigFiles, Mode=OneWay}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="models:ConfigFileInfo">
-                                            <Border Background="#181B25" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource SilkCardDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,6">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
@@ -499,10 +495,10 @@
 
                                                     <StackPanel Grid.Column="0" Spacing="3">
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <TextBlock Text="{x:Bind FileName}" FontSize="12" FontWeight="Bold" Foreground="#806BFF" />
-                                                            <TextBlock Text="{x:Bind Description}" FontSize="11" Foreground="#969CAB" />
+                                                            <TextBlock Text="{x:Bind FileName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SilkBrandBrush}" />
+                                                            <TextBlock Text="{x:Bind Description}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                                                         </StackPanel>
-                                                        <TextBlock Text="{x:Bind Path}" FontFamily="Consolas, Cascadia Code" FontSize="11" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind Path}" FontFamily="Consolas, Cascadia Code" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                                     </StackPanel>
 
                                                     <!-- Copy Path Button -->
@@ -512,8 +508,8 @@
                                                             Style="{StaticResource SilkSecondaryButtonStyle}"
                                                             Height="32" Padding="12,4" VerticalAlignment="Center">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
-                                                            <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="#806BFF" />
-                                                            <TextBlock Text="Копировать путь" FontSize="11" />
+                                                            <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                                                            <TextBlock Text="{x:Bind Path, Converter={StaticResource ActionTextConverter}, ConverterParameter=Games_Btn_CopyPath}" FontSize="11" />
                                                         </StackPanel>
                                                     </Button>
                                                 </Grid>

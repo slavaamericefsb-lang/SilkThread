@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -21,6 +21,8 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
     private string _currentLogText = string.Empty;
     private readonly string _logFilePath;
     private CancellationTokenSource? _statusCts;
+    private int _logReadVersion;
+    private bool _closed;
 
     public DeveloperDebugDialog()
     {
@@ -33,8 +35,29 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
 
         ToolTipService.SetToolTip(ChipLogBorder, _logFilePath);
 
+        ApplyLocalization();
         PopulateTelemetry();
-        LoadLogs();
+        Opened += async (_, _) => { _closed = false; await LoadLogsAsync(); };
+        Closed += (_, _) => { _closed = true; ++_logReadVersion; _statusCts?.Cancel(); };
+    }
+
+    private void ApplyLocalization()
+    {
+        var loc = LocalizationService.Instance;
+        DialogTitleText.Text = loc["DevDebug_Title"];
+        DialogSubtitleText.Text = loc["DevDebug_Subtitle"];
+        ToolTipService.SetToolTip(BtnCloseTop, loc["DevDebug_Close"]);
+        ChipVersionLabel.Text = loc["DevDebug_ChipVersion"];
+        ChipRamLabel.Text = loc["DevDebug_ChipRam"];
+        ChipLogFileLabel.Text = loc["DevDebug_ChipLogFile"];
+        ChipSessionStatusLabel.Text = loc["DevDebug_ChipSession"];
+        TerminalHeaderLabel.Text = loc["DevDebug_LogHeader"];
+        ToolTipService.SetToolTip(BtnRefreshLog, loc["DevDebug_RefreshTooltip"]);
+        BtnRefreshLogText.Text = loc["DevDebug_Refresh"];
+        BtnSaveToFileText.Text = loc["DevDebug_SaveLogs"];
+        BtnCopyClipboardText.Text = loc["DevDebug_Copy"];
+        BtnClearLogText.Text = loc["DevDebug_Clear"];
+        BtnCloseText.Text = loc["DevDebug_Close"];
     }
 
     private void PopulateTelemetry()
@@ -78,7 +101,7 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
             ChipLogFileText.Text = Path.GetFileName(_logFilePath);
 
             // 4. Session status
-            ChipSessionStatusText.Text = "Активна";
+            ChipSessionStatusText.Text = LocalizationService.Instance["DevDebug_SessionActive"];
         }
         catch (Exception ex)
         {
@@ -86,37 +109,39 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
         }
     }
 
-    private void LoadLogs()
+    private async Task LoadLogsAsync()
     {
+        var loc = LocalizationService.Instance;
+        int version = ++_logReadVersion;
         try
         {
-            if (File.Exists(_logFilePath))
+            var result = await Task.Run(() =>
             {
+                if (!File.Exists(_logFilePath)) return (Full: "", Display: "", Lines: 0, Bytes: 0);
                 using var fs = new FileStream(_logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using var sr = new StreamReader(fs);
-                _currentLogText = sr.ReadToEnd();
-            }
-            else
-            {
-                _currentLogText = string.Empty;
-            }
-
+                using var reader = new StreamReader(fs);
+                string full = reader.ReadToEnd();
+                var lines = full.Split('\n');
+                // Keep complete text for export/copy; bound only the expensive visible text layout.
+                string display = lines.Length > 2000 ? string.Join("\n", lines.TakeLast(2000)) : full;
+                return (Full: full, Display: display, Lines: lines.Length, Bytes: System.Text.Encoding.UTF8.GetByteCount(full));
+            });
+            if (_closed || version != _logReadVersion) return;
+            _currentLogText = result.Full;
             if (string.IsNullOrWhiteSpace(_currentLogText))
             {
-                LogContentText.Text = "[Журнал startup_debug.log пуст или файл не найден]";
+                LogContentText.Text = loc["DevDebug_EmptyLog"];
                 LogContentText.Foreground = new SolidColorBrush(Color.FromArgb(255, 150, 156, 171)); // #969CAB
-                LogStatsText.Text = "Строк: 0 | Размер: 0.0 КБ";
+                LogStatsText.Text = string.Format(loc["DevDebug_Stats"], 0, 0.0);
             }
             else
             {
-                LogContentText.Text = _currentLogText;
+                LogContentText.Text = result.Lines > 2000
+                    ? (loc.CurrentLanguage == "ru" ? "Показаны последние 2000 строк; копирование и экспорт содержат полный журнал.\n" : "Showing the last 2000 lines; copy and export contain the complete log.\n") + result.Display
+                    : result.Display;
                 LogContentText.Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 181, 253)); // #C4B5FD
 
-                var lines = _currentLogText.Split('\n');
-                int lineCount = lines.Length;
-                long byteCount = System.Text.Encoding.UTF8.GetByteCount(_currentLogText);
-                double kb = byteCount / 1024.0;
-                LogStatsText.Text = $"Строк: {lineCount:N0} | Размер: {kb:F1} КБ";
+                LogStatsText.Text = string.Format(loc["DevDebug_Stats"], result.Lines, result.Bytes / 1024.0);
             }
 
             // Scroll to end of logs
@@ -124,7 +149,7 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
             {
                 try
                 {
-                    LogScrollViewer.UpdateLayout();
+                    if (_closed) return;
                     LogScrollViewer.ChangeView(null, LogScrollViewer.ScrollableHeight, null, true);
                 }
                 catch { }
@@ -132,21 +157,23 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
         }
         catch (Exception ex)
         {
-            LogContentText.Text = $"[Ошибка при чтении логов: {ex.Message}]";
+            if (_closed || version != _logReadVersion) return;
+            LogContentText.Text = string.Format(loc["DevDebug_ReadError"], ex.Message);
             LogContentText.Foreground = new SolidColorBrush(Color.FromArgb(255, 239, 68, 68)); // #EF4444
-            LogStatsText.Text = "Ошибка чтения";
+            LogStatsText.Text = loc["DevDebug_StatsError"];
         }
     }
 
-    private void BtnRefreshLog_Click(object sender, RoutedEventArgs e)
+    private async void BtnRefreshLog_Click(object sender, RoutedEventArgs e)
     {
         PopulateTelemetry();
-        LoadLogs();
-        ShowStatus("Логи обновлены", isSuccess: true);
+        await LoadLogsAsync();
+        ShowStatus(LocalizationService.Instance["DevDebug_ToastRefreshed"], isSuccess: true);
     }
 
     private async void BtnSaveToFile_Click(object sender, RoutedEventArgs e)
     {
+        var loc = LocalizationService.Instance;
         try
         {
             string? chosenPath = await FilePickerHelper.PickSaveLogFileAsync("SilkThread_Debug_Logs.txt");
@@ -170,41 +197,43 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
 
             if (usedDesktopFallback)
             {
-                ShowStatus($"Логи сохранены на Рабочий стол: {Path.GetFileName(finalPath)}", isSuccess: true);
+                ShowStatus(string.Format(loc["DevDebug_ToastSavedDesktop"], Path.GetFileName(finalPath)), isSuccess: true);
             }
             else
             {
-                ShowStatus($"Логи успешно сохранены: {Path.GetFileName(finalPath)}", isSuccess: true);
+                ShowStatus(string.Format(loc["DevDebug_ToastSaved"], Path.GetFileName(finalPath)), isSuccess: true);
             }
         }
         catch (Exception ex)
         {
-            ShowStatus($"Ошибка сохранения: {ex.Message}", isSuccess: false);
+            ShowStatus(string.Format(loc["DevDebug_ToastSaveError"], ex.Message), isSuccess: false);
         }
     }
 
     private async void BtnCopyClipboard_Click(object sender, RoutedEventArgs e)
     {
+        var loc = LocalizationService.Instance;
         try
         {
             var package = new DataPackage();
             package.SetText(string.IsNullOrEmpty(_currentLogText) ? "(Журнал отладки пуст)" : _currentLogText);
             Clipboard.SetContent(package);
 
-            BtnCopyClipboardText.Text = "Скопировано!";
-            ShowStatus("Логи успешно скопированы в буфер обмена!", isSuccess: true);
+            BtnCopyClipboardText.Text = loc["DevDebug_Copied"];
+            ShowStatus(loc["DevDebug_ToastCopied"], isSuccess: true);
 
             await Task.Delay(2500);
-            BtnCopyClipboardText.Text = "Копировать";
+            BtnCopyClipboardText.Text = loc["DevDebug_Copy"];
         }
         catch (Exception ex)
         {
-            ShowStatus($"Ошибка копирования: {ex.Message}", isSuccess: false);
+            ShowStatus(string.Format(loc["DevDebug_ToastCopyError"], ex.Message), isSuccess: false);
         }
     }
 
-    private void BtnClearLog_Click(object sender, RoutedEventArgs e)
+    private async void BtnClearLog_Click(object sender, RoutedEventArgs e)
     {
+        var loc = LocalizationService.Instance;
         try
         {
             if (File.Exists(_logFilePath))
@@ -214,12 +243,12 @@ public sealed partial class DeveloperDebugDialog : ContentDialog
             }
 
             App.Log("Логи сессии были очищены через панель отладки разработчика.");
-            LoadLogs();
-            ShowStatus("Логи успешно очищены", isSuccess: true);
+            await LoadLogsAsync();
+            ShowStatus(loc["DevDebug_ToastCleared"], isSuccess: true);
         }
         catch (Exception ex)
         {
-            ShowStatus($"Ошибка очистки: {ex.Message}", isSuccess: false);
+            ShowStatus(string.Format(loc["DevDebug_ToastClearError"], ex.Message), isSuccess: false);
         }
     }
 

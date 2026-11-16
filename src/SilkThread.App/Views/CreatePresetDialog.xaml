@@ -7,9 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     CornerRadius="12"
-    BorderBrush="#2B3040"
+    BorderBrush="{StaticResource SilkStrokeDarkBrush}"
     BorderThickness="1"
-    Background="#181B25"
+    Background="{StaticResource SilkCardDarkBrush}"
     RequestedTheme="Dark">
 
     <Grid Width="480" RowSpacing="16" Margin="4">
@@ -27,18 +27,18 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <Border Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="8">
-                    <FontIcon Glyph="&#xE74E;" FontSize="18" Foreground="#806BFF" />
+                <Border Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
+                    <FontIcon Glyph="&#xE74E;" FontSize="18" Foreground="{StaticResource SilkBrandBrush}" />
                 </Border>
                 <StackPanel VerticalAlignment="Center" Spacing="2">
-                    <TextBlock x:Name="DialogTitleText" Text="Создание пресета" FontSize="17" FontWeight="Bold" Foreground="#F3F4F8" />
-                    <TextBlock x:Name="DialogSubtitleText" Text="Экспорт текущих параметров системы в файл .silkpreset" FontSize="12" Foreground="#969CAB" />
+                    <TextBlock x:Name="DialogTitleText" Text="Создание пресета" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                    <TextBlock x:Name="DialogSubtitleText" Text="Экспорт текущих параметров системы в файл .silkpreset" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
 
         <!-- Active Tweaks Info -->
-        <Border Grid.Row="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,10">
+        <Border Grid.Row="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10">
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -48,10 +48,10 @@
                 <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="20" Foreground="#22C55E" VerticalAlignment="Center" />
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock x:Name="BannerTitleText" Text="Конфигурация активных параметров" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                    <TextBlock x:Name="BannerTitleText" Text="Конфигурация активных параметров" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock x:Name="BannerLabelText" Text="Будет сохранено активных твиков:" FontSize="11" Foreground="#969CAB" />
-                        <TextBlock x:Name="ActiveCountText" Text="0" FontSize="11" FontWeight="Bold" Foreground="#22C55E" />
+                        <TextBlock x:Name="BannerLabelText" Text="Будет сохранено активных твиков:" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                        <TextBlock x:Name="ActiveCountText" Text="0" FontSize="11" FontWeight="SemiBold" Foreground="#22C55E" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -61,24 +61,24 @@
         <StackPanel Grid.Row="2" Spacing="12">
             <!-- Name -->
             <StackPanel Spacing="4">
-                <TextBlock x:Name="FieldTitleLabel" Text="Название пресета" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBlock x:Name="FieldTitleLabel" Text="Название пресета" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 <TextBox x:Name="PresetNameBox" PlaceholderText="Например: Gaming Pro Profile" 
-                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8" CornerRadius="8" Padding="10,8" />
+                         Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" Foreground="{StaticResource SilkTextPrimaryBrush}" CornerRadius="8" Padding="10,8" />
             </StackPanel>
 
             <!-- Description -->
             <StackPanel Spacing="4">
-                <TextBlock x:Name="FieldDescLabel" Text="Описание" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBlock x:Name="FieldDescLabel" Text="Описание" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 <TextBox x:Name="PresetDescBox" PlaceholderText="Например: Оптимизация сети, задержек и фоновых служб" 
-                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8"
+                         Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" Foreground="{StaticResource SilkTextPrimaryBrush}"
                          TextWrapping="Wrap" AcceptsReturn="True" Height="68" CornerRadius="8" Padding="10,8" />
             </StackPanel>
 
             <!-- Author -->
             <StackPanel Spacing="4">
-                <TextBlock x:Name="FieldAuthorLabel" Text="Автор" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                <TextBlock x:Name="FieldAuthorLabel" Text="Автор" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 <TextBox x:Name="PresetAuthorBox" 
-                         Background="#202431" BorderBrush="#2B3040" Foreground="#F3F4F8" CornerRadius="8" Padding="10,8" />
+                         Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" Foreground="{StaticResource SilkTextPrimaryBrush}" CornerRadius="8" Padding="10,8" />
             </StackPanel>
         </StackPanel>
 
@@ -92,7 +92,7 @@
 
             <Button Grid.Column="1" Click="CancelButton_Click"
                     Style="{StaticResource SilkSecondaryButtonStyle}" Margin="0,0,10,0" Padding="16,8">
-                <TextBlock x:Name="CancelButtonText" Text="Отмена" FontSize="12" Foreground="#F3F4F8" />
+                <TextBlock x:Name="CancelButtonText" Text="Отмена" FontSize="12" Foreground="{StaticResource SilkTextPrimaryBrush}" />
             </Button>
 
             <Button Grid.Column="2" Click="SaveButton_Click"

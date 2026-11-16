@@ -27,6 +27,23 @@ public sealed partial class SettingsPage : Page, IStaggeredPage
     {
         ViewModel = App.Services.GetRequiredService<SettingsViewModel>();
         InitializeComponent();
+        Unloaded += SettingsPage_Unloaded;
+    }
+
+    private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            _iostPulseStoryboard?.Stop();
+            if (OpenRouterKeyBox != null)
+            {
+                OpenRouterKeyBox.PasswordChanged -= OpenRouterKeyBox_PasswordChanged;
+            }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[SettingsPage_Unloaded exception]: {ex.Message}");
+        }
     }
 
     private Microsoft.UI.Xaml.Media.Animation.Storyboard? _iostPulseStoryboard;

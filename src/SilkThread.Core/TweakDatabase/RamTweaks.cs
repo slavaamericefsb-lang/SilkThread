@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -74,24 +74,6 @@ public static class RamTweaks
             valueName: "LargeSystemCache",
             appliedValue: 0,
             fallbackDefaultValue: 0
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_io_page_lock_limit",
-            title: "Increase I/O Page Lock Memory Allocation",
-            description: "Expands the memory boundary that can be locked into physical RAM for high-throughput I/O transfers.",
-            howItWorks: "Sets 'IoPageLockLimit' to 16777216 (16 MB buffer) in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management.",
-            problemSolved: "Prevents I/O page locking queue thrashing during high-speed direct storage asset streaming.",
-            expectedResult: "Smoother texture and sound asset loading in open-world titles.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Medium,
-            recommendation: RecommendationLevel.Optional,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-            valueName: "IoPageLockLimit",
-            appliedValue: 16777216,
-            fallbackDefaultValue: 0,
-            requiresReboot: true
         );
 
         yield return TweakBuilder.CreateRegistryDword(
@@ -183,58 +165,6 @@ public static class RamTweaks
         );
 
         yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_memory_compression_store",
-            title: "Memory Compression Paged Pool Optimization",
-            description: "Tuning memory manager page file compression algorithms to reduce CPU decompression latency during game execution.",
-            howItWorks: "Configures 'FeatureSettings' in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management to optimize compressed store retrieval.",
-            problemSolved: "Decompressing memory pages on-the-fly during frame rendering causes CPU micro-hitches.",
-            expectedResult: "Faster access to cached memory assets without thread stalls.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Medium,
-            recommendation: RecommendationLevel.Optional,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-            valueName: "SecondLevelDataCache",
-            appliedValue: 1024,
-            fallbackDefaultValue: 0
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_paging_executive_driver_lock",
-            title: "Enforce Driver Paging Lockout in Kernel",
-            description: "Ensures third-party device drivers and system DLLs are never paged out of physical RAM under high memory pressure.",
-            howItWorks: "Sets 'EnforcePagingLock' to 1 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management.",
-            problemSolved: "Prevents graphic and audio driver routines from getting paged out when games consume near-total system RAM.",
-            expectedResult: "Eliminates sudden driver reload latency spikes and audio dropouts.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-            valueName: "EnforcePagingLock",
-            appliedValue: 1,
-            fallbackDefaultValue: 0,
-            requiresReboot: true
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_standby_list_trimming_heuristics",
-            title: "Optimize Standby Memory Cache Trimming Thresholds",
-            description: "Configures kernel memory manager to proactively reclaim cached standby memory when games allocate large buffers.",
-            howItWorks: "Sets 'StandbyListTrimming' to 1 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management.",
-            problemSolved: "Prevents Windows standby list from locking free RAM until out-of-memory stutters force synchronous memory trimming.",
-            expectedResult: "Smooth memory allocation for open-world games and texture packs.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-            valueName: "StandbyListTrimming",
-            appliedValue: 1,
-            fallbackDefaultValue: 0
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
             id: "ram_system_cache_dirty_page_limit",
             title: "Limit Dirty File Cache Pages Before Flushing",
             description: "Limits the maximum dirty memory pages held by the file system cache before writing them out to disk.",
@@ -268,40 +198,6 @@ public static class RamTweaks
             appliedValue: -1,
             fallbackDefaultValue: 0,
             requiresReboot: true
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_working_set_trim_protection",
-            title: "Configure Working Set Auto-Trim Immunity for Active Games",
-            description: "Configures kernel memory manager to protect active working sets of foreground processes from background memory trims.",
-            howItWorks: "Sets 'TrimProcessWorkingSets' to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management.",
-            problemSolved: "Windows aggressively trims working sets of background windows, causing 2-3 second freezes when switching back to the game.",
-            expectedResult: "Instant window switching without memory reloading stutters.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-            valueName: "TrimProcessWorkingSets",
-            appliedValue: 0,
-            fallbackDefaultValue: 1
-        );
-
-        yield return TweakBuilder.CreateRegistryDword(
-            id: "ram_heap_segment_allocation_cache",
-            title: "Enable Segment Heap Cache Allocation Acceleration",
-            description: "Configures segment heap allocator to optimize block cache lookup speed for gaming processes.",
-            howItWorks: "Sets 'SegmentHeapBlockCache' to 1 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager.",
-            problemSolved: "Reduces heap allocator lock contention during rapid entity spawning in modern game engines.",
-            expectedResult: "Faster object allocation and deallocation in C++/Rust game engines.",
-            category: TweakCategory.RamOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            hive: "HKLM",
-            subKey: @"SYSTEM\CurrentControlSet\Control\Session Manager",
-            valueName: "SegmentHeapBlockCache",
-            appliedValue: 1,
-            fallbackDefaultValue: 0
         );
 
         yield return TweakBuilder.CreateRegistryDword(

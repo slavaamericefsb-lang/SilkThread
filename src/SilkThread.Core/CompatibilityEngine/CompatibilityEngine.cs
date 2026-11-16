@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.CompatibilityEngine;
@@ -12,6 +12,8 @@ public class CompatibilityEngine : ICompatibilityEngine
 {
     public CompatibilityResult EvaluateCompatibility(TweakDefinition tweak, HardwareProfile profile)
     {
+        if (tweak.AuditBlockReason is { } auditReason) return CompatibilityResult.Incompatible(auditReason);
+
         // 1. Hardware-level GPU checks
         if (tweak.RequiresNvidiaGpu)
         {

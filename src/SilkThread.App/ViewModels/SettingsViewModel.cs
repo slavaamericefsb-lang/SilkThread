@@ -46,9 +46,7 @@ public partial class SettingsViewModel : ObservableObject
     private int _selectedModelIndex;
 
     public string ModelItem0Label => "Liquid LFM 1.7B (liquid/lfm-3-1.7b:free)";
-    public string ModelItem1Label => _loc.CurrentLanguage == "ru"
-        ? "Автоматический выбор лучшей модели (openrouter/free)"
-        : "Auto: Best Free Model (openrouter/free)";
+    public string ModelItem1Label => _loc["Set_Ai_AutoModelItem"];
     public string ModelItem2Label => "Google Gemma 26B (google/gemma-4-26b-a4b-it:free)";
     public string ModelItem3Label => "NVIDIA Nemotron 30B (nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)";
 
@@ -61,8 +59,8 @@ public partial class SettingsViewModel : ObservableObject
     public string LockIcon => IsApiKeyUnlocked ? "\uE785" : "\uE72E";
 
     public string LockTooltipText => IsApiKeyUnlocked
-        ? (_loc.CurrentLanguage == "ru" ? "Сохранить и заблокировать" : "Save and lock")
-        : (_loc.CurrentLanguage == "ru" ? "Разблокировать для редактирования" : "Unlock to edit");
+        ? _loc["Set_Lock_SaveLock"]
+        : _loc["Set_Lock_UnlockEdit"];
 
     public double ApiKeyBoxOpacity => IsApiKeyUnlocked ? 1.0 : 0.65;
 
@@ -86,7 +84,7 @@ public partial class SettingsViewModel : ObservableObject
 
     public string ActiveModelDisplayName => OpenRouterModel switch
     {
-        "openrouter/free" => _loc.CurrentLanguage == "ru" ? "Автовыбор (openrouter/free)" : "Auto-route (openrouter/free)",
+        "openrouter/free" => _loc["Set_Ai_AutoModelDisplay"],
         "google/gemma-4-26b-a4b-it:free" => "Google Gemma 26B",
         "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" => "NVIDIA Nemotron 30B",
         _ => "Liquid LFM 1.7B"
@@ -101,43 +99,29 @@ public partial class SettingsViewModel : ObservableObject
     public string RebootNotifyLabel => _loc["Set_Reboot_Notify"];
     public string AboutTitle => _loc["Set_About_Title"];
     public string AboutDesc => _loc["Set_About_Desc"];
-    public string VersionLabel => _loc.CurrentLanguage == "ru"
-        ? $"Версия {_updateService.CurrentVersion} (Windows 11 Edition)"
-        : $"Version {_updateService.CurrentVersion} (Windows 11 Edition)";
+    public string VersionLabel => string.Format(_loc["Set_Version"], _updateService.CurrentVersion);
     public string UpdateHistoryButtonText => _loc["UpdHist_Btn"];
     public string CheckUpdatesButtonText => _loc["Update_CheckButton"];
 
-    public string SectionLangTitle => _loc.CurrentLanguage == "ru" ? "Язык интерфейса" : "Interface Language";
-    public string SectionLangDesc => _loc.CurrentLanguage == "ru" ? "Выберите основной язык интерфейса SilkThread." : "Select your preferred application language.";
-    public string SectionSafetyTitle => _loc.CurrentLanguage == "ru" ? "Безопасность и откат" : "Safety & Safeguards";
-    public string SectionAboutTitle => _loc.CurrentLanguage == "ru" ? "О программе" : "About SilkThread";
+    public string SectionLangTitle => _loc["Set_Section_Lang"];
+    public string SectionLangDesc => _loc["Set_Section_Lang_Desc"];
+    public string SectionSafetyTitle => _loc["Set_Section_Safety"];
+    public string SectionAboutTitle => _loc["Set_Section_About"];
 
     public string SectionAiTitle => _loc["Set_Ai_Title"];
-    public string SectionAiDesc => _loc.CurrentLanguage == "ru"
-        ? "Конфигурация системы IOST и нейросетевого ассистента для персональной генерации пресетов."
-        : "Configuration for the IOST system and neural tuning copilot for customized presets.";
-    public string OpenRouterApiKeyLabel => _loc.CurrentLanguage == "ru" ? "API-ключ OpenRouter" : "OpenRouter API Key";
-    public string OpenRouterApiKeyDesc => _loc.CurrentLanguage == "ru"
-        ? "Ключ доступа к API OpenRouter для отправки запросов к нейросетевой модели."
-        : "OpenRouter access key used for neural engine inference queries.";
-    public string ActiveModelLabel => _loc.CurrentLanguage == "ru" ? "Активная нейросетевая модель" : "Active Neural Model";
-    public string ActiveModelDesc => _loc.CurrentLanguage == "ru"
-        ? "Нейросетевая архитектура — адаптивное рассуждение о твиках Windows."
-        : "Neural architecture — adaptive reasoning over Windows tweaks.";
-    public string ModelTierBadge => _loc.CurrentLanguage == "ru" ? "FREE TIER АКТИВЕН" : "FREE TIER ACTIVE";
+    public string SectionAiDesc => _loc["Set_Ai_Subtitle"];
+    public string OpenRouterApiKeyLabel => _loc["Set_Ai_ApiKey"];
+    public string OpenRouterApiKeyDesc => _loc["Set_Ai_ApiKey_Desc"];
+    public string ActiveModelLabel => _loc["Set_Ai_Model"];
+    public string ActiveModelDesc => _loc["Set_Ai_Model_Desc"];
+    public string ModelTierBadge => _loc["Set_Ai_Badge"];
     public string ModelStatusText => IsApiKeyConfigured
-        ? (_loc.CurrentLanguage == "ru" ? "Готов к работе (OpenRouter Cloud)" : "Ready (OpenRouter Cloud)")
-        : (_loc.CurrentLanguage == "ru" ? "Требуется API-ключ" : "API key required");
+        ? _loc["Set_Ai_Status"]
+        : _loc["Set_Ai_RequiredKey"];
 
-    public string ConfirmDangerousDesc => _loc.CurrentLanguage == "ru" 
-        ? "Перед применением критических настроек ядра или служб запрашивать дополнительное подтверждение." 
-        : "Prompt for confirmation before applying critical core system or service tweaks.";
-    public string AutoRestoreDesc => _loc.CurrentLanguage == "ru" 
-        ? "Создавать точку восстановления Windows перед массовым применением оптимизаций." 
-        : "Automatically create a Windows restore point before running batch optimizations.";
-    public string HideIncompatibleDesc => _loc.CurrentLanguage == "ru" 
-        ? "Автоматически скрывать твики для других архитектур GPU/CPU или несовместимых накопителей." 
-        : "Automatically hide tweaks intended for other CPU/GPU architectures or incompatible drives.";
+    public string ConfirmDangerousDesc => _loc["Set_Confirm_Dangerous_Desc"];
+    public string AutoRestoreDesc => _loc["Set_Auto_Restore_Desc"];
+    public string HideIncompatibleDesc => _loc["Set_Hide_Incompatible_Desc"];
 
     public string AppVersion => $"SilkThread {_updateService.CurrentVersion} (Windows 11 x64)";
     public string RuntimeEnvironment => $".NET {Environment.Version} (WinUI 3 / Windows App SDK)";
@@ -252,12 +236,12 @@ public partial class SettingsViewModel : ObservableObject
 
     public void RefreshVersionDebugInfo(string? remoteVersion = null)
     {
-        string serverVer = remoteVersion ?? _updateService.LastRemoteVersion ?? (_loc.CurrentLanguage == "ru" ? "не проверялось" : "not checked");
-        string label = _loc.CurrentLanguage == "ru" ? "Текущая версия" : "Current version";
-        string serverLabel = _loc.CurrentLanguage == "ru" ? "Версия на сервере" : "Server version";
+        string serverVer = remoteVersion ?? _updateService.LastRemoteVersion ?? _loc["Set_Ver_NotChecked"];
+        string label = _loc["Set_Ver_Current"];
+        string serverLabel = _loc["Set_Ver_Server"];
 
         VersionDebugInfo = $"{label}: {_updateService.CurrentVersion} | {serverLabel}: {serverVer}";
-        App.Log($"[SettingsViewModel] Текущая версия: {_updateService.CurrentVersion} | Версия на сервере: {serverVer}");
+        App.Log($"[SettingsViewModel] {label}: {_updateService.CurrentVersion} | {serverLabel}: {serverVer}");
     }
 
     [RelayCommand]

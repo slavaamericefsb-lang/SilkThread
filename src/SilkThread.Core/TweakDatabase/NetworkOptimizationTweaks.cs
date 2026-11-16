@@ -1,5 +1,10 @@
+﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Win32;
+using SilkThread.Core.Execution;
 using SilkThread.Core.Models;
+using SilkThread.Core.SystemOperations;
 
 namespace SilkThread.Core.TweakDatabase;
 
@@ -24,23 +29,131 @@ public static class NetworkOptimizationTweaks
             fallbackDefaultValue: 10
         );
 
-        yield return TweakBuilder.CreateMultiRegistry(
-            id: "net_tcp_nagle_algorithm_disable",
-            title: "Disable Nagle's Algorithm (TCP No Delay & Instant ACK)",
-            description: "Forces TCP stack to send small packets immediately instead of buffering them to wait for larger payloads.",
-            howItWorks: "Sets TcpAckFrequency = 1 and TCPNoDelay = 1 under active network interfaces in HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces.",
-            problemSolved: "Nagle's algorithm bundles packets together, adding 10-40ms buffering latency to multiplayer position packets and hit registration.",
-            expectedResult: "Lowest possible network packet round-trip time (RTT) and crisp hit registration.",
-            category: TweakCategory.NetworkOptimization,
-            risk: RiskLevel.Medium,
-            recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
+        yield return new TweakDefinition
+        {
+            Id = "net_tcp_nagle_algorithm_disable",
+            Title = "Disable Nagle's Algorithm (TCP No Delay & Instant ACK)",
+            Description = "Forces TCP stack to send small packets immediately instead of buffering them to wait for larger payloads across all network adapters.",
+            HowItWorks = "Sets TcpAckFrequency = 1, TCPNoDelay = 1, and TcpDelAckTicks = 0 under all network interface subkeys in HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces.",
+            ProblemSolved = "Nagle's algorithm bundles packets together, adding 10-40ms buffering latency to multiplayer position packets and hit registration.",
+            ExpectedResult = "Lowest possible network packet round-trip time (RTT) and crisp hit registration.",
+            Category = TweakCategory.NetworkOptimization,
+            Risk = RiskLevel.Medium,
+            Recommendation = RecommendationLevel.Recommended,
+            RequiresReboot = false,
+
+            CheckCurrentStateAsync = () =>
             {
-                ("HKLM", @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters", "TcpAckFrequency", 1),
-                ("HKLM", @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters", "TCPNoDelay", 1),
-                ("HKLM", @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters", "TcpDelAckTicks", 0)
+                try
+                {
+                    using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+                    using var interfacesKey = baseKey.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces", writable: false);
+                    if (interfacesKey == null) return Task.FromResult(TweakStatus.NotApplied);
+
+                    var subKeyNames = interfacesKey.GetSubKeyNames();
+                    if (subKeyNames.Length == 0) return Task.FromResult(TweakStatus.NotApplied);
+
+                    int relevantInterfaces = 0;
+                    int appliedInterfaces = 0;
+
+                    foreach (var name in subKeyNames)
+                    {
+                        using var subKey = interfacesKey.OpenSubKey(name, writable: false);
+                        if (subKey == null) continue;
+
+                        if (subKey.GetValue("DhcpIPAddress") != null || subKey.GetValue("IPAddress") != null)
+                        {
+                            relevantInterfaces++;
+                            var ack = subKey.GetValue("TcpAckFrequency");
+                            var noDelay = subKey.GetValue("TCPNoDelay");
+                            if (ack is int ackVal && ackVal == 1 && noDelay is int noDelayVal && noDelayVal == 1)
+                            {
+                                appliedInterfaces++;
+                            }
+                        }
+                    }
+
+                    if (relevantInterfaces > 0 && appliedInterfaces == relevantInterfaces)
+                    {
+                        return Task.FromResult(TweakStatus.Applied);
+                    }
+                    return Task.FromResult(TweakStatus.NotApplied);
+                }
+                catch
+                {
+                    return Task.FromResult(TweakStatus.NotApplied);
+                }
+            },
+
+            ApplyAsync = () =>
+            {
+                var multi = new RegistryMultiSnapshot();
+                try
+                {
+                    using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+                    using var interfacesKey = baseKey.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces", writable: true);
+                    if (interfacesKey == null)
+                    {
+                        return Task.FromResult(TweakOperationResult.Fail("Interfaces registry key not found."));
+                    }
+
+                    foreach (var name in interfacesKey.GetSubKeyNames())
+                    {
+                        string subKeyPath = $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{name}";
+                        multi.Snapshots.Add(RegistryOperations.SnapshotValue("HKLM", subKeyPath, "TcpAckFrequency"));
+                        multi.Snapshots.Add(RegistryOperations.SnapshotValue("HKLM", subKeyPath, "TCPNoDelay"));
+                        multi.Snapshots.Add(RegistryOperations.SnapshotValue("HKLM", subKeyPath, "TcpDelAckTicks"));
+
+                        RegistryOperations.SetDword("HKLM", subKeyPath, "TcpAckFrequency", 1);
+                        RegistryOperations.SetDword("HKLM", subKeyPath, "TCPNoDelay", 1);
+                        RegistryOperations.SetDword("HKLM", subKeyPath, "TcpDelAckTicks", 0);
+                    }
+
+                    return Task.FromResult(TweakOperationResult.Ok(
+                        "Successfully disabled Nagle's algorithm across network interfaces.",
+                        multi.ToJson(),
+                        "applied",
+                        requiresReboot: false
+                    ));
+                }
+                catch (Exception ex)
+                {
+                    return Task.FromResult(TweakOperationResult.Fail($"Failed to disable Nagle's algorithm: {ex.Message}"));
+                }
+            },
+
+            RollbackAsync = (savedStateJson) =>
+            {
+                if (!string.IsNullOrEmpty(savedStateJson))
+                {
+                    var multi = RegistryMultiSnapshot.FromJson(savedStateJson);
+                    if (multi != null)
+                    {
+                        RegistryOperations.RestoreFromMultiSnapshot(multi);
+                        return Task.FromResult(TweakOperationResult.Ok("Restored original TCP Nagle configuration.", null, null, false));
+                    }
+                }
+
+                try
+                {
+                    using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+                    using var interfacesKey = baseKey.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces", writable: false);
+                    if (interfacesKey != null)
+                    {
+                        foreach (var name in interfacesKey.GetSubKeyNames())
+                        {
+                            string subKeyPath = $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{name}";
+                            RegistryOperations.DeleteValue("HKLM", subKeyPath, "TcpAckFrequency");
+                            RegistryOperations.DeleteValue("HKLM", subKeyPath, "TCPNoDelay");
+                            RegistryOperations.DeleteValue("HKLM", subKeyPath, "TcpDelAckTicks");
+                        }
+                    }
+                }
+                catch { }
+
+                return Task.FromResult(TweakOperationResult.Ok("Reverted Nagle's algorithm settings.", null, null, false));
             }
-        );
+        };
 
         yield return TweakBuilder.CreateRegistryDword(
             id: "net_qos_reserved_bandwidth_zero",
@@ -312,6 +425,56 @@ public static class NetworkOptimizationTweaks
             valueName: "ArpCacheLife",
             appliedValue: 120,
             fallbackDefaultValue: 0
+        );
+
+        yield return TweakBuilder.CreateCommandAction(
+            id: "net_disable_hardware_rsc",
+            title: "Disable Network Adapter Hardware RSC (Receive Segment Coalescing)",
+            description: "Disables hardware Receive Segment Coalescing (RSC) on network adapters and in the TCP/IP stack to eliminate packet buffering jitter.",
+            howItWorks: "Executes 'Disable-NetAdapterRsc -Name *' via PowerShell and 'netsh int tcp set global rsc=disabled'.",
+            problemSolved: "Hardware RSC batches incoming network packets inside the adapter before delivery to the OS, introducing variable millisecond latency spikes in competitive multiplayer games.",
+            expectedResult: "Consistent low packet latency and eliminated micro-jitter in online hit registration.",
+            category: TweakCategory.NetworkOptimization,
+            risk: RiskLevel.Low,
+            recommendation: RecommendationLevel.Recommended,
+            applyFileName: "powershell.exe",
+            applyArguments: "-NoProfile -ExecutionPolicy Bypass -Command \"Disable-NetAdapterRsc -Name * -ErrorAction SilentlyContinue; netsh int tcp set global rsc=disabled\"",
+            rollbackFileName: "powershell.exe",
+            rollbackArguments: "-NoProfile -ExecutionPolicy Bypass -Command \"Enable-NetAdapterRsc -Name * -ErrorAction SilentlyContinue; netsh int tcp set global rsc=enabled\"",
+            checkStatus: async () =>
+            {
+                var res = await CommandOperations.RunAsync("netsh", "int tcp show global");
+                if (res.ExitCode == 0 && res.Output.Contains("Receive Segment Coalescing State    : disabled", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TweakStatus.Applied;
+                }
+                return TweakStatus.NotApplied;
+            }
+        );
+
+        yield return TweakBuilder.CreateCommandAction(
+            id: "net_disable_interrupt_moderation",
+            title: "Disable Network Adapter Interrupt Moderation",
+            description: "Disables interrupt moderation on all physical network adapters to eliminate CPU interrupt batching delays and minimize packet latency.",
+            howItWorks: "Executes PowerShell 'Set-NetAdapterAdvancedProperty -Name * -RegistryKeyword *InterruptModeration -RegistryValue 0'.",
+            problemSolved: "Network card interrupt moderation batches packet processing to reduce CPU interrupts, adding 1-5ms packet holding delay in fast-paced games.",
+            expectedResult: "Immediate packet interrupt handling for true real-time network response.",
+            category: TweakCategory.NetworkOptimization,
+            risk: RiskLevel.Medium,
+            recommendation: RecommendationLevel.Recommended,
+            applyFileName: "powershell.exe",
+            applyArguments: "-NoProfile -ExecutionPolicy Bypass -Command \"Set-NetAdapterAdvancedProperty -Name * -RegistryKeyword '*InterruptModeration' -RegistryValue '0' -ErrorAction SilentlyContinue\"",
+            rollbackFileName: "powershell.exe",
+            rollbackArguments: "-NoProfile -ExecutionPolicy Bypass -Command \"Set-NetAdapterAdvancedProperty -Name * -RegistryKeyword '*InterruptModeration' -RegistryValue '1' -ErrorAction SilentlyContinue\"",
+            checkStatus: async () =>
+            {
+                var res = await CommandOperations.RunAsync("powershell.exe", "-NoProfile -ExecutionPolicy Bypass -Command \"(Get-NetAdapterAdvancedProperty -Name * -RegistryKeyword '*InterruptModeration*' -ErrorAction SilentlyContinue).RegistryValue\"");
+                if (res.ExitCode == 0 && !string.IsNullOrWhiteSpace(res.Output) && res.Output.Contains("0") && !res.Output.Contains("1"))
+                {
+                    return TweakStatus.Applied;
+                }
+                return TweakStatus.NotApplied;
+            }
         );
     }
 }

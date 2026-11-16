@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -30,10 +30,10 @@ public static class CpuTweaks
             description: "Unhides the CPU Core Parking Minimum/Maximum Cores policy in the Windows Power Options menu.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\0cc5b647-c190-4594-944f-6213cc715194.",
             problemSolved: "Allows system to prevent parking CPU cores on AC power, keeping all physical cores active and warm.",
-            expectedResult: "Eliminates core wake-up micro-delays (1-2 ms penalty per parked core unpark event).",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.CpuOptimization,
             risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
+            recommendation: RecommendationLevel.Optional,
             hive: "HKLM",
             subKey: @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c190-4594-944f-6213cc715194",
             valueName: "Attributes",
@@ -58,22 +58,20 @@ public static class CpuTweaks
             fallbackDefaultValue: 2
         );
 
-        yield return TweakBuilder.CreateMultiRegistry(
+        yield return TweakBuilder.CreateMultiRegistryMixed(
             id: "cpu_mmcss_game_tasks",
             title: "MMCSS High-Priority Gaming Thread Scheduling",
-            description: "Configures Multimedia Class Scheduler Service (MMCSS) to treat game process threads with high scheduling priority and dedicated GPU quota.",
-            howItWorks: "Configures Scheduling Category = 'High', Priority = 6, and GPU Priority = 8 in HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games.",
-            problemSolved: "Prevents background maintenance tasks from preempting the game's render thread during high CPU loads.",
-            expectedResult: "Smooth frame rate delivery and minimized 1% low frame drops.",
+            description: "Sets the Games MMCSS task category for applications that explicitly register their threads with MMCSS. Ordinary game threads are unaffected.",
+            howItWorks: "Sets Scheduling Category=High; task Priority is set to 2, the documented effective priority for High category. Source: https://learn.microsoft.com/en-us/windows/win32/procthread/multimedia-class-scheduler-service",
+            problemSolved: "Allows tuning for multimedia threads explicitly registered with the Games MMCSS task; does not prioritize every game render thread.",
+            expectedResult: "Scenario-dependent MMCSS scheduling; no guaranteed FPS benefit. May reduce time available to background multimedia.",
             category: TweakCategory.CpuOptimization,
-            risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
+            risk: RiskLevel.Medium,
+            recommendation: RecommendationLevel.Optional,
+            entries: new (string Hive, string SubKey, string ValueName, object AppliedValue)[]
             {
-                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Priority", 6),
-                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "GPU Priority", 8),
-                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Scheduling Category", 2),
-                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "SFIO Priority", 1)
+                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Priority", 2),
+                ("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", "Scheduling Category", "High")
             }
         );
 
@@ -100,10 +98,10 @@ public static class CpuTweaks
             description: "Exposes Energy Performance Preference settings for Intel processors, enabling 0-scale Maximum Performance on AC power.",
             howItWorks: "Unhides Intel HWP energy preference attribute in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\36687f9e-1337-42ce-808c-a630502e6f04.",
             problemSolved: "Intel Core processors default to balanced speed ramp-up curves, adding 15-30 ms frequency scaling latency on load changes.",
-            expectedResult: "Instant frequency boost to maximum Turbo clock upon game scene changes.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.CpuOptimization,
             risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
+            recommendation: RecommendationLevel.Optional,
             hive: "HKLM",
             subKey: @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\36687f9e-1337-42ce-808c-a630502e6f04",
             valueName: "Attributes",
@@ -170,7 +168,7 @@ public static class CpuTweaks
             description: "Unhides the CPU Turbo/Core Boost Mode policy dropdown in power options, allowing configuration of aggressive boosting.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\be337238-0d82-4146-a960-4f3749d470c7.",
             problemSolved: "Enables users to lock CPU boost to 'Aggressive At Guaranteed' or 'Efficient Aggressive'.",
-            expectedResult: "Full access to processor frequency scaling policies.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.CpuOptimization,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Optional,
@@ -204,10 +202,10 @@ public static class CpuTweaks
             description: "Exposes heterogeneous architecture (P-core and E-core) thread scheduling policy in advanced power options for hybrid CPUs.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\7f2492b6-60b1-45e5-ae13-98c232876e53.",
             problemSolved: "Allows manual assignment of game render and simulation threads strictly to high-performance cores (P-cores).",
-            expectedResult: "Prevents high-load game simulation loops from accidentally running on low-frequency Efficient cores.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.CpuOptimization,
             risk: RiskLevel.Low,
-            recommendation: RecommendationLevel.Recommended,
+            recommendation: RecommendationLevel.Optional,
             hive: "HKLM",
             subKey: @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\7f2492b6-60b1-45e5-ae13-98c232876e53",
             valueName: "Attributes",
@@ -292,7 +290,7 @@ public static class CpuTweaks
             description: "Unhides power setting policy governing where short-running threads are scheduled on hybrid processors.",
             howItWorks: "Sets Attributes to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\bae08b81-2d5e-4233-ad97-97444b9d390d.",
             problemSolved: "Enables users to route background short tasks away from critical gaming render cores.",
-            expectedResult: "Prevents background spikes from stealing cache and memory bandwidth from primary game threads.",
+            expectedResult: "Exposes an advanced power-plan control only; active AC/DC values stay unchanged until edited in Windows power settings. No direct performance gain.",
             category: TweakCategory.CpuOptimization,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Optional,
@@ -318,6 +316,24 @@ public static class CpuTweaks
             valueName: "DpcQueueDepth",
             appliedValue: 1,
             fallbackDefaultValue: 0,
+            requiresReboot: true
+        );
+
+        yield return TweakBuilder.CreateMultiRegistry(
+            id: "cpu_disable_vbs_hvci",
+            title: "Disable Virtualization-Based Security (VBS & HVCI)",
+            description: "Disables Windows Virtualization-Based Security (VBS) and Hypervisor-Enforced Code Integrity (HVCI) for maximum CPU instruction throughput and gaming performance.",
+            howItWorks: "Sets 'EnableVirtualizationBasedSecurity' to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard and 'Enabled' to 0 in HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity.",
+            problemSolved: "Virtualization-based security creates CPU memory page translation overhead and virtualization traps, reducing 1% Low FPS by up to 5-15% in CPU-intensive games.",
+            expectedResult: "Higher instruction execution rate, lower CPU latency, and stabilized 1% Low FPS.",
+            category: TweakCategory.CpuOptimization,
+            risk: RiskLevel.High,
+            recommendation: RecommendationLevel.Optional,
+            dwords: new[]
+            {
+                ("HKLM", @"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", 0),
+                ("HKLM", @"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled", 0)
+            },
             requiresReboot: true
         );
     }

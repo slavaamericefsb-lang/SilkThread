@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using SilkThread.App.Services;
 using Windows.System;
 using Windows.UI;
 
@@ -20,6 +21,14 @@ public sealed partial class DeveloperAuthDialog : ContentDialog
     {
         InitializeComponent();
         XamlRoot = App.MainWindowInstance?.Content?.XamlRoot ?? this.XamlRoot;
+
+        var loc = LocalizationService.Instance;
+        TitleTextBlock.Text = loc["DevAuth_Title"];
+        SubtitleTextBlock.Text = loc["DevAuth_Subtitle"];
+        KeyLabelTextBlock.Text = loc["DevAuth_KeyLabel"];
+        KeyPasswordBox.PlaceholderText = loc["DevAuth_KeyPlaceholder"];
+        BtnCancelText.Text = loc["DevAuth_Cancel"];
+        BtnSubmitText.Text = loc["DevAuth_Submit"];
     }
 
     private void KeyPasswordBox_Loaded(object sender, RoutedEventArgs e)
@@ -72,7 +81,7 @@ public sealed partial class DeveloperAuthDialog : ContentDialog
         else
         {
             IsAuthenticated = false;
-            ErrorTextBlock.Text = "Неверный ключ доступа";
+            ErrorTextBlock.Text = LocalizationService.Instance["DevAuth_InvalidKey"];
             ErrorTextBlock.Visibility = Visibility.Visible;
             KeyPasswordBox.BorderBrush = ErrorBorderBrush;
             KeyPasswordBox.SelectAll();

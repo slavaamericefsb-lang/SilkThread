@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="SilkThread.App.Views.HistoryPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -10,7 +10,7 @@
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <Grid Background="#0E1017" Padding="28,20,28,32" RowSpacing="16">
+    <Grid Background="{StaticResource SilkBackgroundDarkBrush}" Padding="24,20,24,28" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid x:Name="HeaderGrid" Grid.Row="0">
+        <Border Style="{StaticResource SilkTechHeroStyle}"><Grid RowSpacing="12" helpers:ResponsiveColumns.Breakpoint="880" x:Name="HeaderGrid" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -26,7 +26,7 @@
 
             <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" Style="{StaticResource SilkPageTitleStyle}" />
-                <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" />
+                <TextBlock Text="{x:Bind ViewModel.PageSubtitle, Mode=OneWay}" Style="{StaticResource SilkPageSubtitleStyle}" Margin="0,2,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
@@ -34,7 +34,7 @@
                 <Button Command="{x:Bind ViewModel.LoadHistoryCommand}"
                         Style="{StaticResource SilkSecondaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="#806BFF" />
+                        <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
                         <TextBlock Text="{x:Bind ViewModel.RefreshBtnLabel, Mode=OneWay}" FontSize="12" />
                     </StackPanel>
                 </Button>
@@ -44,11 +44,11 @@
                         Style="{StaticResource SilkSecondaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="#EF4444" />
-                        <TextBlock Text="{x:Bind ViewModel.ClearBtnLabel, Mode=OneWay}" FontSize="12" Foreground="#F3F4F8" />
+                        <TextBlock Text="{x:Bind ViewModel.ClearBtnLabel, Mode=OneWay}" FontSize="12" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                     </StackPanel>
                 </Button>
             </StackPanel>
-        </Grid>
+        </Grid></Border>
 
         <!-- Status Notification -->
         <InfoBar Grid.Row="1" Severity="Informational"
@@ -64,8 +64,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Column Header Bar (Minimal Dark UI #202431 with #2B3040 border) -->
-                <Border Grid.Row="0" Background="#202431" 
-                        BorderBrush="#2B3040" BorderThickness="1" 
+                <Border Grid.Row="0" Background="{StaticResource SilkSubsurfaceDarkBrush}" 
+                        BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" 
                         CornerRadius="8" Padding="14,10" Margin="0,0,0,10">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -76,22 +76,22 @@
                             <ColumnDefinition Width="120" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE823;" FontSize="10" Foreground="#969CAB" />
-                            <TextBlock Text="{x:Bind ViewModel.ColTime, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#969CAB" />
+                            <FontIcon Glyph="&#xE823;" FontSize="10" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ColTime, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE71D;" FontSize="10" Foreground="#969CAB" />
-                            <TextBlock Text="{x:Bind ViewModel.ColTweak, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#969CAB" />
+                            <FontIcon Glyph="&#xE71D;" FontSize="10" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ColTweak, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="#969CAB" />
-                            <TextBlock Text="{x:Bind ViewModel.ColCategory, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#969CAB" />
+                            <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ColCategory, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE7C3;" FontSize="10" Foreground="#969CAB" />
-                            <TextBlock Text="{x:Bind ViewModel.ColStatus, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#969CAB" />
+                            <FontIcon Glyph="&#xE7C3;" FontSize="10" Foreground="{StaticResource SilkTextSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ColStatus, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                         </StackPanel>
-                        <TextBlock Grid.Column="4" Text="{x:Bind ViewModel.ColAction, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="#969CAB" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Text="{x:Bind ViewModel.ColAction, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
 
@@ -106,17 +106,12 @@
                             <Setter Property="MinHeight" Value="0" />
                         </Style>
                     </ListView.ItemContainerStyle>
-                    <ListView.ItemContainerTransitions>
-                        <TransitionCollection>
-                            <EntranceThemeTransition FromVerticalOffset="20" />
-                            <RepositionThemeTransition />
-                        </TransitionCollection>
-                    </ListView.ItemContainerTransitions>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:TweakAuditRecord">
-                            <Border Background="#181B25" 
-                                    BorderBrush="#2B3040" 
-                                    BorderThickness="1" CornerRadius="8" Padding="14,10">
+                            <Border Background="{StaticResource SilkCardDarkBrush}" 
+                                    BorderBrush="{StaticResource SilkStrokeDarkBrush}" 
+                                    BorderThickness="1" CornerRadius="8" Padding="14,10"
+                                    helpers:HoverAnimation.IsEnabled="True" helpers:HoverAnimation.HoverBorderColor="#806BFF">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="150" />
@@ -128,23 +123,23 @@
 
                                     <!-- Date & Time -->
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
-                                        <TextBlock Text="{x:Bind FormattedDate}" FontSize="12" Foreground="#F3F4F8" FontFamily="Consolas" />
-                                        <TextBlock Text="{x:Bind FormattedTime}" FontSize="10.5" Foreground="#969CAB" FontFamily="Consolas" />
+                                        <TextBlock Text="{x:Bind FormattedDate}" FontSize="12" Foreground="{StaticResource SilkTextPrimaryBrush}" FontFamily="Consolas" />
+                                        <TextBlock Text="{x:Bind FormattedTime}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" FontFamily="Consolas" />
                                     </StackPanel>
 
                                     <!-- Tweak Title & ID -->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                        <TextBlock Text="{x:Bind TweakName}" FontWeight="SemiBold" FontSize="12.5" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{x:Bind TweakId}" FontSize="10" Foreground="#969CAB" FontFamily="Consolas" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind TweakName}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind TweakId}" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" FontFamily="Consolas" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
 
                                     <!-- Category Chip -->
-                                    <Border Grid.Column="2" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <Border Grid.Column="2" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                             <FontIcon Glyph="{x:Bind Category, Converter={StaticResource CategoryToIconConverter}}" 
-                                                      FontSize="11" Foreground="#806BFF" />
+                                                      FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
                                             <TextBlock Text="{x:Bind Category, Converter={StaticResource LocalizedCategoryConverter}}" 
-                                                       FontSize="11" Foreground="#969CAB" TextTrimming="CharacterEllipsis" />
+                                                       FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Border>
 
@@ -157,7 +152,7 @@
                                             <FontIcon Glyph="{x:Bind Status, Converter={StaticResource StatusToIconConverter}}" 
                                                       FontSize="10" Foreground="{x:Bind Status, Converter={StaticResource StatusToColorConverter}}" />
                                             <TextBlock Text="{x:Bind Status, Converter={StaticResource LocalizedStatusConverter}}" 
-                                                       FontSize="10.5" FontWeight="SemiBold" Foreground="{x:Bind Status, Converter={StaticResource StatusToColorConverter}}" />
+                                                       FontSize="11" FontWeight="SemiBold" Foreground="{x:Bind Status, Converter={StaticResource StatusToColorConverter}}" />
                                         </StackPanel>
                                     </Border>
 
@@ -166,10 +161,11 @@
                                             Click="RollbackButton_Click"
                                             Tag="{x:Bind}"
                                             IsEnabled="{x:Bind IsRolledBack, Converter={StaticResource InverseBoolConverter}}"
-                                            Style="{StaticResource SilkSecondaryButtonStyle}" Padding="10,5">
+                                            Style="{StaticResource SilkSecondaryButtonStyle}" Padding="10,5"
+                                            helpers:HoverAnimation.IsEnabled="True" helpers:HoverAnimation.HoverBorderColor="#806BFF">
                                         <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <FontIcon Glyph="&#xE7A7;" FontSize="11" Foreground="#806BFF" />
-                                            <TextBlock Text="{x:Bind TweakId, Converter={StaticResource ActionTextConverter}, ConverterParameter=Hist_Rollback_Btn}" FontSize="11" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                                            <FontIcon Glyph="&#xE7A7;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                                            <TextBlock Text="{x:Bind TweakId, Converter={StaticResource ActionTextConverter}, ConverterParameter=Hist_Rollback_Btn}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -179,16 +175,16 @@
                 </ListView>
 
                 <!-- Empty State -->
-                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14"
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Spacing="14"
                             Visibility="{x:Bind ViewModel.HasNoRecords, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <Border Width="64" Height="64" CornerRadius="32" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE81C;" FontSize="28" Foreground="#806BFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE81C;" FontSize="28" Foreground="{StaticResource SilkBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <StackPanel Spacing="4" HorizontalAlignment="Stretch">
                         <TextBlock Text="{x:Bind ViewModel.EmptyTitleLabel, Mode=OneWay}" 
-                                   FontSize="15" FontWeight="SemiBold" Foreground="#F3F4F8" HorizontalAlignment="Center" />
+                                   FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" HorizontalAlignment="Stretch" TextWrapping="Wrap" TextAlignment="Center" />
                         <TextBlock Text="{x:Bind ViewModel.EmptyLabel, Mode=OneWay}" 
-                                   FontSize="12" Foreground="#969CAB" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="440" LineHeight="17" />
+                                   FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Stretch" TextAlignment="Center" MaxWidth="440" LineHeight="17" TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
             </Grid>

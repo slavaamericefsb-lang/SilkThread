@@ -96,6 +96,7 @@ public class StatusToColorConverter : IValueConverter
                 "Applied" => new SolidColorBrush(Color.FromArgb(255, 34, 197, 94)),
                 "RolledBack" => new SolidColorBrush(Color.FromArgb(255, 150, 156, 171)),
                 "Failed" => new SolidColorBrush(Color.FromArgb(255, 239, 68, 68)),
+                "Prepared" or "Unverified" or "Restoring" => new SolidColorBrush(Color.FromArgb(255, 245, 158, 11)),
                 _ => new SolidColorBrush(Color.FromArgb(255, 150, 156, 171))
             };
         }
@@ -192,6 +193,7 @@ public class StatusToIconConverter : IValueConverter
                 "Applied" => "\uE73E",
                 "RolledBack" => "\uE7A7",
                 "Failed" => "\uE783",
+                "Prepared" or "Unverified" or "Restoring" => "\uE7BA",
                 _ => "\uE73E"
             };
         }
@@ -324,6 +326,12 @@ public class LocalizedStatusConverter : IValueConverter
                 "Applied" => isRu ? "Применен" : "Applied",
                 "RolledBack" => isRu ? "Откачен" : "Rolled back",
                 "Failed" => isRu ? "Ошибка" : "Failed",
+                "Prepared" => isRu ? "Ожидает проверки" : "Pending",
+                "Unverified" => isRu ? "Не подтверждено" : "Unverified",
+                "Restoring" => isRu ? "Откат не завершён" : "Restore pending",
+                "SavedRestartRequired" => isRu ? "Нужен перезапуск" : "Restart required",
+                "RestoreSavedRestartRequired" => isRu ? "Откат: перезапуск" : "Restore: restart",
+                "Confirmed" => isRu ? "Подтверждено" : "Verified",
                 _ => s
             };
         }

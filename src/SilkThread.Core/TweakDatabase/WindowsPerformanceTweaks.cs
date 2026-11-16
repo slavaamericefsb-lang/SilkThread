@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SilkThread.Core.Models;
 
 namespace SilkThread.Core.TweakDatabase;
@@ -7,7 +7,7 @@ public static class WindowsPerformanceTweaks
 {
     public static IEnumerable<TweakDefinition> GetTweaks()
     {
-        yield return TweakBuilder.CreateRegistryDword(
+        yield return TweakBuilder.CreateRegistryString(
             id: "win_menu_show_delay",
             title: "Reduce Menu Show Delay to 10ms",
             description: "Reduces the deliberate 400ms delay Windows inserts before opening submenus and contextual lists to 10ms.",
@@ -20,8 +20,8 @@ public static class WindowsPerformanceTweaks
             hive: "HKCU",
             subKey: @"Control Panel\Desktop",
             valueName: "MenuShowDelay",
-            appliedValue: 10,
-            fallbackDefaultValue: 400
+            appliedValue: "10",
+            fallbackDefaultValue: "400"
         );
 
         yield return TweakBuilder.CreateRegistryDword(
@@ -41,7 +41,7 @@ public static class WindowsPerformanceTweaks
             fallbackDefaultValue: 1
         );
 
-        yield return TweakBuilder.CreateMultiRegistry(
+        yield return TweakBuilder.CreateMultiRegistryMixed(
             id: "win_window_animations_disable",
             title: "Disable Window Animations & Transitions",
             description: "Disables window opening, closing, minimize, and maximize animations.",
@@ -51,9 +51,9 @@ public static class WindowsPerformanceTweaks
             category: TweakCategory.WindowsPerformance,
             risk: RiskLevel.Low,
             recommendation: RecommendationLevel.Recommended,
-            dwords: new[]
+            entries: new (string Hive, string SubKey, string ValueName, object AppliedValue)[]
             {
-                ("HKCU", @"Control Panel\Desktop\WindowMetrics", "MinAnimate", 0),
+                ("HKCU", @"Control Panel\Desktop\WindowMetrics", "MinAnimate", "0"),
                 ("HKCU", @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAnimations", 0)
             }
         );
@@ -310,6 +310,23 @@ public static class WindowsPerformanceTweaks
             valueName: "PrintScreenSnippetForScreenCaptureEnabled",
             appliedValue: 0,
             fallbackDefaultValue: 1
+        );
+
+        yield return TweakBuilder.CreateMultiRegistry(
+            id: "win_start_bing_search_disable",
+            title: "Disable Bing Search & Cloud Suggestions in Start Menu",
+            description: "Completely disables Bing web search queries, cloud suggestions, and trending searches from the Windows Start menu.",
+            howItWorks: "Sets 'DisableSearchBoxSuggestions' to 1 in HKCU\\Software\\Policies\\Microsoft\\Windows\\Explorer and 'BingSearchEnabled' to 0 in HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Search.",
+            problemSolved: "Typing in the Start menu queries remote Bing servers, causing a 1-3 second delay before displaying local installed applications and transmitting search queries.",
+            expectedResult: "Instant local application search without network lag and complete privacy from Bing web telemetry.",
+            category: TweakCategory.WindowsPerformance,
+            risk: RiskLevel.Low,
+            recommendation: RecommendationLevel.Recommended,
+            dwords: new[]
+            {
+                ("HKCU", @"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1),
+                ("HKCU", @"Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 0)
+            }
         );
     }
 }

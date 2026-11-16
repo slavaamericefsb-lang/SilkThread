@@ -30,6 +30,7 @@ public interface ISettingsService
 public class SettingsService : ISettingsService
 {
     private readonly string _settingsFilePath;
+    private readonly object _fileLock = new();
     public AppSettingsModel Settings { get; private set; }
 
     public int LastOptimizationProfileIndex
@@ -42,13 +43,13 @@ public class SettingsService : ISettingsService
 
     public void SaveSettings() => Save();
 
-    public SettingsService()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dir = Path.Combine(appData, "SilkThread");
-        Directory.CreateDirectory(dir);
-        _settingsFilePath = Path.Combine(dir, "settings.json");
+    public SettingsService() : this(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SilkThread", "settings.json")) { }
 
+    public SettingsService(string settingsFilePath)
+    {
+        _settingsFilePath = Path.GetFullPath(settingsFilePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath)!);
         Settings = LoadSettings();
     }
 
@@ -76,10 +77,22 @@ public class SettingsService : ISettingsService
     {
         try
         {
-            var json = JsonSerializer.Serialize(Settings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_settingsFilePath, json);
+            lock (_fileLock)
+            {
+                var json = JsonSerializer.Serialize(Settings, new JsonSerializerOptions { WriteIndented = true });
+                string temporaryPath = _settingsFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    File.WriteAllText(temporaryPath, json);
+                    File.Move(temporaryPath, _settingsFilePath, overwrite: true);
+                }
+                finally
+                {
+                    if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+                }
+            }
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
-        catch { }
+        catch (Exception ex) { App.Log($"[Settings Save failed]: {ex.Message}"); }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -68,6 +68,8 @@ public partial class TweaksViewModel : ObservableObject
     private readonly IPresetManager _presetManager;
 
     private List<TweakItemViewModel> _allTweaks = new();
+    public bool HasRunningOperations => IsLoading || _allTweaks.Any(t => t.IsBusy)
+        || ApplyRecommendedCommand.IsRunning || RevertCategoryCommand.IsRunning;
 
     public ObservableCollection<CategoryTabItem> Categories { get; } = new();
 
@@ -102,7 +104,7 @@ public partial class TweaksViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
-    private int _totalCount = 265;
+    private int _totalCount;
 
     [ObservableProperty]
     private int _appliedCount;
@@ -121,7 +123,7 @@ public partial class TweaksViewModel : ObservableObject
     // Localized UI strings for Tweaks Page
     public string PageTitle => _loc["Tweaks_Title"];
     public string PageSubtitle => _loc["Tweaks_Subtitle"];
-    public string SearchPlaceholder => _loc.CurrentLanguage == "ru" ? "Поиск среди 265 твиков..." : "Search among 265 tweaks...";
+    public string SearchPlaceholder => _loc.CurrentLanguage == "ru" ? $"Поиск среди {TotalCount} твиков…" : $"Search among {TotalCount} tweaks…";
     public string FilterAllLabel => _loc["Tweaks_Filter_All"];
     public string FilterRecommendedLabel => _loc["Tweaks_Filter_Recommended"];
     public string FilterAppliedLabel => _loc["Tweaks_Filter_Applied"];
@@ -227,6 +229,7 @@ public partial class TweaksViewModel : ObservableObject
                 tweak.RefreshLocalization();
             }
             BuildCategoryTabs();
+            UpdateCategoryCounts();
             ApplyFilters();
         };
 
@@ -237,6 +240,10 @@ public partial class TweaksViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(PageTitle));
         OnPropertyChanged(nameof(PageSubtitle));
+        OnPropertyChanged(nameof(StatusFilters));
+        OnPropertyChanged(nameof(RiskFilters));
+        OnPropertyChanged(nameof(RebootFilters));
+        OnPropertyChanged(nameof(CompatibilityFilterLabel));
         OnPropertyChanged(nameof(SearchPlaceholder));
         OnPropertyChanged(nameof(FilterAllLabel));
         OnPropertyChanged(nameof(FilterRecommendedLabel));
@@ -314,7 +321,7 @@ public partial class TweaksViewModel : ObservableObject
             Name = isRu ? "Все" : "All",
             Icon = "\uE71D", // All apps
             Category = null,
-            Count = _allTweaks.Count > 0 ? _allTweaks.Count : 265
+            Count = _allTweaks.Count
         });
 
         foreach (TweakCategory cat in Enum.GetValues<TweakCategory>())
@@ -358,14 +365,18 @@ public partial class TweaksViewModel : ObservableObject
         _ => "\uE713"
     };
 
-    public async Task InitializeAsync()
+    private Task? _initialization;
+    private bool _refreshingStatuses;
+    public Task InitializeAsync() => _initialization ??= InitializeCoreAsync();
+    private async Task InitializeCoreAsync()
     {
-        if (_allTweaks.Count > 0) return;
 
         IsLoading = true;
         try
         {
-            var hardware = await _hardwareScanner.ScanAsync();
+            var observation = _hardwareScanner.LastObservation;
+            var hardware = observation != null && DateTimeOffset.UtcNow - observation.CheckedAtUtc <= TimeSpan.FromSeconds(30)
+                ? observation.Profile : await _hardwareScanner.ScanAsync();
             var defs = _tweakEngine.GetAllTweaks();
 
             _allTweaks = defs.Select(d =>
@@ -376,6 +387,7 @@ public partial class TweaksViewModel : ObservableObject
                 {
                     if (e.PropertyName == nameof(TweakItemViewModel.Status))
                     {
+                        if (_refreshingStatuses) return;
                         UpdateCounts();
                         if (SelectedFilterType == "Applied" || SelectedFilterType == "NotApplied")
                         {
@@ -389,8 +401,18 @@ public partial class TweaksViewModel : ObservableObject
             TotalCount = _allTweaks.Count;
             CompatibleCount = _allTweaks.Count(t => t.IsCompatible);
 
-            // Check current statuses concurrently
-            await Task.WhenAll(_allTweaks.Select(t => t.RefreshStatusAsync()));
+            OnPropertyChanged(nameof(SearchPlaceholder));
+            UpdateCounts();
+            ApplyFilters(); // Render the catalog before slow service/command probes complete.
+            _refreshingStatuses = true;
+            using var probes = new System.Threading.SemaphoreSlim(4);
+            await Task.WhenAll(_allTweaks.Select(async t =>
+            {
+                await probes.WaitAsync();
+                try { await t.RefreshStatusAsync(); }
+                finally { probes.Release(); }
+            }));
+            _refreshingStatuses = false;
             UpdateCounts();
 
             UpdateCategoryCounts();
@@ -403,7 +425,9 @@ public partial class TweaksViewModel : ObservableObject
         }
         finally
         {
+            _refreshingStatuses = false;
             IsLoading = false;
+            if (_allTweaks.Count == 0) _initialization = null;
         }
     }
 
@@ -444,9 +468,33 @@ public partial class TweaksViewModel : ObservableObject
         ApplyFilters();
     }
 
-    partial void OnSearchQueryChanged(string value) => ApplyFilters();
+    private System.Threading.CancellationTokenSource? _searchDelay;
+    partial void OnSearchQueryChanged(string value) => _ = DebounceSearchAsync();
+    private async Task DebounceSearchAsync()
+    {
+        _searchDelay?.Cancel();
+        var delay = _searchDelay = new System.Threading.CancellationTokenSource();
+        try { await Task.Delay(150, delay.Token); ApplyFilters(); }
+        catch (OperationCanceledException) { }
+        finally { if (ReferenceEquals(_searchDelay, delay)) _searchDelay = null; delay.Dispose(); }
+    }
+
+    public string[] StatusFilters => new[] { FilterAllLabel, FilterRecommendedLabel, FilterAppliedLabel, FilterNotAppliedLabel, FilterSafeLabel };
+    public string[] RiskFilters => _loc.CurrentLanguage == "ru" ? new[] { "Любой риск", "Низкий", "Средний", "Высокий", "Критический" } : new[] { "Any risk", "Low", "Medium", "High", "Critical" };
+    public string[] RebootFilters => _loc.CurrentLanguage == "ru" ? new[] { "Перезагрузка: любая", "Без перезагрузки", "Нужна перезагрузка" } : new[] { "Any restart requirement", "No restart", "Restart required" };
+    public string CompatibilityFilterLabel => _loc.CurrentLanguage == "ru" ? "Только совместимые" : "Compatible only";
+    public int FilterIndex
+    {
+        get => Array.IndexOf(new[] { "All", "Recommended", "Applied", "NotApplied", "Safe" }, SelectedFilterType);
+        set { if (value is >= 0 and <= 4) SelectedFilterType = new[] { "All", "Recommended", "Applied", "NotApplied", "Safe" }[value]; }
+    }
+    [ObservableProperty] public partial int RiskFilterIndex { get; set; }
+    [ObservableProperty] public partial int RebootFilterIndex { get; set; }
+    partial void OnRiskFilterIndexChanged(int value) => ApplyFilters();
+    partial void OnRebootFilterIndexChanged(int value) => ApplyFilters();
     partial void OnSelectedFilterTypeChanged(string value)
     {
+        OnPropertyChanged(nameof(FilterIndex));
         OnPropertyChanged(nameof(IsFilterAll));
         OnPropertyChanged(nameof(IsFilterRecommended));
         OnPropertyChanged(nameof(IsFilterApplied));
@@ -560,26 +608,42 @@ public partial class TweaksViewModel : ObservableObject
             return;
         }
 
-        var dialog = new CreatePresetDialog(activeIds.Count);
-        dialog.XamlRoot = App.MainWindowInstance?.Content?.XamlRoot;
-        await dialog.ShowAsync();
-
-        if (dialog.IsConfirmed)
+        try
         {
-            var preset = await _presetManager.CreatePresetFromTweakIdsAsync(
-                dialog.PresetName,
-                dialog.PresetDescription,
-                activeIds,
-                dialog.PresetAuthor
-            );
-
-            string defaultFileName = $"{SanitizeFileName(dialog.PresetName)}.silkpreset";
-            var savePath = await FilePickerHelper.PickSavePresetFileAsync(defaultFileName);
-            if (!string.IsNullOrEmpty(savePath))
+            var xamlRoot = App.MainWindowInstance?.Content?.XamlRoot;
+            if (xamlRoot == null)
             {
-                await _presetManager.ExportPresetAsync(preset, savePath);
-                BatchStatusMessage = string.Format(_loc["Tweaks_PresetSaved"], preset.Name);
+                App.Log("[CreatePresetAsync] Cannot show dialog: XamlRoot is null.");
+                return;
             }
+
+            var dialog = new CreatePresetDialog(activeIds.Count)
+            {
+                XamlRoot = xamlRoot
+            };
+            await dialog.ShowAsync();
+
+            if (dialog.IsConfirmed)
+            {
+                var preset = await _presetManager.CreatePresetFromTweakIdsAsync(
+                    dialog.PresetName,
+                    dialog.PresetDescription,
+                    activeIds,
+                    dialog.PresetAuthor
+                );
+
+                string defaultFileName = $"{SanitizeFileName(dialog.PresetName)}.silkpreset";
+                var savePath = await FilePickerHelper.PickSavePresetFileAsync(defaultFileName);
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    await _presetManager.ExportPresetAsync(preset, savePath);
+                    BatchStatusMessage = string.Format(_loc["Tweaks_PresetSaved"], preset.Name);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[CreatePresetAsync error]: {ex.Message}");
         }
     }
 
@@ -593,8 +657,17 @@ public partial class TweaksViewModel : ObservableObject
         try
         {
             var evaluated = await _presetManager.LoadAndEvaluatePresetAsync(filePath);
-            var dialog = new PresetReviewDialog(evaluated, _tweakEngine);
-            dialog.XamlRoot = App.MainWindowInstance?.Content?.XamlRoot;
+            var xamlRoot = App.MainWindowInstance?.Content?.XamlRoot;
+            if (xamlRoot == null)
+            {
+                App.Log("[ActivatePresetAsync] Cannot show dialog: XamlRoot is null.");
+                return;
+            }
+
+            var dialog = new PresetReviewDialog(evaluated, _tweakEngine)
+            {
+                XamlRoot = xamlRoot
+            };
             await dialog.ShowAsync();
 
             if (dialog.WasApplied && dialog.AppliedCount > 0)
@@ -625,6 +698,16 @@ public partial class TweaksViewModel : ObservableObject
         return string.IsNullOrWhiteSpace(clean) ? "SilkPreset" : clean;
     }
 
+    public async Task FocusTweakAsync(string id)
+    {
+        await InitializeAsync();
+        var target = _allTweaks.FirstOrDefault(t => string.Equals(t.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (target == null) return;
+        SelectedCategory = Categories.FirstOrDefault(); SelectedFilterType = "All";
+        RiskFilterIndex = 0; RebootFilterIndex = 0;
+        ShowIncompatible = !target.IsCompatible; SearchQuery = target.Id; SelectedTweak = target;
+    }
+
     private void ApplyFilters()
     {
         if (_allTweaks.Count == 0) return;
@@ -648,27 +731,34 @@ public partial class TweaksViewModel : ObservableObject
         {
             "Recommended" => query.Where(t => t.Recommendation == RecommendationLevel.Recommended),
             "Applied" => query.Where(t => t.IsApplied),
-            "NotApplied" => query.Where(t => !t.IsApplied),
+            "NotApplied" => query.Where(t => t.Status == TweakStatus.NotApplied),
             "Safe" => query.Where(t => t.Risk == RiskLevel.Low),
             _ => query
         };
+
+        if (RiskFilterIndex > 0) query = query.Where(t => (int)t.Risk == RiskFilterIndex - 1);
+        if (RebootFilterIndex > 0) query = query.Where(t => t.RequiresReboot == (RebootFilterIndex == 2));
 
         // 4. Search Filter
         if (!string.IsNullOrWhiteSpace(SearchQuery))
         {
             var q = SearchQuery.Trim().ToLowerInvariant();
             query = query.Where(t =>
-                t.Title.ToLowerInvariant().Contains(q) ||
-                t.Description.ToLowerInvariant().Contains(q) ||
-                t.ProblemSolved.ToLowerInvariant().Contains(q) ||
-                t.HowItWorks.ToLowerInvariant().Contains(q) ||
-                t.Id.ToLowerInvariant().Contains(q));
+                t.Title.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                t.Description.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                t.ProblemSolved.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                t.HowItWorks.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                t.Id.Contains(q, StringComparison.OrdinalIgnoreCase));
         }
 
-        FilteredTweaks.Clear();
-        foreach (var item in query)
+        var results = query.ToList();
+        if (!FilteredTweaks.SequenceEqual(results))
         {
-            FilteredTweaks.Add(item);
+            for (int i = FilteredTweaks.Count - 1; i >= 0; i--)
+                if (!results.Contains(FilteredTweaks[i])) FilteredTweaks.RemoveAt(i);
+            for (int i = 0; i < results.Count; i++)
+                if (i >= FilteredTweaks.Count || !ReferenceEquals(FilteredTweaks[i], results[i]))
+                    FilteredTweaks.Insert(i, results[i]);
         }
 
         FilteredCountText = string.Format(

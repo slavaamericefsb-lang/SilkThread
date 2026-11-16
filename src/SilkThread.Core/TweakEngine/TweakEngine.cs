@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +7,7 @@ using SilkThread.Core.BackupManager;
 using SilkThread.Core.CompatibilityEngine;
 using SilkThread.Core.Models;
 using SilkThread.Core.RestorePointManager;
+using SilkThread.Core.SystemOperations;
 
 namespace SilkThread.Core.TweakEngine;
 
@@ -28,6 +29,7 @@ public interface ITweakEngine
 
 public class TweakEngine : ITweakEngine
 {
+    private readonly SemaphoreSlim _statusWorkers = new(4, 4);
     private readonly IReadOnlyList<TweakDefinition> _tweaks;
     private readonly Dictionary<string, TweakDefinition> _tweakLookup;
     private readonly IBackupManager _backupManager;
@@ -63,24 +65,47 @@ public class TweakEngine : ITweakEngine
         var tweak = GetTweakById(tweakId);
         if (tweak == null) return TweakStatus.Unknown;
 
+        await _statusWorkers.WaitAsync().ConfigureAwait(false);
         try
         {
-            return await tweak.CheckCurrentStateAsync();
+            // Registry/service delegates often complete synchronously before their first await.
+            // Never execute those reads on a caller's UI thread or start hundreds at once.
+            return await Task.Run(tweak.CheckCurrentStateAsync).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to check status for tweak {TweakId}", tweakId);
             return TweakStatus.Failed;
         }
+        finally { _statusWorkers.Release(); }
     }
 
     public async Task<TweakOperationResult> ApplyTweakAsync(string tweakId)
+        => await WithMemoryGuardAsync(tweakId, () => ApplyTweakCoreAsync(tweakId));
+
+    private async Task<TweakOperationResult> WithMemoryGuardAsync(string tweakId, Func<Task<TweakOperationResult>> operation)
+    {
+        if (GetTweakById(tweakId)?.Category != TweakCategory.RamOptimization) return await operation();
+        await MemoryOperationCoordinator.Gate.WaitAsync();
+        try
+        {
+            if (_backupManager is IConfigurationJournal journal && await journal.GetOpenChangeAsync(PageFileService.Resource) is { State: not "Confirmed" })
+                return TweakOperationResult.Fail("Page-file configuration is awaiting recovery or restart verification. Finish it in System Settings first.");
+            return await operation();
+        }
+        catch (Exception ex) { return TweakOperationResult.Fail(ex.Message); }
+        finally { MemoryOperationCoordinator.Gate.Release(); }
+    }
+
+    private async Task<TweakOperationResult> ApplyTweakCoreAsync(string tweakId)
     {
         var tweak = GetTweakById(tweakId);
         if (tweak == null)
         {
             return TweakOperationResult.Fail($"Tweak '{tweakId}' not found in registry.");
         }
+        if (!string.IsNullOrWhiteSpace(tweak.AuditBlockReason))
+            return TweakOperationResult.Fail(tweak.AuditBlockReason);
 
         try
         {
@@ -91,8 +116,16 @@ public class TweakEngine : ITweakEngine
             bool verified = false;
             if (result.Success)
             {
-                var newStatus = await tweak.CheckCurrentStateAsync();
-                verified = (newStatus == TweakStatus.Applied);
+                try
+                {
+                    var newStatus = await tweak.CheckCurrentStateAsync();
+                    verified = (newStatus == TweakStatus.Applied);
+                }
+                catch (Exception ex)
+                {
+                    // Verification failure must not discard the successful operation's rollback snapshot.
+                    _logger?.LogWarning(ex, "Could not verify applied tweak {TweakId}", tweakId);
+                }
             }
 
             await _backupManager.RecordAppliedTweakAsync(
@@ -111,21 +144,28 @@ public class TweakEngine : ITweakEngine
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error applying tweak {TweakId}", tweakId);
-            await _backupManager.RecordAppliedTweakAsync(
-                tweak.Id,
-                tweak.Title,
-                tweak.Category.ToString(),
-                null,
-                null,
-                false,
-                false,
-                ex.Message
-            );
+            try
+            {
+                await _backupManager.RecordAppliedTweakAsync(
+                    tweak.Id,
+                    tweak.Title,
+                    tweak.Category.ToString(),
+                    null,
+                    null,
+                    false,
+                    false,
+                    ex.Message
+                );
+            }
+            catch { }
             return TweakOperationResult.Fail($"Exception while applying tweak: {ex.Message}");
         }
     }
 
     public async Task<TweakOperationResult> RollbackTweakAsync(string tweakId)
+        => await WithMemoryGuardAsync(tweakId, () => RollbackTweakCoreAsync(tweakId));
+
+    private async Task<TweakOperationResult> RollbackTweakCoreAsync(string tweakId)
     {
         var tweak = GetTweakById(tweakId);
         if (tweak == null)
@@ -161,7 +201,7 @@ public class TweakEngine : ITweakEngine
         bool createRestorePoint = false,
         IProgress<(int Current, int Total, string Status)>? progress = null)
     {
-        var idList = tweakIds.ToList();
+        var idList = tweakIds.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var results = new List<TweakOperationResult>();
 
         if (createRestorePoint)
@@ -196,7 +236,7 @@ public class TweakEngine : ITweakEngine
         IEnumerable<string> tweakIds,
         IProgress<(int Current, int Total, string Status)>? progress = null)
     {
-        var idList = tweakIds.ToList();
+        var idList = tweakIds.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var results = new List<TweakOperationResult>();
 
         for (int i = 0; i < idList.Count; i++)

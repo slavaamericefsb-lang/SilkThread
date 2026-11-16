@@ -151,40 +151,109 @@ public sealed class UpdateService : IUpdateService
         ArgumentException.ThrowIfNullOrWhiteSpace(appDir);
         ArgumentException.ThrowIfNullOrWhiteSpace(appExePath);
 
-        string cleanAppDir = appDir.TrimEnd('\\', '/');
-
+        static string BatchPath(string value)
+        {
+            if (value.IndexOfAny(new[] { '\"', '\r', '\n' }) >= 0)
+                throw new ArgumentException("Invalid update path.");
+            return value.Replace("%", "%%");
+        }
+        string transaction = GeneratePatchTransactionScript(patchZipPath, appDir);
+        string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(transaction));
         var sb = new StringBuilder();
         sb.AppendLine("@echo off");
-        sb.AppendLine("chcp 65001 >nul");
-        sb.AppendLine();
-        sb.AppendLine(":: 1. Wait for caller process to exit and release file handles");
+        sb.AppendLine("setlocal DisableDelayedExpansion");
         sb.AppendLine("timeout /t 1 /nobreak >nul 2>&1 || ping 127.0.0.1 -n 2 >nul");
-        sb.AppendLine();
-        sb.AppendLine(":: 2. Extract patch archive directly over application directory");
-        sb.AppendLine("where tar >nul 2>&1");
-        sb.AppendLine("if %errorlevel% equ 0 (");
-        sb.AppendLine($"    tar -xf \"{patchZipPath}\" -C \"{cleanAppDir}\"");
-        sb.AppendLine(") else (");
-        sb.AppendLine($"    powershell -NoProfile -NonInteractive -Command \"Expand-Archive -Path '{patchZipPath}' -DestinationPath '{cleanAppDir}' -Force\"");
-        sb.AppendLine(")");
-        sb.AppendLine();
-        sb.AppendLine(":: Ensure files replaced; retry once if still locked");
-        sb.AppendLine("if not %errorlevel% equ 0 (");
-        sb.AppendLine("    timeout /t 1 /nobreak >nul 2>&1");
-        sb.AppendLine("    where tar >nul 2>&1");
-        sb.AppendLine("    if %errorlevel% equ 0 (");
-        sb.AppendLine($"        tar -xf \"{patchZipPath}\" -C \"{cleanAppDir}\"");
-        sb.AppendLine("    )");
-        sb.AppendLine(")");
-        sb.AppendLine();
-        sb.AppendLine(":: 3. Restart updated application");
-        sb.AppendLine($"start \"\" \"{appExePath}\"");
-        sb.AppendLine();
-        sb.AppendLine(":: 4. Cleanup patch archive and self-delete script");
-        sb.AppendLine($"del /f /q \"{patchZipPath}\" >nul 2>&1");
+        // cmd.exe limits a single command line to 8191 characters. Store bounded
+        // base64 chunks instead of passing the entire transaction on its command line.
+        sb.AppendLine("set \"SILK_UPDATE_PAYLOAD=%~f0.payload\"");
+        for (int offset = 0; offset < encoded.Length; offset += 120)
+        {
+            string redirect = offset == 0 ? ">" : ">>";
+            sb.AppendLine($"{redirect} \"%SILK_UPDATE_PAYLOAD%\" echo {encoded.Substring(offset, Math.Min(120, encoded.Length - offset))}");
+        }
+        sb.AppendLine("powershell -NoProfile -NonInteractive -Command \"& ([scriptblock]::Create([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String([IO.File]::ReadAllText($env:SILK_UPDATE_PAYLOAD)))))\"");
+        sb.AppendLine("if errorlevel 1 exit /b 1");
+        sb.AppendLine("del /f /q \"%SILK_UPDATE_PAYLOAD%\" >nul 2>&1");
+        sb.AppendLine($"start \"\" \"{BatchPath(appExePath)}\"");
+        sb.AppendLine($"del /f /q \"{BatchPath(patchZipPath)}\" >nul 2>&1");
         sb.AppendLine("(goto) 2>nul & del \"%~f0\"");
-
         return sb.ToString();
+    }
+
+    /// <summary>Stages the entire archive and journals original files before replacing any file.</summary>
+    public static string GeneratePatchTransactionScript(string patchZipPath, string appDir)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(patchZipPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(appDir);
+        static string Literal(string value) => "'" + value.Replace("'", "''") + "'";
+        return "$patch = " + Literal(Path.GetFullPath(patchZipPath)) + "\r\n$root = " + Literal(Path.GetFullPath(appDir).TrimEnd('\\', '/')) + "\r\n" +
+            """
+            $ErrorActionPreference = 'Stop'
+            $recovery = Join-Path (Split-Path -Parent $root) ('SilkThread-recovery-' + [Guid]::NewGuid().ToString('N'))
+            $stage = Join-Path $recovery 'stage'
+            $backup = Join-Path $recovery 'backup'
+            $journal = @()
+            $touched = @()
+            try {
+                New-Item -ItemType Directory -Path $stage,$backup | Out-Null
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+                $zip = [IO.Compression.ZipFile]::OpenRead($patch)
+                try {
+                    $prefix = $stage + [IO.Path]::DirectorySeparatorChar
+                    foreach ($entry in $zip.Entries) {
+                        $name = $entry.FullName.Replace('/', '\')
+                        $destination = [IO.Path]::GetFullPath((Join-Path $stage $name))
+                        if ([IO.Path]::IsPathRooted($name) -or $name.Contains(':') -or
+                            !$destination.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) -or
+                            (($entry.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) {
+                            throw "Unsafe patch entry: $name"
+                        }
+                    }
+                } finally { $zip.Dispose() }
+                Expand-Archive -LiteralPath $patch -DestinationPath $stage -Force -ErrorAction Stop
+                $files = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullName)
+                if ($files.Count -eq 0) { throw 'Patch contains no files' }
+                # Back up every original before committing the first staged file.
+                foreach ($file in $files) {
+                    $relative = $file.FullName.Substring($stage.Length + 1)
+                    $destination = Join-Path $root $relative
+                    $saved = Join-Path $backup $relative
+                    $cursor = $destination
+                    while ($cursor -and $cursor.Length -ge $root.Length) {
+                        if (Test-Path -LiteralPath $cursor) {
+                            if ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Destination contains a link' }
+                        }
+                        $cursor = Split-Path -Parent $cursor
+                    }
+                    $existed = [IO.File]::Exists($destination)
+                    if ($existed) {
+                        [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($saved)) | Out-Null
+                        [IO.File]::Copy($destination, $saved, $false)
+                    } elseif (Test-Path -LiteralPath $destination) { throw "Destination is a directory: $destination" }
+                    $journal += [pscustomobject]@{ Destination=$destination; Backup=$saved; Existed=$existed; Source=$file.FullName }
+                }
+                $journal | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $recovery 'journal.json') -Encoding UTF8
+                foreach ($item in $journal) {
+                    [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($item.Destination)) | Out-Null
+                    $touched += $item
+                    [IO.File]::Copy($item.Source, $item.Destination, $true)
+                }
+            } catch {
+                $failure = $_.ToString()
+                [array]::Reverse($touched)
+                foreach ($item in $touched) {
+                    try {
+                        if ($item.Existed) { [IO.File]::Copy($item.Backup, $item.Destination, $true) }
+                        elseif ([IO.File]::Exists($item.Destination)) { [IO.File]::Delete($item.Destination) }
+                    } catch { $failure += "`r`nRollback error: " + $_.ToString() }
+                }
+                if (Test-Path -LiteralPath $recovery) { $failure | Set-Content -LiteralPath (Join-Path $recovery 'failure.txt') }
+                exit 1
+            }
+            # Recovery is removed only after all staged files have been committed.
+            try { Remove-Item -LiteralPath $recovery -Recurse -Force -ErrorAction Stop } catch { }
+            exit 0
+            """;
     }
 
     /// <summary>
@@ -263,10 +332,7 @@ public sealed class UpdateService : IUpdateService
             try
             {
                 using var zipCheck = ZipFile.OpenRead(tempDestination);
-                if (zipCheck.Entries.Count == 0)
-                {
-                    throw new InvalidDataException("Downloaded patch archive contains no files.");
-                }
+                ValidatePatchArchive(zipCheck, AppContext.BaseDirectory);
             }
             catch (Exception ex)
             {
@@ -299,7 +365,7 @@ public sealed class UpdateService : IUpdateService
                 App.Log("[UpdateService] Launching lightweight in-place updater script with elevation...");
                 Process.Start(psi);
 
-                await Task.Delay(500, ct).ConfigureAwait(false);
+                await Task.Delay(500).ConfigureAwait(false);
                 App.Log("[UpdateService] Exiting SilkThread to release files for seamless patch.");
                 Environment.Exit(0);
             }
@@ -324,7 +390,7 @@ public sealed class UpdateService : IUpdateService
                 App.Log("[UpdateService] Launching fallback installer process...");
                 Process.Start(psi);
 
-                await Task.Delay(500, ct).ConfigureAwait(false);
+                await Task.Delay(500).ConfigureAwait(false);
                 App.Log("[UpdateService] Exiting SilkThread to release file handles for installer.");
                 Environment.Exit(0);
             }
@@ -334,6 +400,27 @@ public sealed class UpdateService : IUpdateService
                 throw;
             }
         }
+    }
+
+    /// <summary>Validates every archive destination before an elevated extractor sees it.</summary>
+    public static void ValidatePatchArchive(ZipArchive archive, string targetDirectory)
+    {
+        string root = Path.GetFullPath(targetDirectory).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+        bool hasFiles = false;
+        foreach (var entry in archive.Entries)
+        {
+            string name = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
+            if (Path.IsPathRooted(name) || name.Contains(':') ||
+                !Path.GetFullPath(Path.Combine(root, name)).StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException($"Patch entry escapes application directory: {entry.FullName}");
+
+            // Unix symlinks can redirect subsequent extraction outside the destination.
+            if (((entry.ExternalAttributes >> 16) & 0xF000) == 0xA000 ||
+                (entry.ExternalAttributes & (int)FileAttributes.ReparsePoint) != 0)
+                throw new InvalidDataException($"Patch contains a link: {entry.FullName}");
+            if (!string.IsNullOrEmpty(entry.Name)) hasFiles = true;
+        }
+        if (!hasFiles) throw new InvalidDataException("Downloaded patch archive contains no files.");
     }
 
     /// <summary>

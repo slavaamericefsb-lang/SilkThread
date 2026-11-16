@@ -1,239 +1,111 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using SilkThread.App.Helpers;
 
 namespace SilkThread.App.Services;
 
-/// <summary>
-/// Interface implemented by views to explicitly specify the cards/tiles
-/// participating in staggered entrance and exit animations.
-/// </summary>
 public interface IStaggeredPage
 {
     IReadOnlyList<FrameworkElement> GetStaggeredElements();
 }
 
-/// <summary>
-/// Handles smooth transition navigation and staggered tile animations
-/// across pages in SilkThread.
-/// </summary>
+/// <summary>Section entrance fades without changing layout or text transforms.</summary>
 public static class PageTransitionHelper
 {
-    private static Storyboard? _currentExitStoryboard;
-    private static Storyboard? _currentEntranceStoryboard;
+    private static readonly ConditionalWeakTable<Page, PageMotion> States = new();
 
-    /// <summary>
-    /// Executes a fluid transition navigation on the target Frame:
-    /// 1. Staggered fade-out of current page tiles (with subtle upward offset)
-    /// 2. Frame.Navigate to the new page
-    /// 3. Staggered fade-in and upward slide (10px -> 0px) of new page tiles
-    /// </summary>
-    public static async Task TransitionNavigateAsync(Frame frame, Type pageType, object? parameter = null)
+    public static Task TransitionNavigateAsync(Frame frame, Type pageType, object? parameter = null)
     {
-        if (frame == null) return;
-        if (frame.CurrentSourcePageType == pageType) return;
-
-        // Stop any currently running animations
-        _currentExitStoryboard?.Stop();
-        _currentEntranceStoryboard?.Stop();
-
-        // 1. If currently displaying a page, animate its exit
-        if (frame.Content is Page currentPage)
-        {
-            await AnimatePageExitAsync(currentPage);
-        }
-
-        // 2. Perform navigation
-        frame.Navigate(pageType, parameter);
-
-        // 3. Animate entrance of the newly loaded page
-        if (frame.Content is Page newPage)
-        {
-            AnimatePageEntrance(newPage);
-        }
-    }
-
-    /// <summary>
-    /// Animates exit of a page: tiles fade out and subtly slide upward with progressive delays.
-    /// </summary>
-    public static Task AnimatePageExitAsync(Page page)
-    {
-        var tcs = new TaskCompletionSource<bool>();
-        var elements = GetElementsToAnimate(page);
-
-        if (elements.Count == 0)
-        {
+        if (frame == null || frame.CurrentSourcePageType == pageType && parameter == null)
             return Task.CompletedTask;
-        }
-
-        var sb = new Storyboard();
-        _currentExitStoryboard = sb;
-
-        for (int i = 0; i < elements.Count; i++)
-        {
-            var elem = elements[i];
-            int delayMs = Math.Min(i * 25, 120);
-
-            var transform = elem.RenderTransform as TranslateTransform;
-            if (transform == null)
-            {
-                transform = new TranslateTransform();
-                elem.RenderTransform = transform;
-            }
-
-            // Opacity: current -> 0.0
-            var opacityAnim = new DoubleAnimation
-            {
-                From = elem.Opacity,
-                To = 0.0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(130)),
-                BeginTime = TimeSpan.FromMilliseconds(delayMs),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            };
-            Storyboard.SetTarget(opacityAnim, elem);
-            Storyboard.SetTargetProperty(opacityAnim, "Opacity");
-            sb.Children.Add(opacityAnim);
-
-            // Subtle vertical translation: 0px -> -8px
-            var transAnim = new DoubleAnimation
-            {
-                From = transform.Y,
-                To = -8.0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(130)),
-                BeginTime = TimeSpan.FromMilliseconds(delayMs),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            };
-            Storyboard.SetTarget(transAnim, transform);
-            Storyboard.SetTargetProperty(transAnim, "Y");
-            sb.Children.Add(transAnim);
-        }
-
-        sb.Completed += (s, e) =>
-        {
-            _currentExitStoryboard = null;
-            tcs.TrySetResult(true);
-        };
-
-        sb.Begin();
-
-        // Fallback safety timeout so navigation never blocks indefinitely
-        _ = Task.Delay(220).ContinueWith(_ => tcs.TrySetResult(true));
-
-        return tcs.Task;
+        if (frame.Content is Page previous) Stop(previous);
+        frame.Navigate(pageType, parameter, new SuppressNavigationTransitionInfo());
+        if (frame.Content is Page next) AnimatePageEntrance(next);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Animates entrance of a page: tiles fade in from opacity 0 to 1 and translate upward from 10px to 0px
-    /// with progressive staggered delays (0ms, 60ms, 120ms, 180ms, 240ms, etc.) using smooth CubicEase.
-    /// </summary>
+    public static Task AnimatePageExitAsync(Page page) => Animate(page, entrance: false);
+
     public static void AnimatePageEntrance(Page page)
     {
-        var elements = GetElementsToAnimate(page);
-        if (elements.Count == 0) return;
-
-        _currentEntranceStoryboard?.Stop();
-
-        var sb = new Storyboard();
-        _currentEntranceStoryboard = sb;
-
-        for (int i = 0; i < elements.Count; i++)
-        {
-            var elem = elements[i];
-            int delayMs = i * 60; // Card 1 at 0ms, Card 2 at 60ms, Card 3 at 120ms, Card 4 at 180ms, etc.
-
-            var transform = elem.RenderTransform as TranslateTransform;
-            if (transform == null)
-            {
-                transform = new TranslateTransform();
-                elem.RenderTransform = transform;
-            }
-
-            // Set initial state before animation starts
-            elem.Opacity = 0.0;
-            transform.Y = 10.0;
-
-            // Opacity: 0.0 -> 1.0 (Duration 280ms)
-            var opacityAnim = new DoubleAnimation
-            {
-                From = 0.0,
-                To = 1.0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(280)),
-                BeginTime = TimeSpan.FromMilliseconds(delayMs),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTarget(opacityAnim, elem);
-            Storyboard.SetTargetProperty(opacityAnim, "Opacity");
-            sb.Children.Add(opacityAnim);
-
-            // Translate: 10px -> 0px (Duration 320ms)
-            var transAnim = new DoubleAnimation
-            {
-                From = 10.0,
-                To = 0.0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(320)),
-                BeginTime = TimeSpan.FromMilliseconds(delayMs),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTarget(transAnim, transform);
-            Storyboard.SetTargetProperty(transAnim, "Y");
-            sb.Children.Add(transAnim);
-        }
-
-        sb.Completed += (s, e) =>
-        {
-            _currentEntranceStoryboard = null;
-            // Guarantee final clean state
-            foreach (var elem in elements)
-            {
-                elem.Opacity = 1.0;
-                if (elem.RenderTransform is TranslateTransform t)
-                {
-                    t.Y = 0.0;
-                }
-            }
-        };
-
-        sb.Begin();
+        if (page == null || !page.IsLoaded) return;
+        var state = States.GetOrCreateValue(page);
+        // Loaded and the navigation callback may arrive together. Do not replay an active entrance.
+        if (state.Entrance && state.Storyboard != null) return;
+        _ = Animate(page, entrance: true);
     }
 
-    private static IReadOnlyList<FrameworkElement> GetElementsToAnimate(Page page)
+    private static Task Animate(Page page, bool entrance)
     {
-        if (page is IStaggeredPage staggeredPage)
+        Stop(page);
+        if (!page.IsLoaded || !MotionPreferences.AnimationsEnabled) return Task.CompletedTask;
+        var state = States.GetOrCreateValue(page);
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var storyboard = new Storyboard();
+        state.Entrance = entrance;
+        state.Storyboard = storyboard;
+        if (entrance && page is IStaggeredPage sections)
         {
-            var list = staggeredPage.GetStaggeredElements();
-            if (list != null && list.Count > 0)
+            int index = 0;
+            foreach (var element in sections.GetStaggeredElements())
             {
-                return list;
+                if (element.Visibility != Visibility.Visible) continue;
+                Add(storyboard, element, "Opacity", 0,
+                    element.Opacity, MotionPreferences.EntranceMilliseconds, Math.Min(index++, 12) * 55);
             }
         }
-
-        // Fallback: discover top-level card-like elements
-        var discovered = new List<FrameworkElement>();
-        if (page.Content is Panel rootPanel)
+        if (storyboard.Children.Count == 0)
+            Add(storyboard, page, "Opacity", entrance ? page.Opacity * 0.65 : page.Opacity,
+                entrance ? page.Opacity : 0, entrance ? MotionPreferences.EntranceMilliseconds : MotionPreferences.ExitMilliseconds, 0);
+        state.Finish = () =>
         {
-            foreach (var child in rootPanel.Children)
-            {
-                if (child is FrameworkElement fe && fe.Visibility == Visibility.Visible)
-                {
-                    discovered.Add(fe);
-                }
-            }
-        }
-        else if (page.Content is ScrollViewer sv && sv.Content is Panel svPanel)
+            storyboard.Stop();
+            storyboard.Children.Clear();
+            page.Unloaded -= Page_Unloaded;
+            state.Storyboard = null;
+            state.Finish = null;
+            completion.TrySetResult(true);
+        };
+        page.Unloaded += Page_Unloaded;
+        storyboard.Completed += (_, _) =>
         {
-            foreach (var child in svPanel.Children)
-            {
-                if (child is FrameworkElement fe && fe.Visibility == Visibility.Visible)
-                {
-                    discovered.Add(fe);
-                }
-            }
-        }
-
-        return discovered;
+            if (ReferenceEquals(state.Storyboard, storyboard)) state.Finish?.Invoke();
+        };
+        storyboard.Begin();
+        return completion.Task;
     }
+
+    private static void Add(Storyboard storyboard, DependencyObject target, string property,
+        double from, double to, int duration, int delay)
+    {
+        var animation = new DoubleAnimationUsingKeyFrames();
+        animation.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero), Value = from });
+        animation.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(delay)), Value = from });
+        animation.KeyFrames.Add(new EasingDoubleKeyFrame
+        {
+            KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(delay + duration)), Value = to,
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        });
+        Storyboard.SetTarget(animation, target);
+        Storyboard.SetTargetProperty(animation, property);
+        storyboard.Children.Add(animation);
+    }
+
+    private static void Page_Unloaded(object sender, RoutedEventArgs e) => Stop((Page)sender);
+    private static void Stop(Page page)
+    {
+        if (States.TryGetValue(page, out var state)) state.Finish?.Invoke();
+    }
+    private sealed class PageMotion
+    {
+        public bool Entrance;
+        public Storyboard? Storyboard;
+        public Action? Finish;
+    }
+
 }

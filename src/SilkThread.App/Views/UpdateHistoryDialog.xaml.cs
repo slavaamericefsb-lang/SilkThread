@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,6 +16,28 @@ public sealed partial class UpdateHistoryDialog : ContentDialog, INotifyProperty
     public string DialogSubtitle => _loc["UpdHist_DialogSubtitle"];
     public string CloseText => _loc["UpdHist_Close"];
     public string LatestBadgeText => _loc["UpdHist_Badge_Latest"];
+
+    public string V150_Title => _loc["UpdHist_v150_Title"];
+    public string V150_Date => _loc["UpdHist_v150_Date"];
+    public string V150_Item1 => _loc["UpdHist_v150_Item1"];
+    public string V150_Item2 => _loc["UpdHist_v150_Item2"];
+    public string V150_Item3 => _loc["UpdHist_v150_Item3"];
+    public string V150_Item4 => _loc["UpdHist_v150_Item4"];
+    public string V150_Item5 => _loc["UpdHist_v150_Item5"];
+    public string V150_Item6 => _loc["UpdHist_v150_Item6"];
+    public string V150_Item7 => _loc["UpdHist_v150_Item7"];
+    public string V150_Item8 => _loc["UpdHist_v150_Item8"];
+
+    public string V12_Title => _loc["UpdHist_v12_Title"];
+    public string V12_Date => _loc["UpdHist_v12_Date"];
+    public string V12_Item1 => _loc["UpdHist_v12_Item1"];
+    public string V12_Item2 => _loc["UpdHist_v12_Item2"];
+    public string V12_Item3 => _loc["UpdHist_v12_Item3"];
+    public string V12_Item4 => _loc["UpdHist_v12_Item4"];
+    public string V12_Item5 => _loc["UpdHist_v12_Item5"];
+    public string V12_Item6 => _loc["UpdHist_v12_Item6"];
+    public string V12_Item7 => _loc["UpdHist_v12_Item7"];
+    public string V12_Item8 => _loc["UpdHist_v12_Item8"];
 
     public string V11_Title => _loc["UpdHist_v11_Title"];
     public string V11_Date => _loc["UpdHist_v11_Date"];

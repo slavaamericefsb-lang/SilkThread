@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -139,17 +139,15 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private int _runningProcessesCount = 106;
 
-    [ObservableProperty]
-    private int _runningServicesCount = 285;
 
     [ObservableProperty]
-    private int _totalTweaksCount = 265;
+    private int _totalTweaksCount;
 
     [ObservableProperty]
-    private int _appliedTweaksCount = 54;
+    private int _appliedTweaksCount;
 
     [ObservableProperty]
-    private int _recommendedTweaksCount = 249;
+    private int _recommendedTweaksCount;
 
     [ObservableProperty]
     private int _incompatibleTweaksCount;
@@ -415,16 +413,39 @@ public partial class DashboardViewModel : ObservableObject
     public string LatencyInputTitle => _loc["Dash_Latency_InputTitle"];
     public string LatencyInputDesc => _loc["Dash_Latency_InputDesc"];
     public string LatencyInputBadge => _loc["Dash_Latency_InputBadge"];
+    public string LatencyInputDetail => _loc["Dash_Latency_InputDetail"];
     public string LatencyHagsTitle => _loc["Dash_Latency_HagsTitle"];
     public string LatencyHagsDesc => _loc["Dash_Latency_HagsDesc"];
     public string LatencyHagsBadge => _loc["Dash_Latency_HagsBadge"];
+    public string LatencyHagsDetail => _loc["Dash_Latency_HagsDetail"];
     public string LatencyNetworkTitle => _loc["Dash_Latency_NetworkTitle"];
     public string LatencyNetworkDesc => _loc["Dash_Latency_NetworkDesc"];
     public string LatencyNetworkBadge => _loc["Dash_Latency_NetworkBadge"];
+    public string LatencyNetworkDetail => _loc["Dash_Latency_NetworkDetail"];
     public string LatencyMmcssTitle => _loc["Dash_Latency_MmcssTitle"];
     public string LatencyMmcssDesc => _loc["Dash_Latency_MmcssDesc"];
     public string LatencyMmcssBadge => _loc["Dash_Latency_MmcssBadge"];
+    public string LatencyMmcssDetail => _loc["Dash_Latency_MmcssDetail"];
+    public string LatencyClickHint => _loc["Dash_Latency_ClickHint"];
     public string LatencyBtnText => _loc["Dash_Latency_Btn"];
+
+    public string TooltipMatrixToggle => _loc["Dash_Tooltip_MatrixToggle"];
+    public string TooltipRawInputToggle => _loc["Dash_Tooltip_RawInputToggle"];
+    public string TooltipHagsToggle => _loc["Dash_Tooltip_HagsToggle"];
+    public string TooltipTcpToggle => _loc["Dash_Tooltip_TcpToggle"];
+    public string TooltipMmcssToggle => _loc["Dash_Tooltip_MmcssToggle"];
+    public string TooltipQuickOptimize => _loc["Dash_Tooltip_QuickOptimize"];
+    public string TooltipAllTweaks => _loc["Dash_Tooltip_AllTweaks"];
+    public string TooltipHardwareDiag => _loc["Dash_Tooltip_HardwareDiag"];
+    public string TooltipRestorePoints => _loc["Dash_Tooltip_RestorePoints"];
+    public string TooltipHwDiagBtn => _loc["Dash_Tooltip_HwDiagBtn"];
+    public string TooltipWizardBtn => _loc["Dash_Tooltip_WizardBtn"];
+    public string TooltipCreatePreset => _loc["Dash_Tooltip_CreatePreset"];
+    public string TooltipActivatePreset => _loc["Dash_Tooltip_ActivatePreset"];
+    public string TooltipPresetEsports => _loc["Dash_Tooltip_PresetEsports"];
+    public string TooltipPresetBalanced => _loc["Dash_Tooltip_PresetBalanced"];
+    public string TooltipPresetOffice => _loc["Dash_Tooltip_PresetOffice"];
+    public string TooltipAiGenerate => _loc["Dash_Tooltip_AiGenerate"];
 
     public string SecurityTitle => _loc["Dash_Security_Title"];
     public string SecurityDesc => _loc["Dash_Security_Desc"];
@@ -443,7 +464,7 @@ public partial class DashboardViewModel : ObservableObject
 
     public string StatProcessesLabel => _loc["Dash_Stat_Processes"];
     public string StatSafeRecsLabel => _loc["Dash_Stat_SafeRecs"];
-    public string StatServicesLabel => _loc["Dash_Stat_Services"];
+    public string StatCatalogLabel => _loc.CurrentLanguage == "ru" ? "записей в каталоге" : "catalog entries";
     public string ForecastFpsLabel => _loc["Dash_Ai_Forecast_Fps"];
     public string ForecastLatencyLabel => _loc["Dash_Ai_Forecast_Latency"];
     public string ForecastRamLabel => _loc["Dash_Ai_Forecast_Ram"];
@@ -562,7 +583,7 @@ public partial class DashboardViewModel : ObservableObject
 
             OnPropertyChanged(nameof(StatProcessesLabel));
             OnPropertyChanged(nameof(StatSafeRecsLabel));
-            OnPropertyChanged(nameof(StatServicesLabel));
+            OnPropertyChanged(nameof(StatCatalogLabel));
             OnPropertyChanged(nameof(ForecastFpsLabel));
             OnPropertyChanged(nameof(ForecastLatencyLabel));
             OnPropertyChanged(nameof(ForecastRamLabel));
@@ -570,6 +591,32 @@ public partial class DashboardViewModel : ObservableObject
             OnPropertyChanged(nameof(LatencyActiveBadge));
             OnPropertyChanged(nameof(CreatePresetBtnText));
             OnPropertyChanged(nameof(ActivatePresetBtnText));
+
+            OnPropertyChanged(nameof(LatencyInputDetail));
+            OnPropertyChanged(nameof(LatencyHagsDetail));
+            OnPropertyChanged(nameof(LatencyNetworkDetail));
+            OnPropertyChanged(nameof(LatencyMmcssDetail));
+            OnPropertyChanged(nameof(LatencyClickHint));
+            OnPropertyChanged(nameof(TooltipMatrixToggle));
+            OnPropertyChanged(nameof(TooltipRawInputToggle));
+            OnPropertyChanged(nameof(TooltipHagsToggle));
+            OnPropertyChanged(nameof(TooltipTcpToggle));
+            OnPropertyChanged(nameof(TooltipMmcssToggle));
+            OnPropertyChanged(nameof(TooltipQuickOptimize));
+            OnPropertyChanged(nameof(TooltipAllTweaks));
+            OnPropertyChanged(nameof(TooltipHardwareDiag));
+            OnPropertyChanged(nameof(TooltipRestorePoints));
+            OnPropertyChanged(nameof(TooltipHwDiagBtn));
+            OnPropertyChanged(nameof(TooltipWizardBtn));
+            OnPropertyChanged(nameof(TooltipCreatePreset));
+            OnPropertyChanged(nameof(TooltipActivatePreset));
+            OnPropertyChanged(nameof(TooltipPresetEsports));
+            OnPropertyChanged(nameof(TooltipPresetBalanced));
+            OnPropertyChanged(nameof(TooltipPresetOffice));
+            OnPropertyChanged(nameof(TooltipAiGenerate));
+
+            BuildSurveyOptions();
+            CalculateForecastMetrics(_cachedAiResult);
 
             NotifyLatencyBadgeProperties();
             NotifyScores();
@@ -775,10 +822,10 @@ public partial class DashboardViewModel : ObservableObject
                 }
             }
 
-            AppliedTweaksCount = applied > 0 ? applied : 54;
+            AppliedTweaksCount = applied;
             IncompatibleTweaksCount = incompatible;
-            RecommendedTweaksCount = 249;
-            RunningServicesCount = 285;
+            RecommendedTweaksCount = allTweaks.Count(t => t.Recommendation == RecommendationLevel.Recommended && _compatibilityEngine.EvaluateCompatibility(t, Hardware).IsCompatible);
+            // Catalog counts come from definitions; no fabricated service telemetry.
 
             // Compute dynamic scores based on system telemetry & applied tweaks
             if (applied > 0)
@@ -1227,11 +1274,8 @@ public partial class DashboardViewModel : ObservableObject
 
         if (appliedTweaks.Count == 0)
         {
-            appliedTweaks = tweaks
-                .Where(t => t.Risk == RiskLevel.Low && t.Recommendation == RecommendationLevel.Recommended)
-                .Take(15)
-                .Select(t => t.Id)
-                .ToList();
+            OptimizationStatus = _loc["Tweaks_NoAppliedForPreset"];
+            return;
         }
 
         var dialog = new CreatePresetDialog(appliedTweaks.Count)

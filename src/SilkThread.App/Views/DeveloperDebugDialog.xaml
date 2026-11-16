@@ -8,9 +8,9 @@
     xmlns:helpers="using:SilkThread.App.Helpers"
     mc:Ignorable="d"
     CornerRadius="14"
-    BorderBrush="#2B3040"
+    BorderBrush="{StaticResource SilkStrokeDarkBrush}"
     BorderThickness="1"
-    Background="#181B25"
+    Background="{StaticResource SilkCardDarkBrush}"
     Padding="0"
     RequestedTheme="Dark">
 
@@ -22,7 +22,7 @@
         <Thickness x:Key="ContentDialogContentMargin">0</Thickness>
     </ContentDialog.Resources>
 
-    <Grid Width="860" Height="620" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24" Background="#181B25" RowSpacing="14">
+    <Grid Width="860" Height="620" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24" Background="{StaticResource SilkCardDarkBrush}" RowSpacing="14">
         <Grid.RowDefinitions>
             <!-- 0: Header with Brand Icon, Title, and Close Button -->
             <RowDefinition Height="Auto" />
@@ -53,25 +53,25 @@
 
                 <!-- Developer console icon (\uEBE8 in #806BFF container) -->
                 <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" 
-                        Background="#806BFF"
+                        Background="{StaticResource SilkBrandBrush}"
                         VerticalAlignment="Center">
                     <FontIcon Glyph="&#xEBE8;" FontSize="20" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
                 <!-- Title & Subtitle -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="Панель разработчика &amp; Отладка" FontSize="20" FontWeight="SemiBold" Foreground="#F3F4F8" />
-                    <TextBlock Text="Системная телеметрия, логирование и отладка сессии" FontSize="12.5" Foreground="#969CAB" />
+                    <TextBlock x:Name="DialogTitleText" Text="Панель разработчика &amp; Отладка" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
+                    <TextBlock x:Name="DialogSubtitleText" Text="Системная телеметрия, логирование и отладка сессии" FontSize="12.5" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 </StackPanel>
             </Grid>
 
             <!-- Close Button (\uE711) -->
-            <Button Grid.Column="1" Click="BtnClose_Click"
+            <Button x:Name="BtnCloseTop" Grid.Column="1" Click="BtnClose_Click"
                     Style="{StaticResource SilkSubsurfaceButtonStyle}"
-                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8"
+                    Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8"
                     Width="36" Height="36" Padding="0" VerticalAlignment="Center" HorizontalAlignment="Right"
                     ToolTipService.ToolTip="Закрыть">
-                <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="#969CAB" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Button>
         </Grid>
 
@@ -85,47 +85,47 @@
             </Grid.ColumnDefinitions>
 
             <!-- Card 1: Версия -->
-            <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14,10">
+            <Border Grid.Column="0" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                 <StackPanel Spacing="3">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="#806BFF" />
-                        <TextBlock Text="Версия" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                        <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                        <TextBlock x:Name="ChipVersionLabel" Text="Версия" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                     </StackPanel>
-                    <TextBlock x:Name="ChipVersionText" Text="v1.1.2 (.NET 10 x64)" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="ChipVersionText" Text="v1.1.2 (.NET 10 x64)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Border>
 
             <!-- Card 2: Память процесса -->
-            <Border Grid.Column="1" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14,10">
+            <Border Grid.Column="1" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                 <StackPanel Spacing="3">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE950;" FontSize="11" Foreground="#06B6D4" />
-                        <TextBlock Text="Память процесса" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                        <TextBlock x:Name="ChipRamLabel" Text="Память процесса" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                     </StackPanel>
-                    <TextBlock x:Name="ChipRamText" Text="... MB RAM" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F8" />
+                    <TextBlock x:Name="ChipRamText" Text="... MB RAM" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                 </StackPanel>
             </Border>
 
             <!-- Card 3: Файл логов -->
-            <Border Grid.Column="2" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14,10" x:Name="ChipLogBorder">
+            <Border Grid.Column="2" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" x:Name="ChipLogBorder">
                 <StackPanel Spacing="3">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE8B7;" FontSize="11" Foreground="#F59E0B" />
-                        <TextBlock Text="Файл логов" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                        <TextBlock x:Name="ChipLogFileLabel" Text="Файл логов" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                     </StackPanel>
-                    <TextBlock x:Name="ChipLogFileText" Text="startup_debug.log" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F8" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="ChipLogFileText" Text="startup_debug.log" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Border>
 
             <!-- Card 4: Статус сессии -->
-            <Border Grid.Column="3" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="10" Padding="14,10">
+            <Border Grid.Column="3" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                 <StackPanel Spacing="3">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE930;" FontSize="11" Foreground="#22C55E" />
-                        <TextBlock Text="Статус сессии" FontSize="11" FontWeight="SemiBold" Foreground="#969CAB" />
+                        <TextBlock x:Name="ChipSessionStatusLabel" Text="Статус сессии" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Border Width="7" Height="7" CornerRadius="4" Background="#22C55E" VerticalAlignment="Center" />
+                        <Border x:Name="SessionStatusDot" Width="7" Height="7" CornerRadius="4" Background="#22C55E" VerticalAlignment="Center" />
                         <TextBlock x:Name="ChipSessionStatusText" Text="Активна" FontSize="12.5" FontWeight="SemiBold" Foreground="#22C55E" />
                     </StackPanel>
                 </StackPanel>
@@ -140,24 +140,24 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <FontIcon Glyph="&#xE756;" FontSize="13" Foreground="#806BFF" />
-                <TextBlock Text="Журнал работы приложения (startup_debug.log)" FontSize="12.5" FontWeight="SemiBold" Foreground="#969CAB" VerticalAlignment="Center" />
+                <FontIcon Glyph="&#xE756;" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" />
+                <TextBlock x:Name="TerminalHeaderLabel" Text="Журнал работы приложения (startup_debug.log)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" />
             </StackPanel>
 
             <Button x:Name="BtnRefreshLog" Grid.Column="1" Click="BtnRefreshLog_Click" 
                     Style="{StaticResource SilkSubsurfaceButtonStyle}"
-                    Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="6"
                     Padding="10,5" Height="30"
                     ToolTipService.ToolTip="Обновить журнал">
                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="#806BFF" />
-                    <TextBlock Text="Обновить" FontSize="11.5" Foreground="#F3F4F8" />
+                    <FontIcon Glyph="&#xE72C;" FontSize="11" Foreground="{StaticResource SilkBrandBrush}" />
+                    <TextBlock x:Name="BtnRefreshLogText" Text="Обновить" FontSize="11.5" Foreground="{StaticResource SilkTextPrimaryBrush}" />
                 </StackPanel>
             </Button>
         </Grid>
 
         <!-- 3: Terminal Box (expanded to fill central space, ~400px) -->
-        <Border Grid.Row="3" Background="#11141D" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="14,12">
+        <Border Grid.Row="3" Background="#11141D" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
             <ScrollViewer x:Name="LogScrollViewer" 
                           HorizontalScrollBarVisibility="Auto" 
                           VerticalScrollBarVisibility="Auto"
@@ -187,7 +187,7 @@
                     <TextBlock x:Name="StatusBadgeText" Text="Скопировано в буфер обмена!" FontSize="12.5" FontWeight="SemiBold" Foreground="#22C55E" />
                 </StackPanel>
                 <Button Grid.Column="1" Click="DismissStatusBadge_Click" Background="Transparent" BorderThickness="0" Padding="4" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="#969CAB" />
+                    <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{StaticResource SilkTextSecondaryBrush}" />
                 </Button>
             </Grid>
         </Border>
@@ -200,10 +200,10 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left side: Stats badge -->
-            <Border Grid.Column="0" Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8" Padding="12,8" VerticalAlignment="Center" HorizontalAlignment="Left">
+            <Border Grid.Column="0" Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" VerticalAlignment="Center" HorizontalAlignment="Left">
                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE9D9;" FontSize="12" Foreground="#806BFF" />
-                    <TextBlock x:Name="LogStatsText" Text="Строк: 0 | Размер: 0.0 КБ" FontSize="12" Foreground="#969CAB" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                    <FontIcon Glyph="&#xE9D9;" FontSize="12" Foreground="{StaticResource SilkBrandBrush}" />
+                    <TextBlock x:Name="LogStatsText" Text="Строк: 0 | Размер: 0.0 КБ" FontSize="12" Foreground="{StaticResource SilkTextSecondaryBrush}" VerticalAlignment="Center" TextWrapping="NoWrap" />
                 </StackPanel>
             </Border>
 
@@ -212,42 +212,42 @@
                 <!-- «Сохранить логи» (Primary #806BFF, icon \uE896, MinWidth="140") -->
                 <Button x:Name="BtnSaveToFile" Click="BtnSaveToFile_Click"
                         Style="{StaticResource SilkPrimaryButtonStyle}"
-                        Background="#806BFF" BorderThickness="0" CornerRadius="8"
+                        Background="{StaticResource SilkBrandBrush}" BorderThickness="0" CornerRadius="8"
                         Height="38" MinHeight="38" MinWidth="140" Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="#FFFFFF" />
-                        <TextBlock Text="Сохранить логи" FontSize="12.5" FontWeight="SemiBold" Foreground="#FFFFFF" TextWrapping="NoWrap" />
+                        <TextBlock x:Name="BtnSaveToFileText" Text="Сохранить логи" FontSize="12.5" FontWeight="SemiBold" Foreground="#FFFFFF" TextWrapping="NoWrap" />
                     </StackPanel>
                 </Button>
 
                 <!-- «Копировать» (Subsurface #202431, icon \uE8C8, MinWidth="120") -->
                 <Button x:Name="BtnCopyClipboard" Click="BtnCopyClipboard_Click"
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8"
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8"
                         Height="38" MinHeight="38" MinWidth="120" Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE8C8;" FontSize="13" Foreground="#806BFF" />
-                        <TextBlock x:Name="BtnCopyClipboardText" Text="Копировать" FontSize="12.5" Foreground="#F3F4F8" TextWrapping="NoWrap" />
+                        <FontIcon Glyph="&#xE8C8;" FontSize="13" Foreground="{StaticResource SilkBrandBrush}" />
+                        <TextBlock x:Name="BtnCopyClipboardText" Text="Копировать" FontSize="12.5" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="NoWrap" />
                     </StackPanel>
                 </Button>
 
                 <!-- «Очистить» (Subsurface #202431, icon \uE74D, MinWidth="90") -->
                 <Button x:Name="BtnClearLog" Click="BtnClearLog_Click"
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8"
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8"
                         Height="38" MinHeight="38" MinWidth="90" Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE74D;" FontSize="13" Foreground="#EF4444" />
-                        <TextBlock Text="Очистить" FontSize="12.5" Foreground="#F3F4F8" TextWrapping="NoWrap" />
+                        <TextBlock x:Name="BtnClearLogText" Text="Очистить" FontSize="12.5" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="NoWrap" />
                     </StackPanel>
                 </Button>
 
                 <!-- «Закрыть» (Subsurface #202431, MinWidth="80") -->
                 <Button x:Name="BtnClose" Click="BtnClose_Click"
                         Style="{StaticResource SilkSubsurfaceButtonStyle}"
-                        Background="#202431" BorderBrush="#2B3040" BorderThickness="1" CornerRadius="8"
+                        Background="{StaticResource SilkSubsurfaceDarkBrush}" BorderBrush="{StaticResource SilkStrokeDarkBrush}" BorderThickness="1" CornerRadius="8"
                         Height="38" MinHeight="38" MinWidth="80" Padding="16,8">
-                    <TextBlock Text="Закрыть" FontSize="12.5" Foreground="#F3F4F8" TextWrapping="NoWrap" />
+                    <TextBlock x:Name="BtnCloseText" Text="Закрыть" FontSize="12.5" Foreground="{StaticResource SilkTextPrimaryBrush}" TextWrapping="NoWrap" />
                 </Button>
             </StackPanel>
         </Grid>

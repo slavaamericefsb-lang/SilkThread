@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using SilkThread.Core.Models;
@@ -27,6 +27,8 @@ public static class TweakCatalog
         all.AddRange(SystemMaintenanceTweaks.GetTweaks());
         all.AddRange(AdvancedTweaks.GetTweaks());
 
+        all.AddRange(DocumentedWindowsTweaks.GetTweaks());
+        TweakAuditPolicy.Annotate(all);
         return all;
     }
 

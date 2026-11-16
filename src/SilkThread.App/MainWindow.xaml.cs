@@ -1,11 +1,15 @@
-using System;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using SilkThread.App.Services;
 using SilkThread.App.Views;
+using SilkThread.App.ViewModels;
 using SilkThread.Core.SystemOperations;
 using Windows.UI;
 
@@ -13,6 +17,7 @@ namespace SilkThread.App;
 
 public sealed partial class MainWindow : Window
 {
+    private readonly Helpers.WindowSizeConstraint _sizeConstraint;
     private readonly INavigationService _navigationService;
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _loc;
@@ -22,6 +27,7 @@ public sealed partial class MainWindow : Window
         App.Log("MainWindow constructor started");
         InitializeComponent();
         App.Log("MainWindow InitializeComponent finished");
+        _sizeConstraint = new Helpers.WindowSizeConstraint(this, 1280, 720);
 
         _navigationService = App.Services.GetRequiredService<INavigationService>();
         _settingsService = App.Services.GetRequiredService<ISettingsService>();
@@ -30,12 +36,13 @@ public sealed partial class MainWindow : Window
         _navigationService.Initialize(ContentFrame);
 
         ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
+        SetTitleBar(TitleBarDragRegion);
 
-        Title = "SilkThread — Windows Gaming Optimizer";
+        string initialTitle = _loc["Main_WindowTitle"];
+        Title = initialTitle;
         if (AppWindow != null)
         {
-            AppWindow.Title = "SilkThread — Windows Gaming Optimizer";
+            AppWindow.Title = initialTitle;
             try
             {
                 string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
@@ -44,13 +51,13 @@ public sealed partial class MainWindow : Window
                     AppWindow.SetIcon(iconPath);
                 }
 
-                AppWindow.Resize(new Windows.Graphics.SizeInt32(1240, 820));
+                AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 720));
                 var displayArea = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary);
                 if (displayArea != null)
                 {
                     var centeredPosition = new Windows.Graphics.PointInt32(
-                        (displayArea.WorkArea.Width - 1240) / 2,
-                        (displayArea.WorkArea.Height - 820) / 2
+                        displayArea.WorkArea.X + Math.Max(0, (displayArea.WorkArea.Width - 1280) / 2),
+                        displayArea.WorkArea.Y + Math.Max(0, (displayArea.WorkArea.Height - 720) / 2)
                     );
                     AppWindow.Move(centeredPosition);
                 }
@@ -69,6 +76,7 @@ public sealed partial class MainWindow : Window
             else if (e.SourcePageType == typeof(PcScannerPage)) NavView.SelectedItem = NavScanner;
             else if (e.SourcePageType == typeof(OptimizationPage)) NavView.SelectedItem = NavOptimization;
             else if (e.SourcePageType == typeof(GamesPage)) NavView.SelectedItem = NavGames;
+            else if (e.SourcePageType == typeof(SystemSettingsPage)) NavView.SelectedItem = NavSystemSettings;
             else if (e.SourcePageType == typeof(HistoryPage)) NavView.SelectedItem = NavHistory;
             else if (e.SourcePageType == typeof(RestoreBackupPage)) NavView.SelectedItem = NavRestore;
             else if (e.SourcePageType == typeof(SettingsPage)) NavView.SelectedItem = NavSettings;
@@ -170,12 +178,77 @@ public sealed partial class MainWindow : Window
     {
         bool isAdmin = ElevationHelper.IsAdministrator();
         AdminStatusText.Text = isAdmin 
-            ? (_loc.CurrentLanguage == "ru" ? "Администратор ✓" : "Admin ✓")
-            : (_loc.CurrentLanguage == "ru" ? "Пользователь" : "Standard User");
+            ? _loc["Main_AdminBadge"]
+            : _loc["Main_UserBadge"];
         var adminBrush = new SolidColorBrush(isAdmin 
             ? Color.FromArgb(255, 34, 197, 94)   // #22C55E
             : Color.FromArgb(255, 150, 156, 171)); // #969CAB
         AdminStatusText.Foreground = adminBrush;
+        AdminStatusIcon.Foreground = adminBrush;
+        AdminStatusDot.Background = adminBrush;
+        AdminModeButton.IsEnabled = !isAdmin;
+        ToolTipService.SetToolTip(AdminModeButton, _loc[isAdmin ? "Main_AdminActive" : "Main_AdminSwitch"]);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(AdminModeButton,
+            _loc[isAdmin ? "Main_AdminActive" : "Main_AdminSwitch"]);
+    }
+
+    private bool _elevationInProgress;
+
+    private bool HasRunningOperations()
+    {
+        var services = App.Services;
+        return services.GetRequiredService<DashboardViewModel>().IsOptimizing
+            || services.GetRequiredService<DashboardViewModel>().IsAiGenerating
+            || services.GetRequiredService<OptimizationViewModel>().IsExecuting
+            || services.GetRequiredService<TweaksViewModel>().HasRunningOperations
+            || services.GetRequiredService<GamesViewModel>().IsApplyingProfile
+            || services.GetRequiredService<RestoreBackupViewModel>().IsBusy
+            || services.GetRequiredService<HistoryViewModel>().IsLoading
+            || services.GetRequiredService<SystemSettingsViewModel>().IsBusy;
+    }
+
+    private async void AdminModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_elevationInProgress || ElevationHelper.IsAdministrator()) return;
+        _elevationInProgress = true;
+        try
+        {
+            if (HasRunningOperations())
+            {
+                ShowElevationFeedback("Main_AdminBusy");
+                return;
+            }
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = _loc["Main_AdminSwitch"],
+                Content = new TextBlock { Text = _loc["Main_AdminRestartNotice"], TextWrapping = TextWrapping.Wrap, MaxWidth = 440 },
+                PrimaryButtonText = _loc["Main_AdminContinue"],
+                CloseButtonText = _loc["Hist_Dialog_Cancel"],
+                DefaultButton = ContentDialogButton.Close
+            };
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (HasRunningOperations()) { ShowElevationFeedback("Main_AdminBusy"); return; }
+
+            // Prevent a new operation while Windows is requesting elevation.
+            ShellRoot.IsHitTestVisible = false;
+            string route = (NavView.SelectedItem as NavigationViewItem)?.Tag as string ?? "Dashboard";
+            var result = ElevationRestart.Start(route);
+            if (result == ElevationRestartResult.Started) Close();
+            else ShowElevationFeedback(result == ElevationRestartResult.Cancelled ? "Main_AdminCancelled" : "Main_AdminFailed");
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[Admin mode button]: {ex}");
+            ShowElevationFeedback("Main_AdminFailed");
+        }
+        finally { ShellRoot.IsHitTestVisible = true; _elevationInProgress = false; }
+    }
+
+    private void ShowElevationFeedback(string key)
+    {
+        ElevationFeedback.Message = _loc[key];
+        ElevationFeedback.IsOpen = true;
     }
 
     private void UpdateNavLabels()
@@ -185,9 +258,22 @@ public sealed partial class MainWindow : Window
         SetNavItem(NavScanner, _loc["Nav_Scanner"]);
         SetNavItem(NavOptimization, _loc["Nav_Optimization"]);
         SetNavItem(NavGames, _loc["Nav_Games"]);
+        SetNavItem(NavSystemSettings, _loc["Nav_SystemSettings"]);
         SetNavItem(NavHistory, _loc["Nav_History"]);
         SetNavItem(NavRestore, _loc["Nav_Restore"]);
         SetNavItem(NavSettings, _loc["Nav_Settings"]);
+
+        if (BrandSubtitleText != null)
+        {
+            BrandSubtitleText.Text = _loc["Main_BrandBadge"];
+        }
+
+        string windowTitle = _loc["Main_WindowTitle"];
+        Title = windowTitle;
+        if (AppWindow != null)
+        {
+            AppWindow.Title = windowTitle;
+        }
 
         UpdateAdminStatus();
     }
@@ -235,8 +321,7 @@ public sealed partial class MainWindow : Window
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
     {
-        NavView.SelectedItem = NavDashboard;
-        NavigateTo("Dashboard");
+        NavigateTo(App.StartupRoute);
         StartBackgroundUpdateCheck();
     }
 
@@ -301,6 +386,7 @@ public sealed partial class MainWindow : Window
             "Scanner" => typeof(PcScannerPage),
             "Optimization" => typeof(OptimizationPage),
             "Games" => typeof(GamesPage),
+            "SystemSettings" => typeof(SystemSettingsPage),
             "History" => typeof(HistoryPage),
             "Restore" => typeof(RestoreBackupPage),
             "Settings" => typeof(SettingsPage),

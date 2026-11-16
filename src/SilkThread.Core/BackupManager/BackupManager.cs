@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SilkThread.Core.Models;
@@ -19,10 +21,11 @@ public interface IBackupManager
     Task<string?> GetSystemSnapshotAsync(int snapshotId);
 }
 
-public class BackupManager : IBackupManager
+public partial class BackupManager : IBackupManager, SilkThread.Core.SystemOperations.IPowerSchemeJournal
 {
     private readonly string _connectionString;
     private readonly string _dbPath;
+    private readonly SemaphoreSlim _dbLock = new(1, 1);
 
     public BackupManager(string? customDbPath = null)
     {
@@ -36,48 +39,82 @@ public class BackupManager : IBackupManager
         else
         {
             _dbPath = customDbPath;
+            var dir = Path.GetDirectoryName(_dbPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
         }
 
         _connectionString = new SqliteConnectionStringBuilder
         {
             DataSource = _dbPath,
-            Mode = SqliteOpenMode.ReadWriteCreate
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            DefaultTimeout = 30,
+            ForeignKeys = true
         }.ToString();
     }
 
     public async Task InitializeAsync()
     {
-        using var conn = new SqliteConnection(_connectionString);
-        await conn.OpenAsync();
+        await _dbLock.WaitAsync();
+        try
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-        string sql = @"
-            CREATE TABLE IF NOT EXISTS TweakHistory (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                TweakId TEXT NOT NULL,
-                TweakTitle TEXT NOT NULL,
-                Category TEXT NOT NULL,
-                AppliedAtUtc TEXT NOT NULL,
-                OriginalStateJson TEXT,
-                AppliedStateJson TEXT,
-                Success INTEGER NOT NULL,
-                VerificationPassed INTEGER NOT NULL,
-                IsRolledBack INTEGER NOT NULL DEFAULT 0,
-                RolledBackAtUtc TEXT,
-                Notes TEXT
-            );
+            string pragmaSql = "PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;";
+            using var pragmaCmd = new SqliteCommand(pragmaSql, conn);
+            await pragmaCmd.ExecuteNonQueryAsync();
 
-            CREATE TABLE IF NOT EXISTS SystemSnapshots (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                CreatedAtUtc TEXT NOT NULL,
-                SnapshotName TEXT NOT NULL,
-                SnapshotDataJson TEXT NOT NULL
-            );
+            string sql = @"
+                CREATE TABLE IF NOT EXISTS TweakHistory (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    TweakId TEXT NOT NULL,
+                    TweakTitle TEXT NOT NULL,
+                    Category TEXT NOT NULL,
+                    AppliedAtUtc TEXT NOT NULL,
+                    OriginalStateJson TEXT,
+                    AppliedStateJson TEXT,
+                    Success INTEGER NOT NULL,
+                    VerificationPassed INTEGER NOT NULL,
+                    IsRolledBack INTEGER NOT NULL DEFAULT 0,
+                    RolledBackAtUtc TEXT,
+                    Notes TEXT
+                );
 
-            CREATE INDEX IF NOT EXISTS idx_tweak_history_id ON TweakHistory(TweakId);
-        ";
+                CREATE TABLE IF NOT EXISTS SystemSnapshots (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    CreatedAtUtc TEXT NOT NULL,
+                    SnapshotName TEXT NOT NULL,
+                    SnapshotDataJson TEXT NOT NULL
+                );
 
-        using var cmd = new SqliteCommand(sql, conn);
-        await cmd.ExecuteNonQueryAsync();
+                CREATE INDEX IF NOT EXISTS idx_tweak_history_id ON TweakHistory(TweakId);
+                CREATE TABLE IF NOT EXISTS PowerSchemeChanges (
+                    HistoryId INTEGER PRIMARY KEY REFERENCES TweakHistory(Id) ON DELETE CASCADE,
+                    OriginalId TEXT NOT NULL,
+                    TargetId TEXT NOT NULL,
+                    State TEXT NOT NULL,
+                    ObservedId TEXT,
+                    Detail TEXT
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_power_open ON PowerSchemeChanges((1)) WHERE State <> 'Restored';
+                CREATE TABLE IF NOT EXISTS ConfigurationChanges (
+                    HistoryId INTEGER PRIMARY KEY REFERENCES TweakHistory(Id) ON DELETE CASCADE,
+                    Resource TEXT NOT NULL, OriginalJson TEXT NOT NULL, TargetJson TEXT NOT NULL,
+                    ObservedJson TEXT, State TEXT NOT NULL, BootId TEXT NOT NULL, Detail TEXT
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_configuration_open ON ConfigurationChanges(Resource) WHERE State <> 'Restored';
+            ";
+
+            using var cmd = new SqliteCommand(sql, conn);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            _dbLock.Release();
+        }
     }
 
     public async Task<int> RecordAppliedTweakAsync(
@@ -90,55 +127,71 @@ public class BackupManager : IBackupManager
         bool verificationPassed,
         string? notes = null)
     {
-        using var conn = new SqliteConnection(_connectionString);
-        await conn.OpenAsync();
+        await _dbLock.WaitAsync();
+        try
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-        string sql = @"
-            INSERT INTO TweakHistory (
-                TweakId, TweakTitle, Category, AppliedAtUtc, 
-                OriginalStateJson, AppliedStateJson, Success, 
-                VerificationPassed, IsRolledBack, Notes
-            )
-            VALUES (
-                @TweakId, @TweakTitle, @Category, @AppliedAtUtc,
-                @OriginalStateJson, @AppliedStateJson, @Success,
-                @VerificationPassed, 0, @Notes
-            );
-            SELECT last_insert_rowid();
-        ";
+            string sql = @"
+                INSERT INTO TweakHistory (
+                    TweakId, TweakTitle, Category, AppliedAtUtc, 
+                    OriginalStateJson, AppliedStateJson, Success, 
+                    VerificationPassed, IsRolledBack, Notes
+                )
+                VALUES (
+                    @TweakId, @TweakTitle, @Category, @AppliedAtUtc,
+                    @OriginalStateJson, @AppliedStateJson, @Success,
+                    @VerificationPassed, 0, @Notes
+                );
+                SELECT last_insert_rowid();
+            ";
 
-        using var cmd = new SqliteCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@TweakId", tweakId);
-        cmd.Parameters.AddWithValue("@TweakTitle", tweakTitle);
-        cmd.Parameters.AddWithValue("@Category", category);
-        cmd.Parameters.AddWithValue("@AppliedAtUtc", DateTime.UtcNow.ToString("O"));
-        cmd.Parameters.AddWithValue("@OriginalStateJson", (object?)originalStateJson ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@AppliedStateJson", (object?)appliedStateJson ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@Success", success ? 1 : 0);
-        cmd.Parameters.AddWithValue("@VerificationPassed", verificationPassed ? 1 : 0);
-        cmd.Parameters.AddWithValue("@Notes", (object?)notes ?? DBNull.Value);
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@TweakId", tweakId);
+            cmd.Parameters.AddWithValue("@TweakTitle", tweakTitle);
+            cmd.Parameters.AddWithValue("@Category", category);
+            cmd.Parameters.AddWithValue("@AppliedAtUtc", DateTime.UtcNow.ToString("O"));
+            cmd.Parameters.AddWithValue("@OriginalStateJson", (object?)originalStateJson ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@AppliedStateJson", (object?)appliedStateJson ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Success", success ? 1 : 0);
+            cmd.Parameters.AddWithValue("@VerificationPassed", verificationPassed ? 1 : 0);
+            cmd.Parameters.AddWithValue("@Notes", (object?)notes ?? DBNull.Value);
 
-        var result = await cmd.ExecuteScalarAsync();
-        return Convert.ToInt32(result);
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
+        }
+        finally
+        {
+            _dbLock.Release();
+        }
     }
 
     public async Task<bool> MarkTweakRolledBackAsync(int historyId)
     {
-        using var conn = new SqliteConnection(_connectionString);
-        await conn.OpenAsync();
+        await _dbLock.WaitAsync();
+        try
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-        string sql = @"
-            UPDATE TweakHistory 
-            SET IsRolledBack = 1, RolledBackAtUtc = @RolledBackAtUtc 
-            WHERE Id = @Id;
-        ";
+            string sql = @"
+                UPDATE TweakHistory 
+                SET IsRolledBack = 1, RolledBackAtUtc = @RolledBackAtUtc 
+                WHERE Id = @Id;
+            ";
 
-        using var cmd = new SqliteCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@Id", historyId);
-        cmd.Parameters.AddWithValue("@RolledBackAtUtc", DateTime.UtcNow.ToString("O"));
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", historyId);
+            cmd.Parameters.AddWithValue("@RolledBackAtUtc", DateTime.UtcNow.ToString("O"));
 
-        int rows = await cmd.ExecuteNonQueryAsync();
-        return rows > 0;
+            int rows = await cmd.ExecuteNonQueryAsync();
+            return rows > 0;
+        }
+        finally
+        {
+            _dbLock.Release();
+        }
     }
 
     public async Task<TweakAuditRecord?> GetLatestTweakRecordAsync(string tweakId)
@@ -168,13 +221,13 @@ public class BackupManager : IBackupManager
                 TweakId = reader.GetString(1),
                 TweakTitle = reader.GetString(2),
                 Category = reader.GetString(3),
-                AppliedAtUtc = DateTime.Parse(reader.GetString(4)),
+                AppliedAtUtc = DateTime.Parse(reader.GetString(4), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
                 OriginalStateJson = reader.IsDBNull(5) ? null : reader.GetString(5),
                 AppliedStateJson = reader.IsDBNull(6) ? null : reader.GetString(6),
                 Success = reader.GetInt32(7) == 1,
                 VerificationPassed = reader.GetInt32(8) == 1,
                 IsRolledBack = reader.GetInt32(9) == 1,
-                RolledBackAtUtc = reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10)),
+                RolledBackAtUtc = reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
                 Notes = reader.IsDBNull(11) ? null : reader.GetString(11)
             };
         }
@@ -192,7 +245,9 @@ public class BackupManager : IBackupManager
         string sql = @"
             SELECT Id, TweakId, TweakTitle, Category, AppliedAtUtc, 
                    OriginalStateJson, AppliedStateJson, Success, 
-                   VerificationPassed, IsRolledBack, RolledBackAtUtc, Notes
+                   VerificationPassed, IsRolledBack, RolledBackAtUtc, Notes,
+                   COALESCE((SELECT State FROM PowerSchemeChanges WHERE HistoryId = TweakHistory.Id),
+                       (SELECT State FROM ConfigurationChanges WHERE HistoryId = TweakHistory.Id))
             FROM TweakHistory
             ORDER BY Id DESC
             LIMIT @Limit;
@@ -210,14 +265,15 @@ public class BackupManager : IBackupManager
                 TweakId = reader.GetString(1),
                 TweakTitle = reader.GetString(2),
                 Category = reader.GetString(3),
-                AppliedAtUtc = DateTime.Parse(reader.GetString(4)),
+                AppliedAtUtc = DateTime.Parse(reader.GetString(4), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
                 OriginalStateJson = reader.IsDBNull(5) ? null : reader.GetString(5),
                 AppliedStateJson = reader.IsDBNull(6) ? null : reader.GetString(6),
                 Success = reader.GetInt32(7) == 1,
                 VerificationPassed = reader.GetInt32(8) == 1,
                 IsRolledBack = reader.GetInt32(9) == 1,
-                RolledBackAtUtc = reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10)),
-                Notes = reader.IsDBNull(11) ? null : reader.GetString(11)
+                RolledBackAtUtc = reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+                Notes = reader.IsDBNull(11) ? null : reader.GetString(11),
+                PowerSchemeState = reader.IsDBNull(12) ? null : reader.GetString(12)
             });
         }
 
@@ -226,33 +282,49 @@ public class BackupManager : IBackupManager
 
     public async Task<bool> ClearHistoryAsync()
     {
-        using var conn = new SqliteConnection(_connectionString);
-        await conn.OpenAsync();
+        await _dbLock.WaitAsync();
+        try
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-        string sql = "DELETE FROM TweakHistory;";
-        using var cmd = new SqliteCommand(sql, conn);
-        await cmd.ExecuteNonQueryAsync();
-        return true;
+            string sql = "DELETE FROM TweakHistory WHERE Id NOT IN (SELECT HistoryId FROM PowerSchemeChanges WHERE State <> 'Restored' UNION SELECT HistoryId FROM ConfigurationChanges WHERE State <> 'Restored');";
+            using var cmd = new SqliteCommand(sql, conn);
+            await cmd.ExecuteNonQueryAsync();
+            return true;
+        }
+        finally
+        {
+            _dbLock.Release();
+        }
     }
 
     public async Task<int> SaveSystemSnapshotAsync(string name, string jsonData)
     {
-        using var conn = new SqliteConnection(_connectionString);
-        await conn.OpenAsync();
+        await _dbLock.WaitAsync();
+        try
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-        string sql = @"
-            INSERT INTO SystemSnapshots (CreatedAtUtc, SnapshotName, SnapshotDataJson)
-            VALUES (@CreatedAtUtc, @SnapshotName, @SnapshotDataJson);
-            SELECT last_insert_rowid();
-        ";
+            string sql = @"
+                INSERT INTO SystemSnapshots (CreatedAtUtc, SnapshotName, SnapshotDataJson)
+                VALUES (@CreatedAtUtc, @SnapshotName, @SnapshotDataJson);
+                SELECT last_insert_rowid();
+            ";
 
-        using var cmd = new SqliteCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@CreatedAtUtc", DateTime.UtcNow.ToString("O"));
-        cmd.Parameters.AddWithValue("@SnapshotName", name);
-        cmd.Parameters.AddWithValue("@SnapshotDataJson", jsonData);
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@CreatedAtUtc", DateTime.UtcNow.ToString("O"));
+            cmd.Parameters.AddWithValue("@SnapshotName", name);
+            cmd.Parameters.AddWithValue("@SnapshotDataJson", jsonData);
 
-        var result = await cmd.ExecuteScalarAsync();
-        return Convert.ToInt32(result);
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
+        }
+        finally
+        {
+            _dbLock.Release();
+        }
     }
 
     public async Task<string?> GetSystemSnapshotAsync(int snapshotId)

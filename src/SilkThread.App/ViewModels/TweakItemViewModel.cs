@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -32,7 +32,9 @@ public partial class TweakItemViewModel : ObservableObject
         ? TweakLocalization.GetProblemSolved(Definition.Id, Definition.ProblemSolved)
         : Definition.ProblemSolved;
 
-    public string ExpectedResult => LocalizationService.Instance.CurrentLanguage == "ru"
+    public string ExpectedResult => Definition.RegistryWrites.Any(w => w.ValueName == "Attributes")
+        ? (LocalizationService.Instance.CurrentLanguage == "ru" ? "Только показывает параметр схемы питания. Действующие значения AC/DC не меняются; прямого прироста производительности нет." : Definition.ExpectedResult)
+        : LocalizationService.Instance.CurrentLanguage == "ru"
         ? TweakLocalization.GetExpectedResult(Definition.Id, Definition.ExpectedResult)
         : Definition.ExpectedResult;
 
@@ -46,6 +48,7 @@ public partial class TweakItemViewModel : ObservableObject
     public string LocalizedRecommendation => LocalizationService.Instance.GetRecommendationName(Recommendation);
 
     public bool RequiresReboot => Definition.RequiresReboot;
+    public string RebootBadgeText => LocalizationService.Instance["Tweaks_RebootBadge"];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsApplied))]

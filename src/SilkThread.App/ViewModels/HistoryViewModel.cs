@@ -7,6 +7,7 @@ using SilkThread.App.Services;
 using SilkThread.Core.BackupManager;
 using SilkThread.Core.Models;
 using SilkThread.Core.TweakEngine;
+using SilkThread.Core.SystemOperations;
 
 namespace SilkThread.App.ViewModels;
 
@@ -15,6 +16,7 @@ public partial class HistoryViewModel : ObservableObject
     private readonly IBackupManager _backupManager;
     private readonly ITweakEngine _tweakEngine;
     private readonly ILocalizationService _loc;
+    private readonly IPowerSchemeService? _powerSchemes;
 
     public ObservableCollection<TweakAuditRecord> HistoryRecords { get; } = new();
 
@@ -42,11 +44,13 @@ public partial class HistoryViewModel : ObservableObject
     public HistoryViewModel(
         IBackupManager backupManager,
         ITweakEngine tweakEngine,
-        ILocalizationService localizationService)
+        ILocalizationService localizationService,
+        IPowerSchemeService? powerSchemes = null)
     {
         _backupManager = backupManager;
         _tweakEngine = tweakEngine;
         _loc = localizationService;
+        _powerSchemes = powerSchemes;
 
         _loc.LanguageChanged += (s, e) =>
         {
@@ -62,8 +66,30 @@ public partial class HistoryViewModel : ObservableObject
             OnPropertyChanged(nameof(EmptyLabel));
             OnPropertyChanged(nameof(RefreshBtnLabel));
             OnPropertyChanged(nameof(EmptyTitleLabel));
-            _ = LoadHistoryAsync();
+            _ = Task.Run(async () =>
+            {
+                try { await LoadHistoryAsync(); }
+                catch (Exception ex) { App.Log($"[HistoryViewModel LangChanged Load error]: {ex.Message}"); }
+            });
         };
+    }
+
+    private void RunOnUI(Action action)
+    {
+        var dq = App.MainDispatcherQueue ?? App.MainWindowInstance?.DispatcherQueue;
+        if (dq != null && !dq.HasThreadAccess)
+        {
+            dq.TryEnqueue(() =>
+            {
+                try { action(); }
+                catch (Exception ex) { App.Log($"[HistoryViewModel RunOnUI Exception]: {ex}"); }
+            });
+        }
+        else
+        {
+            try { action(); }
+            catch (Exception ex) { App.Log($"[HistoryViewModel RunOnUI Exception]: {ex}"); }
+        }
     }
 
     public async Task InitializeAsync()
@@ -74,20 +100,27 @@ public partial class HistoryViewModel : ObservableObject
     [RelayCommand]
     public async Task LoadHistoryAsync()
     {
-        IsLoading = true;
+        RunOnUI(() => IsLoading = true);
         try
         {
             var records = await _backupManager.GetAuditHistoryAsync(150);
-            HistoryRecords.Clear();
-            foreach (var r in records)
+            RunOnUI(() =>
             {
-                HistoryRecords.Add(r);
-            }
-            OnPropertyChanged(nameof(HasNoRecords));
+                HistoryRecords.Clear();
+                foreach (var r in records)
+                {
+                    HistoryRecords.Add(r);
+                }
+                OnPropertyChanged(nameof(HasNoRecords));
+            });
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[HistoryViewModel LoadHistoryAsync error]: {ex.Message}");
         }
         finally
         {
-            IsLoading = false;
+            RunOnUI(() => IsLoading = false);
         }
     }
 
@@ -96,25 +129,47 @@ public partial class HistoryViewModel : ObservableObject
     {
         if (record.IsRolledBack) return;
 
-        IsLoading = true;
+        RunOnUI(() => IsLoading = true);
         try
         {
-            var res = await _tweakEngine.RollbackTweakAsync(record.TweakId);
-            StatusMessage = res.Message;
+            if (record.TweakId == PageFileService.Resource)
+            {
+                RunOnUI(() => StatusMessage = _loc["Page_ReviewRequired"]);
+            }
+            else if (record.TweakId == "system_power_scheme" && _powerSchemes != null)
+            {
+                var res = await _powerSchemes.RestoreAsync(record.Id);
+                RunOnUI(() => StatusMessage = _loc["Power_Result_" + res.Outcome]);
+            }
+            else
+            {
+                var res = await _tweakEngine.RollbackTweakAsync(record.TweakId);
+                RunOnUI(() => StatusMessage = res.Message);
+            }
             await LoadHistoryAsync();
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[HistoryViewModel RollbackRecordAsync error]: {ex.Message}");
         }
         finally
         {
-            IsLoading = false;
+            RunOnUI(() => IsLoading = false);
         }
     }
 
     [RelayCommand]
     public async Task ClearHistoryAsync()
     {
-        await _backupManager.ClearHistoryAsync();
-        HistoryRecords.Clear();
-        OnPropertyChanged(nameof(HasNoRecords));
-        StatusMessage = _loc.CurrentLanguage == "ru" ? "Журнал аудита успешно очищен." : "Audit history log cleared.";
+        try
+        {
+            await _backupManager.ClearHistoryAsync();
+            await LoadHistoryAsync();
+            RunOnUI(() => StatusMessage = _loc["Hist_Cleared_Status"]);
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[HistoryViewModel ClearHistoryAsync error]: {ex.Message}");
+        }
     }
 }

@@ -45,12 +45,13 @@ public class TweakAuditRecord
     public bool IsRolledBack { get; set; }
     public DateTime? RolledBackAtUtc { get; set; }
     public string? Notes { get; set; }
+    public string? PowerSchemeState { get; set; }
 
     public string FormattedDate => AppliedAtUtc.ToLocalTime().ToString("dd.MM.yyyy");
     public string FormattedTime => AppliedAtUtc.ToLocalTime().ToString("HH:mm:ss");
     public string FormattedTimestamp => $"{FormattedDate} {FormattedTime}";
     public string TweakName => TweakTitle;
-    public string Status => IsRolledBack ? "RolledBack" : (Success ? "Applied" : "Failed");
+    public string Status => IsRolledBack ? "RolledBack" : PowerSchemeState ?? (Success ? "Applied" : "Failed");
 }
 
 public record RestorePointItem(
